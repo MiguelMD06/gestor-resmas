@@ -1,0 +1,7 @@
+{
+  "name": "gestor-resmas",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}

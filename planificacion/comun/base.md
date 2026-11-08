@@ -19,7 +19,7 @@ Aplicación Android, 100 % offline, para administrar un negocio de venta de resm
 | TypeScript | 6, con `strict: true` |
 | Pruebas unitarias | Vitest 5 mediante `ng test` (builder de Angular, entorno jsdom) |
 | Pruebas e2e | Playwright |
-| Base de datos | `@capacitor-community/sqlite` 8.x en la app y `sql.js` en las pruebas |
+| Base de datos | `@capacitor-community/sqlite` 8.x en la app y `sql.js` 1.11.0 en las pruebas |
 
 ## Arquitectura
 
@@ -56,8 +56,8 @@ src/app/
 
 - **`@capacitor-community/sqlite`:** dentro de una transacción manual (`beginTransaction` / `commitTransaction` / `rollbackTransaction`), llama a `run`, `execute` y `executeSet` con `transaction = false`. Si no, el plugin abre su propia transacción.
 - **En web (jeep-sqlite)**, después de cada commit hay que llamar a `saveToStore(nombreBD)`, o los datos se pierden al recargar.
-- **En web, jeep-sqlite 2.8 trae empaquetado el JS de sql.js 1.11** y necesita el `.wasm` de **esa** versión; el de sql.js 1.15 falla al cargar. Por eso `angular.json` copia `sql-wasm.wasm` desde `node_modules/sql.js-jeep-wasm/dist` (alias de `sql.js@1.11.0`). No lo cambies por el de `sql.js`, que es 1.15 y solo se usa en las pruebas.
-- **`sql.js` funciona dentro de `ng test`** con `await initSqlJs()` sin configuración extra (verificado con la versión 1.15.2).
+- **En web y en las pruebas se usa la misma `sql.js@1.11.0`:** jeep-sqlite 2.8 trae empaquetado el JS de sql.js 1.11 y necesita el `.wasm` de **esa** versión (`angular.json` copia `sql-wasm.wasm` desde `node_modules/sql.js/dist`). No subas `sql.js` sin comprobar la compatibilidad con jeep-sqlite.
+- **`sql.js` funciona dentro de `ng test`** con `await initSqlJs()` sin configuración extra (verificado con la versión 1.11.0).
 - **SQLite no valida tipos por sí solo:** los CHECK del esquema usan `typeof(col) = 'integer'`. No los quites.
 - **`PRAGMA foreign_keys = ON`** se activa en cada conexión, no queda guardado en la base.
 - **Windows y PowerShell 5.1:** guarda los archivos en UTF-8 sin BOM.

@@ -12,22 +12,28 @@ export class DatabaseProvider {
   private instance: SqlDatabase | null = null;
   private initPromise: Promise<void> | null = null;
 
+  /**
+   * Initializes the SQLite connection and runs pending migrations.
+   * When an instance already exists or an initialization is in flight,
+   * the `createDatabase` argument is ignored.
+   */
   async init(createDatabase: () => Promise<SqlDatabase> = createCapacitorSqlDatabase): Promise<void> {
     if (this.instance) {
       return;
     }
 
     if (!this.initPromise) {
-      this.initPromise = (async () => {
-        try {
-          const db = await createDatabase();
-          await migrar(db, MIGRACIONES);
-          this.instance = db;
-        } catch (err) {
-          this.initPromise = null;
-          throw err;
-        }
+      const intento = (async () => {
+        const db = await createDatabase();
+        await migrar(db, MIGRACIONES);
+        this.instance = db;
       })();
+      this.initPromise = intento;
+      intento.catch(() => {
+        if (this.initPromise === intento) {
+          this.initPromise = null;
+        }
+      });
     }
 
     return this.initPromise;

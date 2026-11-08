@@ -1,5 +1,6 @@
 import type { SQLiteDBConnection } from '@capacitor-community/sqlite';
 
+import { GuardadoWebError } from './guardado-web.error';
 import { SerialQueue } from './serial-queue';
 import type { RunResult, SqlDatabase, SqlExecutor, SqlValue } from './sql-database.port';
 
@@ -10,6 +11,7 @@ export interface CapacitorSqlDatabaseOptions {
 
 export class CapacitorSqlDatabase implements SqlDatabase {
   private readonly queue = new SerialQueue();
+  private pendienteGuardar = false;
 
   constructor(
     private readonly db: SQLiteDBConnection,
@@ -17,8 +19,21 @@ export class CapacitorSqlDatabase implements SqlDatabase {
   ) {}
 
   private async saveIfWeb(): Promise<void> {
-    if (this.options?.esWeb) {
+    if (!this.options?.esWeb) {
+      return;
+    }
+    try {
       await this.options.guardar();
+      this.pendienteGuardar = false;
+    } catch (cause) {
+      this.pendienteGuardar = true;
+      throw new GuardadoWebError('Failed to persist web database store.', cause);
+    }
+  }
+
+  private async flushPendingSaveIfWeb(): Promise<void> {
+    if (this.pendienteGuardar) {
+      await this.saveIfWeb();
     }
   }
 
@@ -31,6 +46,7 @@ export class CapacitorSqlDatabase implements SqlDatabase {
 
   run(sql: string, params?: readonly SqlValue[]): Promise<RunResult> {
     return this.queue.enqueue(async () => {
+      await this.flushPendingSaveIfWeb();
       const res = await this.db.run(sql, params ? [...params] : [], false);
       await this.saveIfWeb();
       return {
@@ -42,6 +58,7 @@ export class CapacitorSqlDatabase implements SqlDatabase {
 
   exec(script: string): Promise<void> {
     return this.queue.enqueue(async () => {
+      await this.flushPendingSaveIfWeb();
       await this.db.execute(script, false);
       await this.saveIfWeb();
     });
@@ -49,6 +66,7 @@ export class CapacitorSqlDatabase implements SqlDatabase {
 
   transaction<T>(work: (tx: SqlExecutor) => Promise<T>): Promise<T> {
     return this.queue.enqueue(async () => {
+      await this.flushPendingSaveIfWeb();
       await this.db.beginTransaction();
 
       const tx: SqlExecutor = {
@@ -68,15 +86,17 @@ export class CapacitorSqlDatabase implements SqlDatabase {
         },
       };
 
+      let result: T;
       try {
-        const result = await work(tx);
+        result = await work(tx);
         await this.db.commitTransaction();
-        await this.saveIfWeb();
-        return result;
       } catch (err) {
         await this.db.rollbackTransaction();
         throw err;
       }
+
+      await this.saveIfWeb();
+      return result;
     });
   }
 }

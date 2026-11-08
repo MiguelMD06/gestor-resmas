@@ -74,3 +74,12 @@ Thumbs.db
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+# Local agent tooling
+.claude/
+CLAUDE.local.md
+
+# Environment
+.env
+.env.*
+!.env.example

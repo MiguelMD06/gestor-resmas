@@ -53,3 +53,11 @@ Lo único que puedes leer del repositorio original es `git diff <base>..HEAD --n
 2. Resultado de los 4 comandos.
 3. Bloqueantes y advertencias, cada uno con cómo reproducirlo.
 4. La ruta exacta de `$SCRATCH`, para que el coordinador la borre. **No la borres tú.**
+
+## Datos del coordinador
+
+- **Repositorio (`<repo>`):** `C:\Users\MIGUEL ANGEL\Documents\PROYECTOS MIGUEL MEDINA DIAZ\gestor-resmas\.claude\worktrees\plan-etapas`, rama `feat/etapa-0-fundaciones`, HEAD `8cced20`.
+- **Base (`<base>`):** `e27cffe714f4cbed15ca72e02c01f2fdad5b4bc4`, la punta de `docs/plan-etapas`.
+- **Rutas extra aceptadas en el control de rutas:** `.gitattributes` y `.vscode/extensions.json` (cambio de finales de línea, L14), y `README.md`.
+- **Ajuste del coordinador sobre B0.2 (L16):** el `.wasm` web sale de `node_modules/sql.js-jeep-wasm/dist` (alias de `sql.js@1.11.0`). Verifica que `www/assets/sql-wasm.wasm` tenga el mismo md5 que ese archivo, y que **no** exista ningún `.wasm` dentro de `src/`.
+- **Memoria:** la máquina tiene poca. Corre un comando por vez, en primer plano, y cierra `ng serve` y el navegador al terminar el e2e.

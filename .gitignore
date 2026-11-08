@@ -78,6 +78,7 @@ Thumbs.db
 # Local agent tooling
 .claude/
 CLAUDE.local.md
+planificacion/etapas/*/logs/
 
 # Environment
 .env

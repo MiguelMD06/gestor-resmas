@@ -10,13 +10,27 @@ import { createCapacitorSqlDatabase } from './sqlite-connection.factory';
 })
 export class DatabaseProvider {
   private instance: SqlDatabase | null = null;
+  private initPromise: Promise<void> | null = null;
 
-  async init(): Promise<void> {
-    if (!this.instance) {
-      const db = await createCapacitorSqlDatabase();
-      await migrar(db, MIGRACIONES);
-      this.instance = db;
+  async init(createDatabase: () => Promise<SqlDatabase> = createCapacitorSqlDatabase): Promise<void> {
+    if (this.instance) {
+      return;
     }
+
+    if (!this.initPromise) {
+      this.initPromise = (async () => {
+        try {
+          const db = await createDatabase();
+          await migrar(db, MIGRACIONES);
+          this.instance = db;
+        } catch (err) {
+          this.initPromise = null;
+          throw err;
+        }
+      })();
+    }
+
+    return this.initPromise;
   }
 
   get db(): SqlDatabase {

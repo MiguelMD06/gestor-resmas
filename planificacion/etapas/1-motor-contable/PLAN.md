@@ -1,6 +1,6 @@
 # Etapa 1 — Motor contable
 
-**Estado:** en ejecución (L4) · **Rama:** `feat/etapa-1-motor-contable` · **Entrega:** un PR a `main` · **Pruebas:** Vitest (`ng test`)
+**Estado:** ✅ implementada y verificada (L5), PR pendiente de la validación de Miguel · **Rama:** `feat/etapa-1-motor-contable` · **Entrega:** un PR a `main` · **Pruebas:** Vitest (`ng test`)
 **Objetivo:** construir las reglas que deciden, en cada movimiento de dinero, cuánto es capital y cuánto es ganancia (cobros, cascada de abonos, compras, retiros y traspasos), como código puro probado con ejemplos, más un repositorio único del libro de dinero que van a reutilizar todas las etapas. Antes, cerrar los pendientes de la revisión de la Etapa 0.
 
 ## Qué hay hoy
@@ -159,6 +159,28 @@ En el orden en que se aplican, según `commits-atomicos`:
 
 El reporte de la etapa va en Engram (`etapas/1-motor-contable/reporte`).
 
+## Resultado
+
+| Bloque | Agente | Commits | Resultado |
+|--------|--------|---------|-----------|
+| B1.0 | `agy` · `gemini-4-argon-high`, intento 1 | `9e96a55`, `add94e1`, `09c2207`, `8dd29cf`, `34d291b` | 13 pruebas nuevas (62 en total). Revisión nativa (riesgo, resiliencia y confiabilidad) **aprobada** y confirmada, linaje `review-988376a80bd85eff`. |
+| B1.1 | `agy` · `gemini-3.8-flash-high`, intento 1 | `0b6e7a8` | Reparto, cascada, abono individual, liquidación y margen. |
+| B1.2 | `agy` · `gemini-3.8-flash-high`, intento 1 | `778a5e9` | Libro, operaciones, simulación D4 y `LibroRepository` (117 pruebas en total con B1.1). Evaluación nativa: riesgo medio, sin revisión obligatoria (`under_budget`). |
+| V1 | `agy` · `gemini-4-argon-high`, intento 2 (el 1 se cortó por un error de red antes de empezar) | `77dad5d` | **S1–S13 y E1–E8 cumplen, 0 bloqueantes**, sin rutas fuera de lo permitido. Sus 12 pruebas quedaron como regresión en `src/app/motor-contable.acceptance.spec.ts` (129 en total). |
+
+## Pendientes para la Etapa 2
+
+Observaciones que no bloquean, de la revisión nativa de B1.0 y de V1:
+
+| ID | Dónde | Severidad | Qué es |
+|----|-------|-----------|--------|
+| R3-init-sync-throw-caches-rejection / R4-init-sync-throw-cache | `database.provider.ts:21-30` | WARNING | Si la función que crea la base lanza de forma **síncrona**, el `catch` limpia `initPromise` antes de que se asigne, y la promesa rechazada queda guardada: ya no se puede reintentar. Con la factory real (asíncrona) no pasa. |
+| R4-ambiguous-guardado-error | `capacitor-sql-database.adapter.ts:34-36` | WARNING | `GuardadoWebError` se lanza tanto si la escritura se hizo y falló el guardado como si falló el reintento previo y la escritura **no** se ejecutó. Quien llama no puede distinguirlos. |
+| R1-001 | `database.provider.ts:15-33` | SUGGESTION | Observación informativa del enfoque de riesgo sobre `init()`. |
+| R3-pending-flush-tx-untested | `capacitor-sql-database.adapter.ts:69` | SUGGESTION | No hay prueba del reintento de guardado pendiente antes de una `transaction` (sí la hay para `run`). |
+| V1-idioma | `finanzas/domain/operaciones.ts`, `saldos.ts`, `simulacion.spec.ts` | SUGGESTION | Mensajes internos de error y un `describe` en español; `base.md` los pide en inglés. No afecta a las pantallas, que traducen por `codigo` (D2). |
+| V1-dominio-factura | `cartera/domain/factura.ts`, `reparto-pago.ts` | SUGGESTION | Asumen `total >= pagado >= 0` y `costoBase >= 0`, que hoy garantizan los CHECK de `ventas`. |
+
 ## Por aprobar
 
 ✅ Los 7 puntos fueron aprobados tal cual (L3). La ejecución espera la orden del usuario.
@@ -179,3 +201,4 @@ Mensajes del usuario copiados textualmente; las notas del coordinador van entre 
 - **L2** (2026-11-08): "Si" [Pedido para escribir este plan.] Durante la escritura: "Quiero que solo escribas el plan, yo te indico cuando comenzar a ejecutar el plan"
 - **L3** (2026-11-08): "Si apruebo los 7 puntos, quiero saber porque estas dejando el plan y todo lo de documentación en distintas PR, eso es una buena practica?. Todavía no ejecutes el plan" [Plan aprobado. La ejecución sigue en espera.]
 - **L4** (2026-11-08, Juan Fierro, que ejecuta la etapa; Miguel valida el PR): "Miguel ya integró el PR #4, arranquemos la Etapa 1" [Rama `feat/etapa-1-motor-contable` desde `41d35ad`. Ajustes de ejecución, sin cambiar el alcance: (1) agy corre con `--mode accept-edits` en lugar de `--dangerously-skip-permissions`; (2) B1.0 va con `gemini-4-argon-high`, porque toca concurrencia y dependencias (ítems 4 y 5 de alto riesgo); B1.1 y B1.2 con `gemini-3.8-flash-high`; (3) en la ola 2, los bloques paralelos no corren `npm run build` (los dos escribirían en `www/`): compila el coordinador; (4) las operaciones del libro reciben `fecha: FechaHora` como parámetro, porque `domain/` no lee el reloj, y el traspaso se registra con `registrarTraspaso(tx, [salida, entrada])` en vez de sobrecargar `registrar`.]
+- **L5** (2026-11-08): [Etapa ejecutada y verificada; ver "Resultado" y "Pendientes para la Etapa 2". Commits extra respecto de la lista de "Commits": `a0f667f` y `271b549` (encargos de los bloques), `77dad5d` (pruebas de aceptación de V1) y el de cierre. Para la revisión nativa se corrió `gentle-ai sync` en la máquina del coordinador (`managed_assets_outdated`).]

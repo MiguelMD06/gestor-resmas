@@ -1,6 +1,6 @@
 # Etapa 1 — Motor contable
 
-**Estado:** ✅ aprobado (L3), sin ejecutar · **Rama:** `feat/etapa-1-motor-contable` · **Entrega:** un PR a `main` · **Pruebas:** Vitest (`ng test`)
+**Estado:** en ejecución (L4) · **Rama:** `feat/etapa-1-motor-contable` · **Entrega:** un PR a `main` · **Pruebas:** Vitest (`ng test`)
 **Objetivo:** construir las reglas que deciden, en cada movimiento de dinero, cuánto es capital y cuánto es ganancia (cobros, cascada de abonos, compras, retiros y traspasos), como código puro probado con ejemplos, más un repositorio único del libro de dinero que van a reutilizar todas las etapas. Antes, cerrar los pendientes de la revisión de la Etapa 0.
 
 ## Qué hay hoy
@@ -178,3 +178,4 @@ Mensajes del usuario copiados textualmente; las notas del coordinador van entre 
 - **L1** (2026-11-08): "Antes de construir la etapa 1 quiero saber exactamente que se va a hacer de forma no tan técnica explicame de una forma sencilla para yo poder entender el hilo de los que vamos a construir" [Se explicó con el ejemplo de Ana, que pasa a ser los criterios E1 a E8.]
 - **L2** (2026-11-08): "Si" [Pedido para escribir este plan.] Durante la escritura: "Quiero que solo escribas el plan, yo te indico cuando comenzar a ejecutar el plan"
 - **L3** (2026-11-08): "Si apruebo los 7 puntos, quiero saber porque estas dejando el plan y todo lo de documentación en distintas PR, eso es una buena practica?. Todavía no ejecutes el plan" [Plan aprobado. La ejecución sigue en espera.]
+- **L4** (2026-11-08, Juan Fierro, que ejecuta la etapa; Miguel valida el PR): "Miguel ya integró el PR #4, arranquemos la Etapa 1" [Rama `feat/etapa-1-motor-contable` desde `41d35ad`. Ajustes de ejecución, sin cambiar el alcance: (1) agy corre con `--mode accept-edits` en lugar de `--dangerously-skip-permissions`; (2) B1.0 va con `gemini-4-argon-high`, porque toca concurrencia y dependencias (ítems 4 y 5 de alto riesgo); B1.1 y B1.2 con `gemini-3.8-flash-high`; (3) en la ola 2, los bloques paralelos no corren `npm run build` (los dos escribirían en `www/`): compila el coordinador; (4) las operaciones del libro reciben `fecha: FechaHora` como parámetro, porque `domain/` no lee el reloj, y el traspaso se registra con `registrarTraspaso(tx, [salida, entrada])` en vez de sobrecargar `registrar`.]

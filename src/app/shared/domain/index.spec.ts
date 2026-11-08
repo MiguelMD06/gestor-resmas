@@ -11,6 +11,7 @@ import {
   MEDIOS_PAGO,
   pesos,
   pesosPositivos,
+  ReglaNegocioError,
   resmas,
   resmasPositivas,
   RESMAS_POR_CAJA,
@@ -41,5 +42,7 @@ describe('domain barrel index', () => {
 
     expect(typeof fechaHora).toBe('function');
     expect(typeof formatearFechaHora).toBe('function');
+
+    expect(typeof ReglaNegocioError).toBe('function');
   });
 });

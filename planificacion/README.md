@@ -7,7 +7,7 @@
 | # | Etapa | Requisitos que cubre | Estado | Plan | Reporte (Engram) |
 |---|-------|----------------------|--------|------|------------------|
 | 0 | Fundaciones | RNF-01, RNF-02, RNF-03, RNF-04; esquema con A1, A2, A5, A6 y las correcciones B | ✅ hecha (PR #3) | [PLAN](etapas/0-fundaciones/PLAN.md) | `etapas/0-fundaciones/reporte` |
-| 1 | Motor contable (dominio puro, sin interfaz) | RN-03, RF-11, RF-16; reglas de RF-12, RF-13, RF-14, RF-17, RF-19 y RF-20; A1, A3, A4; pendientes de la revisión de la Etapa 0 | ✅ plan aprobado, sin ejecutar | [PLAN](etapas/1-motor-contable/PLAN.md) | `etapas/1-motor-contable/reporte` |
+| 1 | Motor contable (dominio puro, sin interfaz) | RN-03, RF-11, RF-16; reglas de RF-12, RF-13, RF-14, RF-17, RF-19 y RF-20; A1, A3, A4; pendientes de la revisión de la Etapa 0 | en ejecución (Juan; valida Miguel) | [PLAN](etapas/1-motor-contable/PLAN.md) | `etapas/1-motor-contable/reporte` |
 | 2 | Inventario y aportes de capital | RN-01, RN-02, RF-01, RF-02, RF-03, RF-04; A2, A3; navegación con pestañas | pendiente | — | — |
 | 3 | Clientes y punto de venta | RF-05, RF-07, RF-08, RF-09, RF-10, RNF-05; A4 (aviso) | pendiente | — | — |
 | 4 | Cartera y expediente del cliente | RF-06, RF-11, RF-12, RF-13, RF-14, RF-15 | pendiente | — | — |
@@ -64,3 +64,7 @@ Formato híbrido: la estructura de la skill `planificacion-por-etapas` más la t
 | 0 | B0.3 Tipos de dominio compartidos (ola 1) | ✅ hecho (`agy`, intento 1; 25 pruebas nuevas) |
 | 0 | B0.2 Persistencia SQLite (ola 2) | ✅ hecho (`agy`, intento 2; el 1 se cortó por falta de memoria; 22 pruebas nuevas) |
 | 0 | V0 Verificación independiente (ola 3) | ✅ hecho (`agy` Argon: S1–S12 cumplen, 0 bloqueantes) |
+| 1 | B1.0 Ajustes de persistencia y error de negocio (ola 1) | en curso (`agy` Argon high) |
+| 1 | B1.1 Reglas de cobro y cartera, y margen de venta (ola 2) | pendiente |
+| 1 | B1.2 Libro de dinero y su repositorio (ola 2) | pendiente |
+| 1 | V1 Verificación independiente (ola 3) | pendiente |

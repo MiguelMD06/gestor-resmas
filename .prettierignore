@@ -3,3 +3,6 @@
 # Gradle's build output.
 android/
 ios/
+
+# Planning documents and prototype evidence are not application code.
+planificacion/

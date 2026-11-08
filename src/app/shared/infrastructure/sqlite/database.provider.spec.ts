@@ -44,4 +44,22 @@ describe('DatabaseProvider', () => {
     const rows = await provider.db.query<{ user_version: number }>('PRAGMA user_version;');
     expect(rows[0]?.user_version).toBeGreaterThan(0);
   });
+
+  it('discards the failed promise when the factory throws synchronously and succeeds on a subsequent init() retry', async () => {
+    const provider = new DatabaseProvider();
+    const syncError = new Error('Synchronous factory failure');
+    const failingFactory = (): Promise<SqlJsDatabase> => {
+      throw syncError;
+    };
+    const workingFactory = vi.fn(async () => SqlJsDatabase.create());
+
+    await expect(provider.init(failingFactory)).rejects.toBe(syncError);
+    expect(() => provider.db).toThrow('DatabaseProvider has not been initialized. Call init() first.');
+
+    await provider.init(workingFactory);
+
+    expect(workingFactory).toHaveBeenCalledTimes(1);
+    const rows = await provider.db.query<{ user_version: number }>('PRAGMA user_version;');
+    expect(rows[0]?.user_version).toBeGreaterThan(0);
+  });
 });

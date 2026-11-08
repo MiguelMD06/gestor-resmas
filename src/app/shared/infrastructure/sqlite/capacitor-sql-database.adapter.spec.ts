@@ -180,6 +180,91 @@ describe('CapacitorSqlDatabase adapter', () => {
     expect(guardar).toHaveBeenCalledTimes(3);
   });
 
+  it('retries guardar() before the next exec when pending and executes the script if guardar() succeeds', async () => {
+    const mockDb = createMockDb();
+    const order: string[] = [];
+    const guardar = vi
+      .fn()
+      .mockImplementationOnce(async () => {
+        order.push('guardar-1-fail');
+        throw new Error('First save failed');
+      })
+      .mockImplementation(async () => {
+        order.push('guardar-ok');
+      });
+    mockDb.execute.mockImplementation(async () => {
+      order.push('db.execute');
+      return { changes: { changes: 0 } };
+    });
+
+    const db = new CapacitorSqlDatabase(mockDb as unknown as SQLiteDBConnection, {
+      esWeb: true,
+      guardar,
+    });
+
+    await expect(db.exec('CREATE TABLE t1 (id INT);')).rejects.toBeInstanceOf(GuardadoWebError);
+
+    await db.exec('CREATE TABLE t2 (id INT);');
+    expect(order).toEqual(['db.execute', 'guardar-1-fail', 'guardar-ok', 'db.execute', 'guardar-ok']);
+    expect(mockDb.execute).toHaveBeenCalledTimes(2);
+    expect(guardar).toHaveBeenCalledTimes(3);
+  });
+
+  it('retries guardar() before the next transaction when pending and executes the transaction if guardar() succeeds', async () => {
+    const mockDb = createMockDb();
+    const order: string[] = [];
+    const guardar = vi
+      .fn()
+      .mockImplementationOnce(async () => {
+        order.push('guardar-1-fail');
+        throw new Error('First save failed');
+      })
+      .mockImplementation(async () => {
+        order.push('guardar-ok');
+      });
+    mockDb.beginTransaction.mockImplementation(async () => {
+      order.push('db.beginTransaction');
+      return { changes: { changes: 0 } };
+    });
+    mockDb.run.mockImplementation(async () => {
+      order.push('db.run');
+      return { changes: { changes: 1, lastId: 10 } };
+    });
+    mockDb.commitTransaction.mockImplementation(async () => {
+      order.push('db.commitTransaction');
+      return { changes: { changes: 0 } };
+    });
+
+    const db = new CapacitorSqlDatabase(mockDb as unknown as SQLiteDBConnection, {
+      esWeb: true,
+      guardar,
+    });
+
+    await expect(
+      db.transaction(async (tx) => {
+        await tx.run('INSERT INTO test VALUES (?)', [1]);
+      }),
+    ).rejects.toBeInstanceOf(GuardadoWebError);
+
+    const res = await db.transaction(async (tx) => tx.run('INSERT INTO test VALUES (?)', [2]));
+    expect(res).toEqual({ changes: 1, lastInsertId: 10 });
+    expect(order).toEqual([
+      'db.beginTransaction',
+      'db.run',
+      'db.commitTransaction',
+      'guardar-1-fail',
+      'guardar-ok',
+      'db.beginTransaction',
+      'db.run',
+      'db.commitTransaction',
+      'guardar-ok',
+    ]);
+    expect(mockDb.beginTransaction).toHaveBeenCalledTimes(2);
+    expect(mockDb.run).toHaveBeenCalledTimes(2);
+    expect(mockDb.commitTransaction).toHaveBeenCalledTimes(2);
+    expect(guardar).toHaveBeenCalledTimes(3);
+  });
+
   it('throws GuardadoWebError without calling db.run when pending and guardar() fails again on the next write', async () => {
     const mockDb = createMockDb();
     const firstCause = new Error('First save failed');

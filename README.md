@@ -2,7 +2,7 @@
 
 Aplicación Android, 100 % offline, para administrar un negocio de venta de resmas de papel Carta y Oficio: compra de cajas por lotes, ventas con precio por lote, cartera de clientes con abonos y control financiero que separa el capital recuperado de la ganancia disponible.
 
-> **Estado:** en planificación. El repositorio contiene la plantilla base de Ionic y la documentación de requisitos; la lógica de negocio todavía no está implementada.
+> **Estado:** Etapa 0 (fundaciones). Ya están la base de datos local, las migraciones y los tipos de dominio. Las pantallas y la lógica de negocio llegan en las etapas siguientes ([hoja de ruta](planificacion/README.md)).
 
 ## Inicio rápido
 
@@ -19,9 +19,11 @@ npm run lint       # ESLint, chequeo de tipos e2e y Prettier
 |------|------------|
 | UI | Ionic 9 + Angular 22 (componentes standalone) |
 | Empaquetado Android | Capacitor 8 |
-| Base de datos local | SQLite mediante `@capacitor-community/sqlite` (planificado) |
+| Base de datos local | SQLite mediante `@capacitor-community/sqlite`; en el navegador usa jeep-sqlite |
+| Esquema | Migraciones versionadas con `PRAGMA user_version` en `src/app/shared/infrastructure/sqlite/migrations/` |
 | Lenguaje | TypeScript en modo estricto; montos en pesos colombianos como enteros |
-| Pruebas | Vitest (unitarias) y Playwright (e2e) |
+| Pruebas | Vitest (unitarias, con SQL real en memoria mediante sql.js) y Playwright (e2e) |
+| CI | GitHub Actions: lint, pruebas unitarias y build en cada PR |
 | Calidad | ESLint (angular-eslint) y Prettier |
 
 ## Documentación del proyecto

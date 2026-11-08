@@ -31,6 +31,11 @@
                 "glob": "**/*",
                 "input": "src/assets",
                 "output": "assets"
+              },
+              {
+                "glob": "sql-wasm.wasm",
+                "input": "node_modules/sql.js-jeep-wasm/dist",
+                "output": "assets"
               }
             ],
             "styles": ["src/global.scss", "src/theme/variables.scss"],

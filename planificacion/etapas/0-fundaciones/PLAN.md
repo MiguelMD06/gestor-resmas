@@ -166,3 +166,20 @@ Mensajes del usuario copiados textualmente; las notas del coordinador van entre 
 - **L15** (2026-11-08): "Relanza b0.2 y ya cerré el agy.exe" [El intento 1 de B0.2 lo detuvo el sistema por falta de memoria, con los archivos escritos pero sin verificar. El intento 2 continuó desde ese estado con `retoma.md`, corriendo un comando por vez.]
 - **L16** (2026-11-08): [Ajustes del coordinador sobre B0.2. (1) jeep-sqlite 2.8.0 trae empaquetado el JS de sql.js 1.11 y necesita su `.wasm`, porque el de 1.15 falla al cargar. El agente había guardado ese binario en `src/`; se verificó que coincide byte a byte con el oficial de `sql.js@1.11.0` (md5 `f6ad6454…`) y se reemplazó por la dependencia de desarrollo `sql.js-jeep-wasm` (`npm:sql.js@1.11.0`), que queda en el lockfile con su hash de integridad. (2) Se revirtió un reformateo de `lintFilePatterns` en `angular.json` que nadie pidió. Verificación después de los ajustes: 49/49 pruebas, lint, build (con `www/assets/sql-wasm.wasm` y el mismo md5) y 2/2 e2e. Commit `256f85d`.]
 - **L17** (2026-11-08): [V0 (`agy` · `gemini-4-argon-medium`, copia limpia en `HEAD 8cced20`): S1–S12 **cumplen**, 0 bloqueantes, 0 advertencias. `lint` pasa, `test:unit` 49/49 (58/58 con 9 pruebas propias del verificador), `test:e2e` 2/2, `build` sin "Unsupported browsers". El md5 del `.wasm` coincide, no hay `.wasm` en `src/`, el dominio no importa frameworks y no hay archivos fuera de las rutas permitidas (54 archivos revisados). Control del coordinador: `test:unit` 49/49. La copia temporal de V0 se borró.]
+- **L18** (2026-11-08): [PR #3 abierto (encadenado sobre #2). El CI corrió en GitHub por primera vez y pasó (`verify`, 1m17s); se agregó `verify` como check obligatorio en `main` con `strict: false`. La revisión de gentle-ai sobre la etapa completa (57 archivos, 2996 líneas) se cortó con `lens_context_budget_exceeded`.] Ante la pregunta de cómo seguir, el usuario eligió "Solo SQLite (Recomendado)" y después aceptó la revisión con "Revisar este cambio".
+- **L19** (2026-11-08): [Revisión del commit `256f85d` (22 archivos, 1119 líneas) con 3 enfoques: riesgo, resiliencia y confiabilidad. **Aprobada**, sin hallazgos bloqueantes; confirmada con `acknowledged` y la autoridad consumida. Quedaron 10 observaciones informativas, que pasan a la sección "Pendientes para la Etapa 1".]
+
+## Pendientes para la Etapa 1
+
+Observaciones de la revisión de `256f85d`. No bloquean y conviene resolverlas antes de construir sobre la persistencia:
+
+| ID | Dónde | Severidad | Qué es |
+|----|-------|-----------|--------|
+| R4/R3-save-after-commit-rollback | `capacitor-sql-database.adapter.ts:71-79` | WARNING | En web, si `saveToStore` falla después del commit, el `catch` llama a `rollbackTransaction` sobre una transacción ya confirmada. Mover el guardado fuera del `try` del commit. |
+| R4-nontx-write-retry-unsafe | `capacitor-sql-database.adapter.ts:34-35` | WARNING | Una escritura fuera de transacción puede quedar escrita aunque su `saveToStore` falle, y reintentarla la duplicaría. |
+| R3/R4-bootstrap-hard-fail | `src/main.ts:26` | WARNING | Si la base no abre, la app no arranca y no muestra ningún mensaje. Hace falta una pantalla de error. |
+| R3-wasm-version-split | `package.json:57-58` | WARNING | Hay dos versiones de sql.js (1.15 para las pruebas y 1.11 para web): las pruebas no ejercitan el motor que usa la web. |
+| R3-factory-untested | `sqlite-connection.factory.ts:9-45` | WARNING | La factory de la conexión no tiene pruebas. |
+| R3-init-concurrent-race | `database.provider.ts:14-20` | SUGGESTION | Dos llamadas simultáneas a `init()` pueden abrir dos conexiones. |
+| R3-queue-deadlock-no-guard | `sql-database.port.ts:21-23` | SUGGESTION | No hay protección si alguien usa la base, en lugar de `tx`, dentro de una transacción (R3 de B0.2). |
+| R1-unencrypted-local-store | `sqlite-connection.factory.ts:29` | SUGGESTION | La base no está cifrada (`no-encryption`). Hay que decidirlo en el producto. |

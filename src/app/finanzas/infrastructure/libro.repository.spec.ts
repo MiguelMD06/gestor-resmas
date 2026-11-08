@@ -214,12 +214,24 @@ describe('LibroRepository', () => {
       nota: null,
     };
 
+    const entradaInvalida: Movimiento = {
+      fecha: dummyFecha,
+      tipo: 'TRASPASO_ENTRADA',
+      medio: 'TRANSFERENCIA',
+      deltaBolsillo: pesos(10000),
+      deltaCapital: pesos(1000), // violates SQLite CHECK for TRASPASO_ENTRADA (delta_capital = 0)
+      deltaGanancia: pesos(0),
+      idLote: null,
+      idAbono: null,
+      idMovimientoOrigen: null,
+      nota: null,
+    };
+
     await expect(
       db.transaction(async (tx) => {
-        await repo.registrar(tx, salida);
-        throw new Error('Simulated failure before inserting entrada');
+        await repo.registrarTraspaso(tx, [salida, entradaInvalida]);
       }),
-    ).rejects.toThrow('Simulated failure before inserting entrada');
+    ).rejects.toThrow(/CHECK constraint failed/);
 
     const rows = await db.query<{ count: number }>('SELECT count(*) AS count FROM movimientos_dinero;');
     expect(rows[0].count).toBe(0);

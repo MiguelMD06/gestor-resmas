@@ -15,7 +15,7 @@ function mulberry32(seed: number): () => number {
   };
 }
 
-describe('simulacion de la invariante (D4)', () => {
+describe('invariant simulation (D4)', () => {
   it('runs 200 random operations preserving invariants and non-negative balances', () => {
     const rng = mulberry32(123456789);
     const dummyFecha = fechaHora('2026-11-08 15:00:00');

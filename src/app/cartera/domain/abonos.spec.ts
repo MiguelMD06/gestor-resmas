@@ -302,6 +302,18 @@ describe('abonos domain operations (S4, S5, S6)', () => {
       }
     });
 
+    it('rejects zero or negative amounts with MONTO_INVALIDO even on a fully paid invoice', () => {
+      const invoice: FacturaAbierta = {
+        idVenta: 204,
+        fecha: fechaHora('2026-11-03 10:00:00'),
+        total: pesos(30000),
+        costoBase: pesos(20000),
+        pagado: pesos(30000), // saldo: 0
+      };
+
+      expect(() => abonarFactura(invoice, pesos(0))).toThrow(expect.objectContaining({ codigo: 'MONTO_INVALIDO' }));
+    });
+
     it('rejects when payment exceeds invoice balance with MONTO_SUPERA_SALDO_FACTURA', () => {
       const invoice: FacturaAbierta = {
         idVenta: 205,

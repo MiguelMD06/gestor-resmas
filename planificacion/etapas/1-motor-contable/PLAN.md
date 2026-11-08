@@ -181,6 +181,8 @@ Observaciones que no bloquean, de la revisión nativa de B1.0 y de V1:
 | V1-idioma | `finanzas/domain/operaciones.ts`, `saldos.ts`, `simulacion.spec.ts` | SUGGESTION | Mensajes internos de error y un `describe` en español; `base.md` los pide en inglés. No afecta a las pantallas, que traducen por `codigo` (D2). |
 | V1-dominio-factura | `cartera/domain/factura.ts`, `reparto-pago.ts` | SUGGESTION | Asumen `total >= pagado >= 0` y `costoBase >= 0`, que hoy garantizan los CHECK de `ventas`. |
 
+Tras la revisión del PR #5 (`edeb715`, `1ef12fd`) se resolvieron R3/R4-init-sync-throw, R3-pending-flush-tx-untested y V1-idioma. R4-ambiguous-guardado-error quedó documentado en `GuardadoWebError`, pero los dos casos siguen sin poder distinguirse. Siguen pendientes R1-001 y V1-dominio-factura.
+
 ## Por aprobar
 
 ✅ Los 7 puntos fueron aprobados tal cual (L3). La ejecución espera la orden del usuario.

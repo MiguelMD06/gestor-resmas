@@ -1,6 +1,6 @@
 # Etapa 1 — Motor contable
 
-**Estado:** ⏳ por aprobar · **Rama:** `feat/etapa-1-motor-contable` · **Entrega:** un PR a `main` · **Pruebas:** Vitest (`ng test`)
+**Estado:** ✅ aprobado (L3), sin ejecutar · **Rama:** `feat/etapa-1-motor-contable` · **Entrega:** un PR a `main` · **Pruebas:** Vitest (`ng test`)
 **Objetivo:** construir las reglas que deciden, en cada movimiento de dinero, cuánto es capital y cuánto es ganancia (cobros, cascada de abonos, compras, retiros y traspasos), como código puro probado con ejemplos, más un repositorio único del libro de dinero que van a reutilizar todas las etapas. Antes, cerrar los pendientes de la revisión de la Etapa 0.
 
 ## Qué hay hoy
@@ -161,6 +161,8 @@ El reporte de la etapa va en Engram (`etapas/1-motor-contable/reporte`).
 
 ## Por aprobar
 
+✅ Los 7 puntos fueron aprobados tal cual (L3). La ejecución espera la orden del usuario.
+
 1. **Cifrado de la base (R1):** propongo dejarla **sin cifrar** por ahora. Son datos del negocio, no claves ni datos bancarios; cifrar implica SQLCipher y una clave que hay que guardar y no perder. Se puede agregar más adelante con una migración.
 2. **Pantalla de error si la base no abre (R3/R4-bootstrap):** pasa a la **Etapa 2**, que es la primera con interfaz.
 3. **Protección contra el bloqueo de la cola (R3-queue-deadlock):** **no se implementa**, porque en el navegador no hay forma confiable de distinguir quién llama. Queda documentada como regla en `base.md`.
@@ -174,4 +176,5 @@ El reporte de la etapa va en Engram (`etapas/1-motor-contable/reporte`).
 Mensajes del usuario copiados textualmente; las notas del coordinador van entre corchetes.
 
 - **L1** (2026-11-08): "Antes de construir la etapa 1 quiero saber exactamente que se va a hacer de forma no tan técnica explicame de una forma sencilla para yo poder entender el hilo de los que vamos a construir" [Se explicó con el ejemplo de Ana, que pasa a ser los criterios E1 a E8.]
-- **L2** (2026-11-08): "Si" [Pedido para escribir este plan.]
+- **L2** (2026-11-08): "Si" [Pedido para escribir este plan.] Durante la escritura: "Quiero que solo escribas el plan, yo te indico cuando comenzar a ejecutar el plan"
+- **L3** (2026-11-08): "Si apruebo los 7 puntos, quiero saber porque estas dejando el plan y todo lo de documentación en distintas PR, eso es una buena practica?. Todavía no ejecutes el plan" [Plan aprobado. La ejecución sigue en espera.]

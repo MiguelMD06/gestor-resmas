@@ -30,7 +30,9 @@ Toda la planificación vive en [`planificacion/`](planificacion/):
 
 | Documento | Contenido |
 |-----------|-----------|
-| [`especificaci_n_y_dise_o_del_sistema.md`](planificacion/especificaci_n_y_dise_o_del_sistema.md) | Documento maestro: reglas de negocio, requisitos, modelo de datos y arquitectura. Es la fuente de verdad. |
+| [`README.md`](planificacion/README.md) | Índice: hoja de ruta por etapas, requisitos que cubre cada una y forma de trabajo. **Empieza por aquí.** |
+| [`comun/modelo-contable.md`](planificacion/comun/modelo-contable.md) | Reglas contables y esquema v1 corregidos. Tienen prioridad sobre el documento maestro. |
+| [`especificaci_n_y_dise_o_del_sistema.md`](planificacion/especificaci_n_y_dise_o_del_sistema.md) | Documento maestro: reglas de negocio, requisitos, modelo de datos y arquitectura. |
 | [`planteamiento_requerimientos.md`](planificacion/planteamiento_requerimientos.md) | Planteamiento inicial de requisitos funcionales y no funcionales. |
 
 El trabajo se organiza por etapas numeradas dentro de `planificacion/etapas/`, cada una con su plan aprobado antes de implementar.

@@ -56,6 +56,7 @@ src/app/
 
 - **`@capacitor-community/sqlite`:** dentro de una transacción manual (`beginTransaction` / `commitTransaction` / `rollbackTransaction`), llama a `run`, `execute` y `executeSet` con `transaction = false`. Si no, el plugin abre su propia transacción.
 - **En web (jeep-sqlite)**, después de cada commit hay que llamar a `saveToStore(nombreBD)`, o los datos se pierden al recargar.
+- **En web, jeep-sqlite 2.8 trae empaquetado el JS de sql.js 1.11** y necesita el `.wasm` de **esa** versión; el de sql.js 1.15 falla al cargar. Por eso `angular.json` copia `sql-wasm.wasm` desde `node_modules/sql.js-jeep-wasm/dist` (alias de `sql.js@1.11.0`). No lo cambies por el de `sql.js`, que es 1.15 y solo se usa en las pruebas.
 - **`sql.js` funciona dentro de `ng test`** con `await initSqlJs()` sin configuración extra (verificado con la versión 1.15.2).
 - **SQLite no valida tipos por sí solo:** los CHECK del esquema usan `typeof(col) = 'integer'`. No los quites.
 - **`PRAGMA foreign_keys = ON`** se activa en cada conexión, no queda guardado en la base.

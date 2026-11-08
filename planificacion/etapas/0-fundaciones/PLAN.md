@@ -1,6 +1,6 @@
 # Etapa 0 — Fundaciones
 
-**Estado:** ⏳ por aprobar · **Rama:** `feat/etapa-0-fundaciones` · **Entrega:** un PR a `main` · **Pruebas:** Vitest (`ng test`) + Playwright
+**Estado:** ✅ aprobado (L12), en curso · **Rama:** `feat/etapa-0-fundaciones` · **Entrega:** un PR a `main` · **Pruebas:** Vitest (`ng test`) + Playwright
 **Objetivo:** dejar el proyecto listo para construir funcionalidades: identidad de la app Android, CI, tipos de dominio con montos enteros y una base SQLite con el esquema v1 corregido, migraciones y transacciones probadas.
 
 ## Qué hay hoy
@@ -61,12 +61,12 @@ Las reglas contables completas están en [`../../comun/modelo-contable.md`](../.
 - **Qué hacer:**
   - `appId` y `appName` según lo que apruebes en "Por aprobar" (punto 3).
   - Borrar `.browserslistrc`.
-  - Crear el workflow `ci.yml`, que se dispara en cada `pull_request` y en cada `push` a `main`, sobre Node 22 en `ubuntu-latest`, y corre `npm ci`, `npm run lint`, `npm run test:unit` y `npm run build`.
+  - Crear el workflow `ci.yml`, que se dispara en cada `pull_request` y en cada `push` a `main`, sobre Node 24 en `ubuntu-latest`, y corre `npm ci`, `npm run lint`, `npm run test:unit` y `npm run build`.
 - **Verificación:** `npm run build` ya no muestra "Unsupported browsers"; los tres comandos pasan.
 
 ### B0.3 — Tipos de dominio compartidos
 
-- **Rutas permitidas:** `src/app/shared/domain/**`
+- **Rutas permitidas:** `src/app/shared/domain/**` y `src/app/shared/infrastructure/clock/**` (el reloj del sistema que implementa el puerto `Clock`)
 - **Qué hacer:** tipos con marca (*branded types*) y funciones constructoras que validan, sin dependencias de Angular:
 
 | Tipo | Regla |
@@ -84,8 +84,8 @@ Las reglas contables completas están en [`../../comun/modelo-contable.md`](../.
 - **Rutas permitidas:**
   - `package.json` y `package-lock.json`
   - `angular.json` (solo para copiar el `.wasm` de sql.js a los assets de la versión web)
-  - `src/main.ts` y `src/app/app.config.ts` (o donde se registran los providers), si hace falta
-  - `src/app/shared/infrastructure/**`
+  - `src/main.ts`, donde se registran los providers
+  - `src/app/shared/infrastructure/sqlite/**`
   - `src/testing/**`
   - `e2e/app.spec.ts`
 - **Dependencias:** `@capacitor-community/sqlite@8.1.1` (dependencia) y `sql.js@1.15.2` + `@types/sql.js` (desarrollo).
@@ -135,6 +135,8 @@ El reporte de la etapa va en Engram (`etapas/0-fundaciones/reporte`), no en un `
 
 ## Por aprobar
 
+✅ Los 7 puntos fueron aprobados tal cual (L12).
+
 1. **Arquitectura** por funcionalidad con capas hexagonales, y la convención de nombres (dominio en español, sufijos técnicos en inglés). Detalle en [`../../comun/base.md`](../../comun/base.md).
 2. **D1: libro único `movimientos_dinero`**, que reemplaza a `retiros_y_movimientos`.
 3. **Identidad de la app**, que es permanente una vez publicada: propongo `appId: 'com.miguelmedina.gestorresmas'` y `appName: 'Gestor de Resmas'`.
@@ -158,3 +160,5 @@ Mensajes del usuario copiados textualmente; las notas del coordinador van entre 
 - **L9** (2026-11-08): "Haz todo incluso el merge te lo apruebo por esta vez, para dejar de una vez por todas esto organizado una vez termines me explicas que hiciste para yo saber" [PR #1 integrado. El CI (S11) se dejó para esta etapa, porque todo plan se aprueba antes de implementarse.]
 - **L10** (2026-11-08): "Si" [Pedido para escribir el plan.]
 - **L11** (2026-11-08): [Prototipo: `revision/schema-v1.spec.ts`, 8/8 en verde con `ng test` y sql.js 1.15.2. Detectado: el build advierte "Unsupported browsers" por `.browserslistrc`.]
+- **L12** (2026-11-08): "Si apruebo estos 7 puntos" [Plan aprobado. Antes, ante el pedido de consentimiento de gentle-ai para el PR #2, el usuario eligió "Omitir esta vez" (`declined_this_candidate`).]
+- **L13** (2026-11-08): [Ajustes al aprobar: Node 24 en el CI (es la versión local); los providers están en `src/main.ts`, porque no hay `app.config.ts`; el reloj del sistema pasa a B0.3 (`shared/infrastructure/clock/**`) y B0.2 se limita a `shared/infrastructure/sqlite/**`, para que ninguna ruta sea de los dos bloques.]

@@ -59,7 +59,7 @@ Formato híbrido: la estructura de la skill `planificacion-por-etapas` más la t
 
 | Etapa | Bloque | Estado |
 |-------|--------|--------|
-| 0 | B0.1 Configuración del proyecto (ola 1) | pendiente |
-| 0 | B0.3 Tipos de dominio compartidos (ola 1) | pendiente |
+| 0 | B0.1 Configuración del proyecto (ola 1) | ✅ hecho (`agy`, intento 1) |
+| 0 | B0.3 Tipos de dominio compartidos (ola 1) | ✅ hecho (`agy`, intento 1; 25 pruebas nuevas) |
 | 0 | B0.2 Persistencia SQLite (ola 2) | pendiente |
 | 0 | V0 Verificación independiente (ola 3) | pendiente |

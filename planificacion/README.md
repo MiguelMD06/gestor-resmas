@@ -48,6 +48,7 @@ Formato híbrido: la estructura de la skill `planificacion-por-etapas` más la t
    ```
 
 4. **Revisión:** el coordinador compara `HEAD` antes y después, revisa el diff contra las rutas permitidas y hace commits atómicos (skill `commits-atomicos`).
+   **PRs por etapa:** el plan va en su propio PR y **se integra apenas se aprueba**, antes de empezar a implementar. La rama de implementación sale siempre del `main` actual; los PRs nunca se encadenan. Todos los merges se hacen con rebase.
 5. **Cierre:**
    - el reporte de la etapa va a **Engram** con el `topic_key` `etapas/<n>-<nombre>/reporte`, en lugar de un `REPORTE.md`;
    - el `PLAN.md` se copia en Engram como `etapas/<n>-<nombre>/plan`;

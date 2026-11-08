@@ -40,7 +40,6 @@ export function distribuirCascada(facturas: readonly FacturaAbierta[], monto: Pe
 
   const facturasConSaldo = facturas
     .filter((f) => saldo(f) > 0)
-    .slice()
     .sort((a, b) => {
       if (a.fecha < b.fecha) return -1;
       if (a.fecha > b.fecha) return 1;
@@ -83,13 +82,6 @@ export function abonarFactura(f: FacturaAbierta, monto: Pesos): AplicacionAbono 
   const s = saldo(f);
   if (s <= 0) {
     throw new ReglaNegocioError('SIN_DEUDA', `Invoice ${f.idVenta} has no outstanding balance`);
-  }
-
-  if (monto > s) {
-    throw new ReglaNegocioError(
-      'MONTO_SUPERA_SALDO_FACTURA',
-      `Payment amount (${monto}) exceeds invoice balance (${s})`,
-    );
   }
 
   const reparto = repartirPago(f, monto);

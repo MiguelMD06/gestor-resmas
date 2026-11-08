@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { fechaHora, pesos } from '../../shared/domain';
+import { fechaHora, pesos, type MedioPago } from '../../shared/domain';
 
 import type { Movimiento } from './movimiento';
-import { calcularSaldos, verificarInvariante } from './saldos';
+import { calcularSaldos, saldoDeBolsillo, verificarInvariante } from './saldos';
 
 describe('saldos domain service', () => {
   const dummyFecha = fechaHora('2026-11-08 10:00:00');
@@ -96,6 +96,46 @@ describe('saldos domain service', () => {
       gananciaLibre: pesos(30000), // sum is 90000 != 100000
     };
 
-    expect(() => verificarInvariante(saldosDescuadrados)).toThrowError();
+    expect(() => verificarInvariante(saldosDescuadrados)).toThrowError(/Broken invariant/);
+  });
+
+  describe('saldoDeBolsillo (S2)', () => {
+    const saldos = {
+      efectivo: pesos(45000),
+      transferencia: pesos(70000),
+      capitalEnCaja: pesos(100000),
+      gananciaLibre: pesos(15000),
+    };
+
+    it('returns efectivo pocket balance when medio is EFECTIVO', () => {
+      expect(saldoDeBolsillo(saldos, 'EFECTIVO')).toBe(45000);
+    });
+
+    it('returns transferencia pocket balance when medio is TRANSFERENCIA', () => {
+      expect(saldoDeBolsillo(saldos, 'TRANSFERENCIA')).toBe(70000);
+    });
+
+    it('throws an Error when an unknown payment method is passed', () => {
+      expect(() => saldoDeBolsillo(saldos, 'OTRO' as unknown as MedioPago)).toThrowError(/Unsupported payment method/);
+    });
+  });
+
+  describe('calcularSaldos exhaustive switch (S3)', () => {
+    it('throws an Error when movement contains an unknown payment method', () => {
+      const movimientoInvalido = {
+        fecha: dummyFecha,
+        tipo: 'APORTE_CAPITAL' as const,
+        medio: 'CRIPTOMONEDA' as unknown as MedioPago,
+        deltaBolsillo: pesos(50000),
+        deltaCapital: pesos(50000),
+        deltaGanancia: pesos(0),
+        idLote: null,
+        idAbono: null,
+        idMovimientoOrigen: null,
+        nota: null,
+      };
+
+      expect(() => calcularSaldos([movimientoInvalido])).toThrowError(/Unsupported payment method/);
+    });
   });
 });

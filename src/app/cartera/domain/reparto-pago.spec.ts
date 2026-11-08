@@ -90,11 +90,8 @@ describe('repartirPago domain rule (R-01)', () => {
       pagado: pesos(10000), // remaining balance is $20.000
     };
 
-    expect(() => repartirPago(factura, pesos(20001))).toThrowError(ReglaNegocioError);
-    try {
-      repartirPago(factura, pesos(25000));
-    } catch (e) {
-      expect((e as ReglaNegocioError).codigo).toBe('MONTO_SUPERA_SALDO_FACTURA');
-    }
+    expect(() => repartirPago(factura, pesos(20001))).toThrow(
+      expect.objectContaining({ codigo: 'MONTO_SUPERA_SALDO_FACTURA' }),
+    );
   });
 });

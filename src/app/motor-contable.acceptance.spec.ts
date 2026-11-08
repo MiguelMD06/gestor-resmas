@@ -448,7 +448,7 @@ describe('V1 — Independent verification of Stage 1 (Accounting Engine)', () =>
         db.transaction(async (tx) => {
           await repo.registrarTraspaso(tx, [salidaValida, entradaInvalida]);
         }),
-      ).rejects.toThrow();
+      ).rejects.toThrow(/CHECK constraint failed/);
 
       const conteoTrasFallo = await db.query<{ total: number }>('SELECT COUNT(*) AS total FROM movimientos_dinero;');
       expect(conteoTrasFallo[0]?.total).toBe(0);

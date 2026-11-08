@@ -1,7 +1,7 @@
 import { pesos, ReglaNegocioError, type FechaHora, type MedioPago, type Pesos } from '../../shared/domain';
 
 import type { Movimiento } from './movimiento';
-import type { Saldos } from './saldos';
+import { type Saldos, saldoDeBolsillo } from './saldos';
 
 export interface ResultadoCompraLote {
   readonly movimiento: Movimiento;
@@ -10,7 +10,7 @@ export interface ResultadoCompraLote {
 
 export function aporteCapital(fecha: FechaHora, medio: MedioPago, monto: Pesos): Movimiento {
   if (monto <= 0) {
-    throw new ReglaNegocioError('MONTO_INVALIDO', 'El monto debe ser mayor a cero');
+    throw new ReglaNegocioError('MONTO_INVALIDO', `Contribution amount must be greater than zero, got: ${monto}`);
   }
 
   return {
@@ -35,21 +35,23 @@ export function compraLote(
   idLote: number,
 ): ResultadoCompraLote {
   if (costoTotal <= 0) {
-    throw new ReglaNegocioError('MONTO_INVALIDO', 'El costo total debe ser mayor a cero');
+    throw new ReglaNegocioError('MONTO_INVALIDO', `Total cost must be greater than zero, got: ${costoTotal}`);
   }
 
-  const saldoBolsillo = medio === 'EFECTIVO' ? saldos.efectivo : saldos.transferencia;
+  const saldoBolsillo = saldoDeBolsillo(saldos, medio);
   if (costoTotal > saldoBolsillo) {
     throw new ReglaNegocioError(
       'SALDO_INSUFICIENTE',
-      `Saldo insuficiente en ${medio}: disponible ${saldoBolsillo}, requerido ${costoTotal}`,
+      `Insufficient balance in ${medio}: available ${saldoBolsillo}, required ${costoTotal}`,
     );
   }
 
+  // Guards against a negative capital balance so the purchase never "adds" capital.
   const capitalDisponible = Math.max(0, saldos.capitalEnCaja);
   const parteCapital = Math.min(capitalDisponible, costoTotal);
   const parteGanancia = costoTotal - parteCapital;
 
+  // Avoids producing -0 so tests comparing with toBe / Object.is pass without discrepancy.
   const deltaCapital = parteCapital === 0 ? 0 : -parteCapital;
   const deltaGanancia = parteGanancia === 0 ? 0 : -parteGanancia;
 
@@ -78,7 +80,10 @@ export function cobro(
   idAbono: number,
 ): Movimiento {
   if (capital < 0 || ganancia < 0 || capital + ganancia <= 0) {
-    throw new ReglaNegocioError('MONTO_INVALIDO', 'El cobro requiere capital >= 0, ganancia >= 0 y suma mayor a cero');
+    throw new ReglaNegocioError(
+      'MONTO_INVALIDO',
+      `Collection requires capital >= 0, ganancia >= 0 and sum greater than zero, got: capital ${capital}, ganancia ${ganancia}`,
+    );
   }
 
   const total = capital + ganancia;
@@ -99,21 +104,21 @@ export function cobro(
 
 export function retiroGanancia(saldos: Saldos, fecha: FechaHora, medio: MedioPago, monto: Pesos): Movimiento {
   if (monto <= 0) {
-    throw new ReglaNegocioError('MONTO_INVALIDO', 'El monto debe ser mayor a cero');
+    throw new ReglaNegocioError('MONTO_INVALIDO', `Withdrawal amount must be greater than zero, got: ${monto}`);
   }
 
   if (monto > saldos.gananciaLibre) {
     throw new ReglaNegocioError(
       'GANANCIA_INSUFICIENTE',
-      `Ganancia libre insuficiente: disponible ${saldos.gananciaLibre}, solicitado ${monto}`,
+      `Insufficient free profit: available ${saldos.gananciaLibre}, requested ${monto}`,
     );
   }
 
-  const saldoBolsillo = medio === 'EFECTIVO' ? saldos.efectivo : saldos.transferencia;
+  const saldoBolsillo = saldoDeBolsillo(saldos, medio);
   if (monto > saldoBolsillo) {
     throw new ReglaNegocioError(
       'SALDO_INSUFICIENTE',
-      `Saldo insuficiente en ${medio}: disponible ${saldoBolsillo}, solicitado ${monto}`,
+      `Insufficient balance in ${medio}: available ${saldoBolsillo}, requested ${monto}`,
     );
   }
 
@@ -139,18 +144,21 @@ export function traspaso(
   monto: Pesos,
 ): [salida: Movimiento, entrada: Movimiento] {
   if (monto <= 0) {
-    throw new ReglaNegocioError('MONTO_INVALIDO', 'El monto debe ser mayor a cero');
+    throw new ReglaNegocioError('MONTO_INVALIDO', `Transfer amount must be greater than zero, got: ${monto}`);
   }
 
   if (origen === destino) {
-    throw new ReglaNegocioError('TRASPASO_MISMO_MEDIO', 'El medio de origen y destino deben ser diferentes');
+    throw new ReglaNegocioError(
+      'TRASPASO_MISMO_MEDIO',
+      `Source and destination payment methods must be different, got: ${origen}`,
+    );
   }
 
-  const saldoOrigen = origen === 'EFECTIVO' ? saldos.efectivo : saldos.transferencia;
+  const saldoOrigen = saldoDeBolsillo(saldos, origen);
   if (monto > saldoOrigen) {
     throw new ReglaNegocioError(
       'SALDO_INSUFICIENTE',
-      `Saldo insuficiente en origen ${origen}: disponible ${saldoOrigen}, requerido ${monto}`,
+      `Insufficient balance in source ${origen}: available ${saldoOrigen}, required ${monto}`,
     );
   }
 

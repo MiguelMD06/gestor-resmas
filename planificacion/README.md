@@ -50,6 +50,9 @@ Formato híbrido: la estructura de la skill `planificacion-por-etapas` más la t
 4. **Revisión:** el coordinador compara `HEAD` antes y después, revisa el diff contra las rutas permitidas y hace commits atómicos (skill `commits-atomicos`).
    **PRs por etapa:** el plan va en su propio PR y **se integra apenas se aprueba**, antes de empezar a implementar. La rama de implementación sale siempre del `main` actual; los PRs nunca se encadenan. Todos los merges se hacen con rebase.
 5. **Cierre:**
+   - **todos los bloques quedan revisados** antes de abrir el PR: los que la evaluación de riesgo dejó pendientes de revisión se revisan juntos en ese momento;
+   - el encargo de la verificación independiente incluye revisar la calidad de las pruebas (regla 6 de `comun/base.md`), además de los `S#`;
+   - un hallazgo que no bloquea pero se corrige en menos de unas 20 líneas se arregla antes del PR; a "Pendientes para la Etapa N+1" solo pasa lo que necesita una decisión o mucho trabajo, con el motivo;
    - el reporte de la etapa va a **Engram** con el `topic_key` `etapas/<n>-<nombre>/reporte`, en lugar de un `REPORTE.md`;
    - el `PLAN.md` se copia en Engram como `etapas/<n>-<nombre>/plan`;
    - se exporta con `engram sync --project gestor-resmas` para que el equipo lo importe.

@@ -4,7 +4,7 @@ Estas reglas aplican a todo cambio de código, lo escriba una persona o un agent
 (Claude, agy u otro). Quien delega una tarea debe incluirlas en la instrucción
 del bloque. Un PR que no las cumpla no está listo para revisión.
 
-## Regla de calidad: formularios, envíos y estados asíncronos (OBLIGATORIA)
+## Reglas de calidad (OBLIGATORIAS)
 
 Origen: la revisión del PR #11 (Etapa 2) encontró un doble envío que duplicaba
 compras y aportes, un formulario que se podía guardar sin monto, una vista
@@ -60,25 +60,28 @@ Cada formulario o vista nueva incluye, como mínimo, tests de:
 - carga fallida: se muestra el error, no el estado vacío;
 - el texto exacto que ve el usuario en errores (no solo `toHaveBeenCalled`).
 
-## Propuestas adicionales (pendientes de revisión por el responsable)
+### 7. Dinero y cantidades solo como enteros
+Los montos se manejan como enteros en pesos (`Pesos`) y las cantidades como
+enteros. Nada de decimales flotantes en cálculos de dinero.
 
-> Estas reglas aún no son obligatorias. Se vuelven obligatorias cuando el
-> responsable del proyecto las apruebe y se quite esta nota.
+### 8. Confirmación en acciones irreversibles
+Eliminar, anular o revertir movimientos de dinero o stock pide confirmación
+explícita.
 
-- **P1. Dinero y cantidades solo como enteros:** los montos se manejan como
-  enteros en pesos (`Pesos`) y las cantidades como enteros. Nada de
-  decimales flotantes en cálculos de dinero.
-- **P2. Confirmación en acciones irreversibles:** eliminar, anular o revertir
-  movimientos de dinero o stock pide confirmación explícita.
-- **P3. Sin código muerto:** no se exporta nada que nadie use. El código
-  preparado para una etapa futura se documenta en el `PLAN.md` de la etapa
-  como "base para la Etapa N".
-- **P4. Accesibilidad mínima:** cada campo tiene etiqueta visible, cada botón
-  de solo ícono tiene `aria-label`, y los estados deshabilitados se reflejan
-  también para lectores de pantalla.
-- **P5. Fechas y horas desde `CLOCK`:** nunca `new Date()` directo en dominio,
-  aplicación o UI; siempre el token `CLOCK`, para que los tests sean
-  deterministas.
-- **P6. Checklist antes de abrir un PR:** quien abre el PR confirma en la
-  descripción que revisó las reglas 1 a 6, y que `npm run lint`,
-  `npm run test:unit`, `npm run build` y `npm run test:e2e` pasan en local.
+### 9. Sin código muerto
+No se exporta nada que nadie use. El código preparado para una etapa futura
+se documenta en el `PLAN.md` de la etapa como "base para la Etapa N".
+
+### 10. Accesibilidad mínima
+Cada campo tiene etiqueta visible, cada botón de solo ícono tiene
+`aria-label`, y los estados deshabilitados se reflejan también para lectores
+de pantalla.
+
+### 11. Fechas y horas desde `CLOCK`
+Nunca `new Date()` directo en dominio, aplicación o UI; siempre el token
+`CLOCK`, para que los tests sean deterministas.
+
+### 12. Checklist antes de abrir un PR
+Quien abre el PR confirma en la descripción que revisó las reglas 1 a 12, y
+que `npm run lint`, `npm run test:unit`, `npm run build` y
+`npm run test:e2e` pasan en local.

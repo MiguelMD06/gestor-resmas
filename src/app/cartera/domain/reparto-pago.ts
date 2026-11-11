@@ -2,7 +2,7 @@ import type { Pesos } from '../../shared/domain';
 import { pesos, ReglaNegocioError } from '../../shared/domain';
 
 import type { FacturaAbierta } from './factura';
-import { saldo } from './factura';
+import { saldo, validarFactura } from './factura';
 
 export interface RepartoPago {
   readonly capital: Pesos;
@@ -16,6 +16,8 @@ export interface RepartoPago {
  * Only when paid amount exceeds the acquisition cost base, the surplus becomes free profit.
  */
 export function repartirPago(f: FacturaAbierta, monto: Pesos): RepartoPago {
+  validarFactura(f);
+
   if (monto <= 0) {
     throw new ReglaNegocioError('MONTO_INVALIDO', `Payment amount must be greater than zero, got: ${monto}`);
   }

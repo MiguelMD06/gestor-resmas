@@ -8,7 +8,7 @@ import { calcularSaldos, saldoDeBolsillo, verificarInvariante } from './saldos';
 describe('saldos domain service', () => {
   const dummyFecha = fechaHora('2026-11-08 10:00:00');
 
-  it('calculates zero balances for empty movement list', () => {
+  it('calcularSaldos calculates zero balances for empty movement list', () => {
     const saldos = calcularSaldos([]);
     expect(saldos).toEqual({
       efectivo: 0,
@@ -18,7 +18,7 @@ describe('saldos domain service', () => {
     });
   });
 
-  it('S8: correctly calculates separate pocket balances, capitalEnCaja and gananciaLibre', () => {
+  it('S8: calcularSaldos correctly calculates separate pocket balances, capitalEnCaja and gananciaLibre', () => {
     const movimientos: Movimiento[] = [
       {
         fecha: dummyFecha,
@@ -77,7 +77,7 @@ describe('saldos domain service', () => {
     expect(saldos.gananciaLibre).toBe(5000);
   });
 
-  it('S10: passes invariant check when efectivo + transferencia = capitalEnCaja + gananciaLibre', () => {
+  it('S10: verificarInvariante passes invariant check when efectivo + transferencia = capitalEnCaja + gananciaLibre', () => {
     const saldosValidos = {
       efectivo: pesos(85000),
       transferencia: pesos(80000),
@@ -88,7 +88,7 @@ describe('saldos domain service', () => {
     expect(() => verificarInvariante(saldosValidos)).not.toThrow();
   });
 
-  it('S10: throws an Error when invariant is broken', () => {
+  it('S10: verificarInvariante throws an Error when invariant is broken', () => {
     const saldosDescuadrados = {
       efectivo: pesos(50000),
       transferencia: pesos(50000),

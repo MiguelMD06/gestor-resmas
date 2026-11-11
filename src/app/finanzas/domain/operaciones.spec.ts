@@ -1,25 +1,19 @@
 import { describe, expect, it } from 'vitest';
 
-import { fechaHora, pesos, ReglaNegocioError } from '../../shared/domain';
+import { fechaHora, pesos } from '../../shared/domain';
 
 import { aporteCapital, cobro, compraLote, retiroGanancia, traspaso } from './operaciones';
 import type { Saldos } from './saldos';
 
 function expectReglaError(fn: () => unknown, expectedCodigo: string): void {
-  try {
-    fn();
-    expect.unreachable('Expected function to throw ReglaNegocioError');
-  } catch (err) {
-    expect(err).toBeInstanceOf(ReglaNegocioError);
-    expect((err as ReglaNegocioError).codigo).toBe(expectedCodigo);
-  }
+  expect(fn).toThrow(expect.objectContaining({ name: 'ReglaNegocioError', codigo: expectedCodigo }));
 }
 
 describe('operaciones domain functions', () => {
   const dummyFecha = fechaHora('2026-11-08 12:00:00');
 
   describe('E5, E6, E7 acceptance examples', () => {
-    it('E5: Ganancia libre $9.000, efectivo $5.000. Retiro de $8.000 en efectivo -> Se rechaza por saldo del bolsillo (SALDO_INSUFICIENTE)', () => {
+    it('E5: retiroGanancia rejects cash withdrawal when pocket balance is insufficient with SALDO_INSUFICIENTE', () => {
       const saldos: Saldos = {
         efectivo: pesos(5000),
         transferencia: pesos(10000),
@@ -30,7 +24,7 @@ describe('operaciones domain functions', () => {
       expectReglaError(() => retiroGanancia(saldos, dummyFecha, 'EFECTIVO', pesos(8000)), 'SALDO_INSUFICIENTE');
     });
 
-    it('E6: Capital en caja $100.000, ganancia libre $30.000, transferencia $130.000. Compra de $120.000 por transferencia -> capital -$100.000, ganancia -$20.000, con aviso de reinversión de $20.000', () => {
+    it('E6: compraLote absorbs available capital and reinvests remaining profit with reinversion notice', () => {
       const saldos: Saldos = {
         efectivo: pesos(0),
         transferencia: pesos(130000),
@@ -49,7 +43,7 @@ describe('operaciones domain functions', () => {
       expect(resultado.reinversion).toBe(20000);
     });
 
-    it('E7: Traspaso de $50.000 de efectivo a transferencia -> efectivo -$50.000, transferencia +$50.000; capital y ganancia no cambian', () => {
+    it('E7: traspaso moves funds between pockets leaving capital and profit unchanged', () => {
       const saldos: Saldos = {
         efectivo: pesos(50000),
         transferencia: pesos(0),

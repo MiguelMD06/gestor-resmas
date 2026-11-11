@@ -6,7 +6,7 @@ import type { FacturaAbierta } from './factura';
 import { saldo } from './factura';
 
 describe('factura domain logic', () => {
-  it('calculates invoice balance as total minus paid amount', () => {
+  it('saldo calculates invoice balance as total minus paid amount', () => {
     const factura: FacturaAbierta = {
       idVenta: 1,
       fecha: fechaHora('2026-11-08 10:00:00'),
@@ -18,7 +18,7 @@ describe('factura domain logic', () => {
     expect(saldo(factura)).toBe(25000);
   });
 
-  it('returns zero balance when invoice is fully paid', () => {
+  it('saldo returns zero balance when invoice is fully paid', () => {
     const factura: FacturaAbierta = {
       idVenta: 2,
       fecha: fechaHora('2026-11-08 11:00:00'),

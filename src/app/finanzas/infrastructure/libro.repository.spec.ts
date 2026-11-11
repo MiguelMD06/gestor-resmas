@@ -57,7 +57,7 @@ describe('LibroRepository', () => {
     });
   });
 
-  it('records a sequence of operations and saldos(db) equals calcularSaldos', async () => {
+  it('registrar, registrarTraspaso and saldos correctly record a sequence of operations matching calcularSaldos', async () => {
     const { idLote, idAbono } = await seedForeignKeys();
 
     const aporte: Movimiento = {
@@ -158,7 +158,7 @@ describe('LibroRepository', () => {
     expect(saldosBd.gananciaLibre).toBe(5000);
   });
 
-  it('sets id_movimiento_origen of TRASPASO_ENTRADA pointing to the TRASPASO_SALIDA id', async () => {
+  it('registrarTraspaso sets id_movimiento_origen of TRASPASO_ENTRADA pointing to the TRASPASO_SALIDA id', async () => {
     const salida: Movimiento = {
       fecha: dummyFecha,
       tipo: 'TRASPASO_SALIDA',
@@ -200,7 +200,7 @@ describe('LibroRepository', () => {
     expect(rows[0].id_movimiento_origen).toBe(idSalida);
   });
 
-  it('leaves zero rows if transaction fails halfway through a transfer', async () => {
+  it('registrarTraspaso leaves zero rows if transaction fails halfway through a transfer', async () => {
     const salida: Movimiento = {
       fecha: dummyFecha,
       tipo: 'TRASPASO_SALIDA',

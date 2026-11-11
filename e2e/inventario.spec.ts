@@ -36,7 +36,8 @@ test.describe('Inventory flow: capital contribution and box purchase', () => {
     await inputMonto.fill('300000');
 
     // Now it is enabled
-    await expect(btnGuardarAporte).not.toHaveAttribute('disabled', '');
+    await expect(btnGuardarAporte).not.toHaveAttribute('aria-disabled', 'true');
+    await expect(btnGuardarAporte).not.toHaveAttribute('disabled');
     await btnGuardarAporte.click();
 
     // Wait for contribution modal to close

@@ -30,7 +30,7 @@ import {
   type TipoPapel,
 } from '../../shared/domain';
 import { CLOCK } from '../../shared/infrastructure/clock/clock.token';
-import { esVacio } from '../../shared/ui/formulario';
+import { esVacio, soloCierreExplicito } from '../../shared/ui/formulario';
 import { mensajeDeError } from '../../shared/ui/mensajes-error';
 import { RegistrarCompra } from '../application/registrar-compra';
 
@@ -362,7 +362,7 @@ export class NuevaCompraModalComponent implements OnInit {
     }
     const modal = await this.modalCtrl.create({
       component: AporteModalComponent,
-      canDismiss: async (_data, role) => role === 'guardado' || role === 'cancel',
+      canDismiss: soloCierreExplicito,
     });
     await modal.present();
     const { data } = await modal.onDidDismiss();

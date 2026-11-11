@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Gestor de Resmas</string>
+    <string name="title_activity_main">Gestor de Resmas</string>
+    <string name="package_name">com.miguelmedina.gestorresmas</string>
+    <string name="custom_url_scheme">com.miguelmedina.gestorresmas</string>
+</resources>

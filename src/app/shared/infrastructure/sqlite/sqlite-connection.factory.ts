@@ -6,8 +6,18 @@ import type { SqlDatabase } from './sql-database.port';
 
 export const DB_NAME = 'gestor_resmas';
 
+let sqliteInstance: SQLiteConnection | null = null;
+const initializedWebStores = new WeakSet<SQLiteConnection>();
+
+function getSQLiteConnection(): SQLiteConnection {
+  if (!sqliteInstance) {
+    sqliteInstance = new SQLiteConnection(CapacitorSQLite);
+  }
+  return sqliteInstance;
+}
+
 export async function createCapacitorSqlDatabase(): Promise<SqlDatabase> {
-  const sqlite = new SQLiteConnection(CapacitorSQLite);
+  const sqlite = getSQLiteConnection();
   const esWeb = Capacitor.getPlatform() === 'web';
 
   if (esWeb) {
@@ -18,7 +28,10 @@ export async function createCapacitorSqlDatabase(): Promise<SqlDatabase> {
       document.body.appendChild(jeep);
     }
     await customElements.whenDefined('jeep-sqlite');
-    await sqlite.initWebStore();
+    if (!initializedWebStores.has(sqlite)) {
+      await sqlite.initWebStore();
+      initializedWebStores.add(sqlite);
+    }
   }
 
   const isConn = await sqlite.isConnection(DB_NAME, false);
@@ -29,12 +42,21 @@ export async function createCapacitorSqlDatabase(): Promise<SqlDatabase> {
     db = await sqlite.createConnection(DB_NAME, false, 'no-encryption', 1, false);
   }
 
-  const isOpen = await db.isDBOpen();
-  if (!isOpen.result) {
-    await db.open();
-  }
+  try {
+    const isOpen = await db.isDBOpen();
+    if (!isOpen.result) {
+      await db.open();
+    }
 
-  await db.execute('PRAGMA foreign_keys = ON;', false);
+    await db.execute('PRAGMA foreign_keys = ON;', false);
+  } catch (error) {
+    try {
+      await sqlite.closeConnection(DB_NAME, false);
+    } catch {
+      // Ignore the close failure so the original error is rethrown
+    }
+    throw error;
+  }
 
   return new CapacitorSqlDatabase(db, {
     esWeb,

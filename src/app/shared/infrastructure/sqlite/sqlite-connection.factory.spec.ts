@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { createCapacitorSqlDatabase, DB_NAME } from './sqlite-connection.factory';
+import { DB_NAME, type createCapacitorSqlDatabase as CreateCapacitorSqlDatabaseFn } from './sqlite-connection.factory';
 
 const {
   getPlatformMock,
@@ -9,10 +9,12 @@ const {
   isConnectionMock,
   retrieveConnectionMock,
   createConnectionMock,
+  closeConnectionMock,
   saveToStoreMock,
   isDBOpenMock,
   openMock,
   executeMock,
+  sqliteConnectionConstructorMock,
 } = vi.hoisted(() => ({
   getPlatformMock: vi.fn<() => string>(),
   defineCustomElementsMock: vi.fn(),
@@ -20,10 +22,12 @@ const {
   isConnectionMock: vi.fn(),
   retrieveConnectionMock: vi.fn(),
   createConnectionMock: vi.fn(),
+  closeConnectionMock: vi.fn(),
   saveToStoreMock: vi.fn(),
   isDBOpenMock: vi.fn(),
   openMock: vi.fn(),
   executeMock: vi.fn(),
+  sqliteConnectionConstructorMock: vi.fn(),
 }));
 
 vi.mock('@capacitor/core', () => ({
@@ -39,15 +43,21 @@ vi.mock('jeep-sqlite/loader', () => ({
 vi.mock('@capacitor-community/sqlite', () => ({
   CapacitorSQLite: {},
   SQLiteConnection: class {
+    constructor(...args: unknown[]) {
+      sqliteConnectionConstructorMock(...args);
+    }
     initWebStore = initWebStoreMock;
     isConnection = isConnectionMock;
     retrieveConnection = retrieveConnectionMock;
     createConnection = createConnectionMock;
+    closeConnection = closeConnectionMock;
     saveToStore = saveToStoreMock;
   },
 }));
 
 describe('createCapacitorSqlDatabase factory', () => {
+  let createCapacitorSqlDatabase: typeof CreateCapacitorSqlDatabaseFn;
+
   const mockDbConnection = {
     isDBOpen: isDBOpenMock,
     open: openMock,
@@ -59,7 +69,8 @@ describe('createCapacitorSqlDatabase factory', () => {
     rollbackTransaction: vi.fn(),
   };
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    vi.resetModules();
     vi.clearAllMocks();
     document.body.innerHTML = '';
     vi.spyOn(customElements, 'whenDefined').mockResolvedValue(HTMLElement);
@@ -69,10 +80,14 @@ describe('createCapacitorSqlDatabase factory', () => {
     isConnectionMock.mockResolvedValue({ result: false });
     retrieveConnectionMock.mockResolvedValue(mockDbConnection);
     createConnectionMock.mockResolvedValue(mockDbConnection);
+    closeConnectionMock.mockResolvedValue(undefined);
     saveToStoreMock.mockResolvedValue(undefined);
     isDBOpenMock.mockResolvedValue({ result: false });
     openMock.mockResolvedValue(undefined);
     executeMock.mockResolvedValue({ changes: { changes: 0 } });
+
+    const mod = await import('./sqlite-connection.factory');
+    createCapacitorSqlDatabase = mod.createCapacitorSqlDatabase;
   });
 
   afterEach(() => {
@@ -137,5 +152,64 @@ describe('createCapacitorSqlDatabase factory', () => {
     await createCapacitorSqlDatabase();
 
     expect(executeMock).toHaveBeenCalledWith('PRAGMA foreign_keys = ON;', false);
+  });
+
+  it('calls closeConnection(DB_NAME, false) and rethrows the same error when open() rejects on first attempt', async () => {
+    const openError = new Error('Database open failed');
+    openMock.mockRejectedValueOnce(openError);
+
+    await expect(createCapacitorSqlDatabase()).rejects.toThrow('Database open failed');
+
+    expect(closeConnectionMock).toHaveBeenCalledTimes(1);
+    expect(closeConnectionMock).toHaveBeenCalledWith(DB_NAME, false);
+  });
+
+  it('reuses existing connection via retrieveConnection without calling createConnection on a second attempt after failure', async () => {
+    const openError = new Error('First attempt failed');
+    openMock.mockRejectedValueOnce(openError);
+
+    await expect(createCapacitorSqlDatabase()).rejects.toThrow('First attempt failed');
+    expect(createConnectionMock).toHaveBeenCalledTimes(1);
+
+    isConnectionMock.mockResolvedValue({ result: true });
+
+    const db = await createCapacitorSqlDatabase();
+
+    expect(isConnectionMock).toHaveBeenLastCalledWith(DB_NAME, false);
+    expect(retrieveConnectionMock).toHaveBeenCalledWith(DB_NAME, false);
+    expect(createConnectionMock).toHaveBeenCalledTimes(1);
+    expect(db).toBeDefined();
+  });
+
+  it('closes connection and rethrows the original error when execute PRAGMA rejects, even if closeConnection also rejects', async () => {
+    const pragmaError = new Error('PRAGMA failed');
+    const closeError = new Error('closeConnection failed');
+    executeMock.mockRejectedValueOnce(pragmaError);
+    closeConnectionMock.mockRejectedValueOnce(closeError);
+
+    await expect(createCapacitorSqlDatabase()).rejects.toThrow('PRAGMA failed');
+
+    expect(closeConnectionMock).toHaveBeenCalledWith(DB_NAME, false);
+  });
+
+  it('reuses the same SQLiteConnection instance across multiple calls without re-instantiating', async () => {
+    await createCapacitorSqlDatabase();
+    await createCapacitorSqlDatabase();
+
+    expect(sqliteConnectionConstructorMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('retries initWebStore() if the first attempt failed, but calls it only once on subsequent successes', async () => {
+    getPlatformMock.mockReturnValue('web');
+    initWebStoreMock.mockRejectedValueOnce(new Error('initWebStore failed'));
+
+    await expect(createCapacitorSqlDatabase()).rejects.toThrow('initWebStore failed');
+    expect(initWebStoreMock).toHaveBeenCalledTimes(1);
+
+    await createCapacitorSqlDatabase();
+    expect(initWebStoreMock).toHaveBeenCalledTimes(2);
+
+    await createCapacitorSqlDatabase();
+    expect(initWebStoreMock).toHaveBeenCalledTimes(2);
   });
 });

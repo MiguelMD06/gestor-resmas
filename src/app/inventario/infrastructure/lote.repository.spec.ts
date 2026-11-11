@@ -66,8 +66,6 @@ describe('LoteRepository', () => {
 
     expect(listaActivos.some((l) => l.idLote === idAgotar)).toBe(false);
     expect(listaActivos.map((l) => l.idLote)).toEqual([id1, id2, id3]);
-    expect(listaActivos[0].idLote).toBe(id1);
-    expect(listaActivos[1].idLote).toBe(id2);
   });
 
   it('descontar sets reams to 0 and state to AGOTADO (E7), preserving the row in lotes_cajas', async () => {

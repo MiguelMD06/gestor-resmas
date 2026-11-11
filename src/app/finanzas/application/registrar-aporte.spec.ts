@@ -66,9 +66,22 @@ describe('RegistrarAporte and ConsultarSaldos', () => {
   });
 
   it('consultarSaldos returns identical result to libro.saldos(db)', async () => {
+    const fecha = fechaHora('2026-11-10 09:00:00');
+    await registrarAporte.registrar({
+      fecha,
+      medio: 'EFECTIVO',
+      monto: pesos(300000),
+    });
+
     const saldosDirecto = await libroRepo.saldos(db);
     const saldosCasoUso = await consultarSaldos.saldos();
 
+    expect(saldosCasoUso).toEqual({
+      efectivo: 300000,
+      transferencia: 0,
+      capitalEnCaja: 300000,
+      gananciaLibre: 0,
+    });
     expect(saldosCasoUso).toEqual(saldosDirecto);
   });
 });

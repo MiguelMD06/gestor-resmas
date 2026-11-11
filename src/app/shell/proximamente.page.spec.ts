@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { ProximamentePage } from './proximamente.page';
 
 describe('ProximamentePage', () => {
-  it('con el data { titulo: "Vender", etapa: 3 }, se ve "Vender" y "Disponible en la Etapa 3"', async () => {
+  it('displays "Vender" and "Disponible en la Etapa 3" when route data is { titulo: "Vender", etapa: 3 }', async () => {
     await TestBed.configureTestingModule({
       imports: [ProximamentePage],
       providers: [
@@ -31,7 +31,7 @@ describe('ProximamentePage', () => {
     expect(text).toContain('Disponible en la Etapa 3');
   });
 
-  it('soporta inputs directos vinculados mediante withComponentInputBinding', async () => {
+  it('uses the title and stage inputs when they are set', async () => {
     await TestBed.configureTestingModule({
       imports: [ProximamentePage],
       providers: [

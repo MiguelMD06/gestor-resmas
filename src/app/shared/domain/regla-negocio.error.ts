@@ -6,7 +6,10 @@ export type CodigoRegla =
   | 'SALDO_INSUFICIENTE' // pocket balance < amount
   | 'GANANCIA_INSUFICIENTE' // free profit < withdrawal
   | 'TRASPASO_MISMO_MEDIO' // transfer with the same source and target
-  | 'FACTURA_INVALIDA'; // invoice data out of domain: paid < 0, paid > total or cost base < 0
+  | 'FACTURA_INVALIDA' // invoice data out of domain: paid < 0, paid > total or cost base < 0
+  | 'CANTIDAD_INVALIDA' // boxes or reams <= 0 or not an integer
+  | 'COSTO_CAJA_INVALIDO' // box cost <= 0, not an integer or not divisible by 10
+  | 'STOCK_INSUFICIENTE'; // reams to deduct exceed available stock
 
 export class ReglaNegocioError extends Error {
   constructor(

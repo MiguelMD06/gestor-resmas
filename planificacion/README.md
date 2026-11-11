@@ -71,3 +71,6 @@ Formato híbrido: la estructura de la skill `planificacion-por-etapas` más la t
 | 1 | B1.1 Reglas de cobro y cartera, y margen de venta (ola 2) | ✅ hecho (`agy` Flash high, intento 1) |
 | 1 | B1.2 Libro de dinero y su repositorio (ola 2) | ✅ hecho (`agy` Flash high, intento 1) |
 | 1 | V1 Verificación independiente (ola 3) | ✅ hecho (`agy` Argon high, intento 2: S1–S13 y E1–E8 cumplen, 0 bloqueantes) |
+| 1 | P1 y P2 Cierre de pendientes (`escrituraAplicada`, `FACTURA_INVALIDA`) | ✅ hecho (`agy` Flash high, intento 1) |
+| 1 | V2 Verificación de los pendientes | ✅ hecho (`agy` Argon medium: P1 y P2 cumplen, 0 bloqueantes) |
+| 1 | P3 Calidad de las pruebas (regla 6) y regresiones de V2 | ✅ hecho (`agy` Flash high, intento 1; 156 pruebas) |

@@ -12,4 +12,14 @@ describe('ReglaNegocioError', () => {
     expect(error).toBeInstanceOf(ReglaNegocioError);
     expect(error).toBeInstanceOf(Error);
   });
+
+  it('accepts new domain error codes: CANTIDAD_INVALIDA, COSTO_CAJA_INVALIDO, and STOCK_INSUFICIENTE', () => {
+    const errCantidad = new ReglaNegocioError('CANTIDAD_INVALIDA', 'Invalid quantity');
+    const errCosto = new ReglaNegocioError('COSTO_CAJA_INVALIDO', 'Invalid box cost');
+    const errStock = new ReglaNegocioError('STOCK_INSUFICIENTE', 'Insufficient stock');
+
+    expect(errCantidad.codigo).toBe('CANTIDAD_INVALIDA');
+    expect(errCosto.codigo).toBe('COSTO_CAJA_INVALIDO');
+    expect(errStock.codigo).toBe('STOCK_INSUFICIENTE');
+  });
 });

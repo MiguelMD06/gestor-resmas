@@ -10,7 +10,7 @@
 // Android Studio location.
 
 import { spawnSync } from 'node:child_process';
-import { copyFileSync, existsSync, mkdirSync, readdirSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { homedir, platform } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -36,8 +36,14 @@ function run(command, args, options = {}) {
   const result = isWindows
     ? spawnSync([command, ...args].join(' '), { stdio: 'inherit', shell: true, ...options })
     : spawnSync(command, args, { stdio: 'inherit', ...options });
+  if (result.error) {
+    fail(`"${command} ${args.join(' ')}" could not start: ${result.error.message}`);
+  }
+  if (result.signal) {
+    fail(`"${command} ${args.join(' ')}" was stopped by signal ${result.signal}.`);
+  }
   if (result.status !== 0) {
-    fail(`"${command} ${args.join(' ')}" failed with exit code ${result.status ?? 'unknown'}.`);
+    fail(`"${command} ${args.join(' ')}" failed with exit code ${result.status}.`);
   }
 }
 
@@ -110,14 +116,19 @@ function findAndroidSdk() {
   return sdk;
 }
 
+// Points android/local.properties at the detected SDK so Gradle builds with the
+// same SDK this script reports. Other keys in the file are kept.
 function ensureLocalProperties(sdk) {
   const localProperties = join(androidDir, 'local.properties');
-  if (existsSync(localProperties)) {
+  // Backslashes are escape characters in .properties files, so use forward slashes.
+  const sdkLine = `sdk.dir=${sdk.replaceAll('\\', '/')}`;
+  const lines = existsSync(localProperties) ? readFileSync(localProperties, 'utf8').split(/\r?\n/) : [];
+  if (lines.includes(sdkLine)) {
     return;
   }
-  // Backslashes are escape characters in .properties files, so use forward slashes.
-  writeFileSync(localProperties, `sdk.dir=${sdk.replaceAll('\\', '/')}\n`, 'utf8');
-  console.log(`[apk] Wrote android/local.properties (sdk.dir=${sdk})`);
+  const otherLines = lines.filter((line) => line.trim() !== '' && !line.startsWith('sdk.dir='));
+  writeFileSync(localProperties, [...otherLines, sdkLine].join('\n') + '\n', 'utf8');
+  console.log(`[apk] Updated android/local.properties (${sdkLine})`);
 }
 
 if (!existsSync(androidDir)) {

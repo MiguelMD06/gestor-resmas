@@ -234,7 +234,12 @@ export class NuevaCompraModalComponent implements OnInit {
 
   readonly errorFecha = computed(() => (this.fecha().trim() ? null : 'Elige una fecha'));
 
+  readonly guardando = signal(false);
+
   readonly puedeGuardar = computed(() => {
+    if (this.guardando()) {
+      return false;
+    }
     const tieneFecha = Boolean(this.fecha().trim());
     const tieneVista = Boolean(this.vistaPrevia()?.alcanza);
     const sinErrores = !this.errorCajas() && !this.errorCosto() && !this.errorInesperado();
@@ -357,6 +362,7 @@ export class NuevaCompraModalComponent implements OnInit {
       return;
     }
 
+    this.guardando.set(true);
     try {
       const horaActual = this.clock.ahora().split(' ')[1];
       const parsedFecha = fechaHora(`${this.fecha().trim()} ${horaActual}`);
@@ -377,6 +383,8 @@ export class NuevaCompraModalComponent implements OnInit {
         position: 'bottom',
       });
       await toast.present();
+    } finally {
+      this.guardando.set(false);
     }
   }
 }

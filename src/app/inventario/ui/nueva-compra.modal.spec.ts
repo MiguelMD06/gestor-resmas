@@ -6,7 +6,7 @@ import { ModalController, ToastController } from '@ionic/angular';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AporteModalComponent } from '../../finanzas/ui/aporte.modal';
-import { fechaHora, pesos, ReglaNegocioError } from '../../shared/domain';
+import { fechaHora, pesos, ReglaNegocioError, type Pesos } from '../../shared/domain';
 import { CLOCK } from '../../shared/infrastructure/clock/clock.token';
 import { RegistrarCompra } from '../application/registrar-compra';
 
@@ -189,6 +189,45 @@ describe('NuevaCompraModalComponent', () => {
       medio: 'EFECTIVO',
     });
     expect(mockModalCtrl.dismiss).toHaveBeenCalledWith({ idLote: 1, guardado: true }, 'guardado');
+  });
+
+  it('records the purchase only once and disables Guardar compra while a save is in flight', async () => {
+    let resolverRegistro: (valor: { idLote: number; reinversion: Pesos }) => void = () => undefined;
+    mockRegistrarCompra.registrar.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolverRegistro = resolve;
+      }),
+    );
+    component.fecha.set('2026-11-05');
+    component.cajas.set(2);
+    component.costoPorCaja.set(120000);
+    await component.actualizarPrevisualizacion();
+
+    const primerGuardado = component.guardar();
+    const segundoGuardado = component.guardar();
+    fixture.detectChanges();
+
+    const botonGuardar = fixture.debugElement.query(By.css('[data-testid="btn-guardar-compra"]'));
+    expect(botonGuardar.nativeElement.disabled || botonGuardar.attributes['disabled'] !== undefined).toBe(true);
+
+    resolverRegistro({ idLote: 1, reinversion: pesos(0) });
+    await Promise.all([primerGuardado, segundoGuardado]);
+
+    expect(mockRegistrarCompra.registrar).toHaveBeenCalledTimes(1);
+    expect(mockModalCtrl.dismiss).toHaveBeenCalledTimes(1);
+  });
+
+  it('enables Guardar compra again after a failed save', async () => {
+    mockRegistrarCompra.registrar.mockRejectedValueOnce(new Error('write failed'));
+    component.fecha.set('2026-11-05');
+    component.cajas.set(2);
+    component.costoPorCaja.set(120000);
+    await component.actualizarPrevisualizacion();
+
+    await component.guardar();
+
+    expect(mockToastCtrl.create).toHaveBeenCalled();
+    expect(component.puedeGuardar()).toBe(true);
   });
 
   it('shows Elige una fecha and disables Guardar compra when date is empty', async () => {

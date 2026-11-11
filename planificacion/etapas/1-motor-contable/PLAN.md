@@ -183,6 +183,17 @@ Observaciones que no bloquean, de la revisión nativa de B1.0 y de V1:
 
 Tras la revisión del PR #5 (`edeb715`, `1ef12fd`) se resolvieron R3/R4-init-sync-throw, R3-pending-flush-tx-untested y V1-idioma. R4-ambiguous-guardado-error quedó documentado en `GuardadoWebError`, pero los dos casos siguen sin poder distinguirse. Siguen pendientes R1-001 y V1-dominio-factura.
 
+### Cierre de los pendientes (rama `fix/pendientes-etapa-1`, L6)
+
+| Bloque | Ejecutor | Commit | Resultado |
+|--------|----------|--------|-----------|
+| P1 | `agy` · `gemini-3.8-flash-high`, intento 1 | `a91af2b` | **R4-ambiguous-guardado-error resuelto:** `GuardadoWebError.escrituraAplicada` es `true` si falló el guardado después de la escritura y `false` si falló el guardado pendiente y la escritura no se ejecutó. Hay pruebas de los dos casos para `run`, `exec` y `transaction`. |
+| P2 | `agy` · `gemini-3.8-flash-high`, intento 1 | `8199de1` | **V1-dominio-factura resuelto:** `validarFactura` rechaza `pagado < 0`, `pagado > total` y `costoBase < 0` con `FACTURA_INVALIDA`, en `saldo()` y `repartirPago()`. La venta bajo costo sigue siendo válida. |
+| V2 | `agy` · `gemini-4-argon-medium`, intento 1 | — | **P1 y P2 cumplen, 0 bloqueantes**, sin rutas fuera de lo permitido. Observaciones: faltas a la regla 6 que ya venían de la Etapa 1. |
+| P3 | `agy` · `gemini-3.8-flash-high`, intento 1 | `dc66982` | Corrige las observaciones de V2: los rechazos se verifican sin `try/catch`, los títulos nombran la función que prueban y las 5 pruebas adversariales de V2 quedan como regresión. Total: 156 pruebas. |
+
+**R1-001** se cierra sin cambios: era informativa, y `init()` ya se rehízo en el PR #5. Ya no quedan pendientes de la Etapa 1.
+
 ## Por aprobar
 
 ✅ Los 7 puntos fueron aprobados tal cual (L3). La ejecución espera la orden del usuario.
@@ -204,3 +215,4 @@ Mensajes del usuario copiados textualmente; las notas del coordinador van entre 
 - **L3** (2026-11-08): "Si apruebo los 7 puntos, quiero saber porque estas dejando el plan y todo lo de documentación en distintas PR, eso es una buena practica?. Todavía no ejecutes el plan" [Plan aprobado. La ejecución sigue en espera.]
 - **L4** (2026-11-08, Juan Fierro, que ejecuta la etapa; Miguel valida el PR): "Miguel ya integró el PR #4, arranquemos la Etapa 1" [Rama `feat/etapa-1-motor-contable` desde `41d35ad`. Ajustes de ejecución, sin cambiar el alcance: (1) agy corre con `--mode accept-edits` en lugar de `--dangerously-skip-permissions`; (2) B1.0 va con `gemini-4-argon-high`, porque toca concurrencia y dependencias (ítems 4 y 5 de alto riesgo); B1.1 y B1.2 con `gemini-3.8-flash-high`; (3) en la ola 2, los bloques paralelos no corren `npm run build` (los dos escribirían en `www/`): compila el coordinador; (4) las operaciones del libro reciben `fecha: FechaHora` como parámetro, porque `domain/` no lee el reloj, y el traspaso se registra con `registrarTraspaso(tx, [salida, entrada])` en vez de sobrecargar `registrar`.]
 - **L5** (2026-11-08): [Etapa ejecutada y verificada; ver "Resultado" y "Pendientes para la Etapa 2". Commits extra respecto de la lista de "Commits": `a0f667f` y `271b549` (encargos de los bloques), `77dad5d` (pruebas de aceptación de V1) y el de cierre. Para la revisión nativa se corrió `gentle-ai sync` en la máquina del coordinador (`managed_assets_outdated`).]
+- **L6** (2026-11-10): "Si apruebo el plan, y trabajemos como me estas recomendando. Primero integrar las reglas de calidad, luego solucionar los pendientes y ahí si proceder con la etapa 2. Entonces comencemos con las reglas de calidad" y luego "Si, una vez hagas esto continua con los pendientes. Recuerda que puedes usar subagentes para esa tarea" [Reglas de calidad integradas (PR #6 y #7). Pendientes cerrados con P1, P2, V2 y P3; ver "Cierre de los pendientes". La revisión nativa se omitió por decisión del usuario.]

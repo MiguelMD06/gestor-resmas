@@ -106,6 +106,10 @@ src/app/inventario.acceptance.spec.ts
 e2e/app.spec.ts
 src/app/shared/infrastructure/sqlite/sqlite-connection.factory.ts
 src/app/shared/infrastructure/sqlite/sqlite-connection.factory.spec.ts
+src/app/shared/ui/formulario.ts
+src/app/shared/ui/formulario.spec.ts
+src/app/inventario/ui/nueva-compra.modal.ts
+src/app/finanzas/ui/aporte.modal.ts
 ```
 
 Prohibido todo lo demás.
@@ -121,6 +125,8 @@ Prohibido todo lo demás.
   - Las pruebas que dicen "rethrows the original error" verifican la identidad del error con `rejects.toBe(errorOriginal)`, no solo su mensaje (en los casos de `open` y de `PRAGMA`).
   - Agrega una prueba para cuando `isDBOpen` rechaza: se llama a `closeConnection(DB_NAME, false)` y se relanza el mismo error.
   - En la factory, cambia el `WeakSet` `initializedWebStores` por un booleano de módulo (`webStoreInicializado`) junto a la instancia única: solo hay una instancia y el booleano lo expresa directamente. El comportamiento no cambia y las pruebas existentes de `initWebStore` siguen pasando.
+
+- **S5. Un solo `esVacio`.** `nueva-compra.modal.ts` y `aporte.modal.ts` definen cada uno una función `esVacio` idéntica. Muévela a `src/app/shared/ui/formulario.ts` (exportada), con su prueba en `formulario.spec.ts` (`null`, `undefined`, `''`, `'  '`, `NaN` dan `true`; `0`, `'0'` y `300000` dan `false`), y haz que ambos modales la importen. Borra las copias locales. El comportamiento de los modales no cambia.
 
 ## Verificación
 

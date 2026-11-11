@@ -2,8 +2,8 @@ import { expect, test } from '@playwright/test';
 
 import { capturarErroresConsola } from './helpers/errores-consola';
 
-test.describe('Navegación principal por pestañas', () => {
-  test('abre / y queda en /inventario, con las 4 pestañas visibles en el orden establecido', async ({ page }) => {
+test.describe('Main tab navigation', () => {
+  test('opens / and redirects to /inventario with 4 visible tabs in the expected order', async ({ page }) => {
     const consoleErrors = capturarErroresConsola(page);
 
     await page.goto('/');
@@ -30,7 +30,7 @@ test.describe('Navegación principal por pestañas', () => {
     expect(consoleErrors).toEqual([]);
   });
 
-  test('un clic en cada pestaña navega a su URL y muestra su título', async ({ page }) => {
+  test('clicking each tab navigates to its URL and displays its title', async ({ page }) => {
     const consoleErrors = capturarErroresConsola(page);
 
     await page.goto('/');
@@ -53,7 +53,7 @@ test.describe('Navegación principal por pestañas', () => {
     expect(consoleErrors).toEqual([]);
   });
 
-  test('abrir /no-existe termina en /inventario', async ({ page }) => {
+  test('opening /no-existe redirects to /inventario', async ({ page }) => {
     const consoleErrors = capturarErroresConsola(page);
 
     await page.goto('/no-existe');

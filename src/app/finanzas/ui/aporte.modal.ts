@@ -18,15 +18,9 @@ import {
 
 import { fechaHora, pesos, type MedioPago } from '../../shared/domain';
 import { CLOCK } from '../../shared/infrastructure/clock/clock.token';
+import { esVacio } from '../../shared/ui/formulario';
 import { mensajeDeError } from '../../shared/ui/mensajes-error';
 import { RegistrarAporte } from '../application/registrar-aporte';
-
-function esVacio(val: unknown): boolean {
-  if (val === null || val === undefined) return true;
-  if (typeof val === 'string' && val.trim() === '') return true;
-  if (typeof val === 'number' && Number.isNaN(val)) return true;
-  return false;
-}
 
 @Component({
   selector: 'app-aporte-modal',

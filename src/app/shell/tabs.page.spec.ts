@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest';
 import { TabsPage } from './tabs.page';
 
 describe('TabsPage', () => {
-  it('hay 4 ion-tab-button con tab igual a finanzas, vender, inventario y clientes, en ese orden y con sus textos', async () => {
+  it('displays 4 ion-tab-button elements with tabs finanzas, vender, inventario, and clientes, in that order with their labels', async () => {
     await TestBed.configureTestingModule({
       imports: [TabsPage],
       providers: [provideRouter([])],

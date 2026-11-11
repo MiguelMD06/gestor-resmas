@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { fechaHora, pesos, ReglaNegocioError } from '../../shared/domain';
+import { fechaHora, pesos } from '../../shared/domain';
 
 import type { FacturaAbierta } from './factura';
 import { repartirPago } from './reparto-pago';
@@ -66,19 +66,13 @@ describe('repartirPago domain rule (R-01)', () => {
       pagado: pesos(0),
     };
 
-    expect(() => repartirPago(factura, pesos(0))).toThrowError(ReglaNegocioError);
-    try {
-      repartirPago(factura, pesos(0));
-    } catch (e) {
-      expect((e as ReglaNegocioError).codigo).toBe('MONTO_INVALIDO');
-    }
+    expect(() => repartirPago(factura, pesos(0))).toThrow(
+      expect.objectContaining({ name: 'ReglaNegocioError', codigo: 'MONTO_INVALIDO' }),
+    );
 
-    expect(() => repartirPago(factura, pesos(-5000))).toThrowError(ReglaNegocioError);
-    try {
-      repartirPago(factura, pesos(-5000));
-    } catch (e) {
-      expect((e as ReglaNegocioError).codigo).toBe('MONTO_INVALIDO');
-    }
+    expect(() => repartirPago(factura, pesos(-5000))).toThrow(
+      expect.objectContaining({ name: 'ReglaNegocioError', codigo: 'MONTO_INVALIDO' }),
+    );
   });
 
   it('rejects payment exceeding remaining invoice balance with MONTO_SUPERA_SALDO_FACTURA', () => {

@@ -34,7 +34,7 @@ describe('CapacitorSqlDatabase adapter', () => {
     expect(mockDb.commitTransaction).toHaveBeenCalledTimes(1);
   });
 
-  it('calls guardar() on commit when esWeb is true, and does not call it on native', async () => {
+  it('transaction calls guardar() on commit when esWeb is true, and does not call it on native', async () => {
     const mockDbWeb = createMockDb();
     const guardarWeb = vi.fn().mockResolvedValue(undefined);
     const dbWeb = new CapacitorSqlDatabase(mockDbWeb as unknown as SQLiteDBConnection, {
@@ -64,7 +64,7 @@ describe('CapacitorSqlDatabase adapter', () => {
     expect(guardarNative).not.toHaveBeenCalled();
   });
 
-  it('calls rollbackTransaction (not commitTransaction) and rethrows the error when work fails', async () => {
+  it('transaction calls rollbackTransaction (not commitTransaction) and rethrows the error when work fails', async () => {
     const mockDb = createMockDb();
     const guardar = vi.fn().mockResolvedValue(undefined);
     const db = new CapacitorSqlDatabase(mockDb as unknown as SQLiteDBConnection, {
@@ -103,7 +103,7 @@ describe('CapacitorSqlDatabase adapter', () => {
     expect(guardar).toHaveBeenCalledTimes(2);
   });
 
-  it('throws GuardadoWebError with original cause and does not call rollbackTransaction when guardar() fails after commit in web', async () => {
+  it('transaction throws GuardadoWebError with original cause and does not call rollbackTransaction when guardar() fails after commit in web', async () => {
     const mockDb = createMockDb();
     const cause = new Error('IndexedDB quota exceeded');
     const guardar = vi.fn().mockRejectedValue(cause);
@@ -163,7 +163,7 @@ describe('CapacitorSqlDatabase adapter', () => {
     expect(mockDb.execute).toHaveBeenCalledTimes(1);
   });
 
-  it('retries guardar() before the next write when pending and executes the write if guardar() succeeds', async () => {
+  it('run retries guardar() before the next write when pending and executes the write if guardar() succeeds', async () => {
     const mockDb = createMockDb();
     const order: string[] = [];
     const guardar = vi
@@ -399,5 +399,82 @@ describe('CapacitorSqlDatabase adapter', () => {
     const rows = await db.query<{ id: number }>('SELECT id FROM test');
     expect(rows).toEqual([{ id: 1 }]);
     expect(guardar).toHaveBeenCalledTimes(1);
+  });
+
+  it('run and transaction recover from a pending save when guardar() succeeds on transaction, and a third failing run reports escrituraAplicada === true', async () => {
+    const mockDb = createMockDb();
+    const firstCause = new Error('First persistence failure');
+    const thirdCause = new Error('Third persistence failure');
+
+    const guardar = vi
+      .fn<() => Promise<void>>()
+      .mockRejectedValueOnce(firstCause)
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce(undefined)
+      .mockRejectedValueOnce(thirdCause);
+
+    const db = new CapacitorSqlDatabase(mockDb as unknown as SQLiteDBConnection, {
+      esWeb: true,
+      guardar,
+    });
+
+    // 1. First run: SQL write succeeds, guardar() fails -> adapter is left pending, escrituraAplicada === true
+    const run1 = db.run('INSERT INTO test VALUES (?)', [1]);
+    await expect(run1).rejects.toBeInstanceOf(GuardadoWebError);
+    await expect(run1).rejects.toMatchObject({
+      name: 'GuardadoWebError',
+      escrituraAplicada: true,
+      cause: firstCause,
+    });
+    expect(mockDb.run).toHaveBeenCalledTimes(1);
+    expect(guardar).toHaveBeenCalledTimes(1);
+
+    // 2. Following transaction with working guardar(): flushes pending save, runs work + commit, and saves after commit
+    const txResult = await db.transaction(async (tx) => {
+      await tx.run('INSERT INTO test VALUES (?)', [2]);
+      return 'tx-completed';
+    });
+    expect(txResult).toBe('tx-completed');
+    expect(mockDb.beginTransaction).toHaveBeenCalledTimes(1);
+    expect(mockDb.run).toHaveBeenCalledTimes(2);
+    expect(mockDb.commitTransaction).toHaveBeenCalledTimes(1);
+    expect(mockDb.rollbackTransaction).not.toHaveBeenCalled();
+    expect(guardar).toHaveBeenCalledTimes(3);
+
+    // 3. Third run whose guardar() fails: pending flag was cleared by step 2, so SQL write executes and fails on post-write save with escrituraAplicada === true
+    const run3 = db.run('INSERT INTO test VALUES (?)', [3]);
+    await expect(run3).rejects.toBeInstanceOf(GuardadoWebError);
+    await expect(run3).rejects.toMatchObject({
+      name: 'GuardadoWebError',
+      escrituraAplicada: true,
+      cause: thirdCause,
+    });
+    expect(mockDb.run).toHaveBeenCalledTimes(3);
+    expect(guardar).toHaveBeenCalledTimes(4);
+  });
+
+  it('run, exec and transaction in native mode (esWeb = false) never call guardar() and never throw GuardadoWebError', async () => {
+    const mockDb = createMockDb();
+    const guardar = vi.fn().mockRejectedValue(new Error('Should never be called on native'));
+    const db = new CapacitorSqlDatabase(mockDb as unknown as SQLiteDBConnection, {
+      esWeb: false,
+      guardar,
+    });
+
+    const runRes = await db.run('INSERT INTO test VALUES (?)', [1]);
+    expect(runRes).toEqual({ changes: 1, lastInsertId: 10 });
+
+    await db.exec('CREATE TABLE t (id INT);');
+
+    const txRes = await db.transaction(async (tx) => {
+      await tx.run('UPDATE test SET id = 2', []);
+      return 'native-ok';
+    });
+    expect(txRes).toBe('native-ok');
+
+    expect(guardar).not.toHaveBeenCalled();
+    expect(mockDb.run).toHaveBeenCalledTimes(2);
+    expect(mockDb.execute).toHaveBeenCalledTimes(1);
+    expect(mockDb.commitTransaction).toHaveBeenCalledTimes(1);
   });
 });

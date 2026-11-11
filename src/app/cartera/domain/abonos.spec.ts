@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { fechaHora, pesos, ReglaNegocioError } from '../../shared/domain';
+import { fechaHora, pesos } from '../../shared/domain';
 
 import { abonarFactura, distribuirCascada, liquidarTodo } from './abonos';
-import type { FacturaAbierta } from './factura';
+import { deudaTotal } from './deuda';
+import { saldo, type FacturaAbierta } from './factura';
+import { repartirPago } from './reparto-pago';
 
 describe('abonos domain operations (S4, S5, S6)', () => {
   describe('distribuirCascada (S4)', () => {
@@ -73,12 +75,9 @@ describe('abonos domain operations (S4, S5, S6)', () => {
         },
       ]; // total debt = 40.000
 
-      expect(() => distribuirCascada(facturas, pesos(50000))).toThrowError(ReglaNegocioError);
-      try {
-        distribuirCascada(facturas, pesos(50000));
-      } catch (e) {
-        expect((e as ReglaNegocioError).codigo).toBe('MONTO_SUPERA_DEUDA');
-      }
+      expect(() => distribuirCascada(facturas, pesos(50000))).toThrow(
+        expect.objectContaining({ name: 'ReglaNegocioError', codigo: 'MONTO_SUPERA_DEUDA' }),
+      );
     });
 
     it('breaks ties using ascending idVenta when two invoices have the exact same date', () => {
@@ -177,19 +176,13 @@ describe('abonos domain operations (S4, S5, S6)', () => {
         },
       ];
 
-      expect(() => distribuirCascada(facturas, pesos(0))).toThrowError(ReglaNegocioError);
-      try {
-        distribuirCascada(facturas, pesos(0));
-      } catch (e) {
-        expect((e as ReglaNegocioError).codigo).toBe('MONTO_INVALIDO');
-      }
+      expect(() => distribuirCascada(facturas, pesos(0))).toThrow(
+        expect.objectContaining({ name: 'ReglaNegocioError', codigo: 'MONTO_INVALIDO' }),
+      );
 
-      expect(() => distribuirCascada(facturas, pesos(-1000))).toThrowError(ReglaNegocioError);
-      try {
-        distribuirCascada(facturas, pesos(-1000));
-      } catch (e) {
-        expect((e as ReglaNegocioError).codigo).toBe('MONTO_INVALIDO');
-      }
+      expect(() => distribuirCascada(facturas, pesos(-1000))).toThrow(
+        expect.objectContaining({ name: 'ReglaNegocioError', codigo: 'MONTO_INVALIDO' }),
+      );
     });
 
     it('rejects with SIN_DEUDA when there is no outstanding debt', () => {
@@ -203,19 +196,13 @@ describe('abonos domain operations (S4, S5, S6)', () => {
         },
       ];
 
-      expect(() => distribuirCascada(facturasPagadas, pesos(5000))).toThrowError(ReglaNegocioError);
-      try {
-        distribuirCascada(facturasPagadas, pesos(5000));
-      } catch (e) {
-        expect((e as ReglaNegocioError).codigo).toBe('SIN_DEUDA');
-      }
+      expect(() => distribuirCascada(facturasPagadas, pesos(5000))).toThrow(
+        expect.objectContaining({ name: 'ReglaNegocioError', codigo: 'SIN_DEUDA' }),
+      );
 
-      expect(() => distribuirCascada([], pesos(5000))).toThrowError(ReglaNegocioError);
-      try {
-        distribuirCascada([], pesos(5000));
-      } catch (e) {
-        expect((e as ReglaNegocioError).codigo).toBe('SIN_DEUDA');
-      }
+      expect(() => distribuirCascada([], pesos(5000))).toThrow(
+        expect.objectContaining({ name: 'ReglaNegocioError', codigo: 'SIN_DEUDA' }),
+      );
     });
   });
 
@@ -270,19 +257,13 @@ describe('abonos domain operations (S4, S5, S6)', () => {
         pagado: pesos(0),
       };
 
-      expect(() => abonarFactura(invoice, pesos(0))).toThrowError(ReglaNegocioError);
-      try {
-        abonarFactura(invoice, pesos(0));
-      } catch (e) {
-        expect((e as ReglaNegocioError).codigo).toBe('MONTO_INVALIDO');
-      }
+      expect(() => abonarFactura(invoice, pesos(0))).toThrow(
+        expect.objectContaining({ name: 'ReglaNegocioError', codigo: 'MONTO_INVALIDO' }),
+      );
 
-      expect(() => abonarFactura(invoice, pesos(-500))).toThrowError(ReglaNegocioError);
-      try {
-        abonarFactura(invoice, pesos(-500));
-      } catch (e) {
-        expect((e as ReglaNegocioError).codigo).toBe('MONTO_INVALIDO');
-      }
+      expect(() => abonarFactura(invoice, pesos(-500))).toThrow(
+        expect.objectContaining({ name: 'ReglaNegocioError', codigo: 'MONTO_INVALIDO' }),
+      );
     });
 
     it('rejects with SIN_DEUDA when invoice has zero balance', () => {
@@ -294,12 +275,9 @@ describe('abonos domain operations (S4, S5, S6)', () => {
         pagado: pesos(30000), // saldo: 0
       };
 
-      expect(() => abonarFactura(invoice, pesos(5000))).toThrowError(ReglaNegocioError);
-      try {
-        abonarFactura(invoice, pesos(5000));
-      } catch (e) {
-        expect((e as ReglaNegocioError).codigo).toBe('SIN_DEUDA');
-      }
+      expect(() => abonarFactura(invoice, pesos(5000))).toThrow(
+        expect.objectContaining({ name: 'ReglaNegocioError', codigo: 'SIN_DEUDA' }),
+      );
     });
 
     it('rejects zero or negative amounts with MONTO_INVALIDO even on a fully paid invoice', () => {
@@ -323,12 +301,9 @@ describe('abonos domain operations (S4, S5, S6)', () => {
         pagado: pesos(10000), // saldo: 20.000
       };
 
-      expect(() => abonarFactura(invoice, pesos(25000))).toThrowError(ReglaNegocioError);
-      try {
-        abonarFactura(invoice, pesos(25000));
-      } catch (e) {
-        expect((e as ReglaNegocioError).codigo).toBe('MONTO_SUPERA_SALDO_FACTURA');
-      }
+      expect(() => abonarFactura(invoice, pesos(25000))).toThrow(
+        expect.objectContaining({ name: 'ReglaNegocioError', codigo: 'MONTO_SUPERA_SALDO_FACTURA' }),
+      );
     });
   });
 
@@ -385,12 +360,9 @@ describe('abonos domain operations (S4, S5, S6)', () => {
     });
 
     it('rejects with SIN_DEUDA when there is no debt to settle', () => {
-      expect(() => liquidarTodo([])).toThrowError(ReglaNegocioError);
-      try {
-        liquidarTodo([]);
-      } catch (e) {
-        expect((e as ReglaNegocioError).codigo).toBe('SIN_DEUDA');
-      }
+      expect(() => liquidarTodo([])).toThrow(
+        expect.objectContaining({ name: 'ReglaNegocioError', codigo: 'SIN_DEUDA' }),
+      );
 
       const facturasPagadas: FacturaAbierta[] = [
         {
@@ -401,12 +373,107 @@ describe('abonos domain operations (S4, S5, S6)', () => {
           pagado: pesos(10000),
         },
       ];
-      expect(() => liquidarTodo(facturasPagadas)).toThrowError(ReglaNegocioError);
-      try {
-        liquidarTodo(facturasPagadas);
-      } catch (e) {
-        expect((e as ReglaNegocioError).codigo).toBe('SIN_DEUDA');
-      }
+      expect(() => liquidarTodo(facturasPagadas)).toThrow(
+        expect.objectContaining({ name: 'ReglaNegocioError', codigo: 'SIN_DEUDA' }),
+      );
+    });
+  });
+
+  describe('invoice validation and below-cost regressions', () => {
+    const fechaBase = fechaHora('2026-11-08 10:00:00');
+
+    const facturaPagadoSuperaTotal: FacturaAbierta = {
+      idVenta: 50,
+      fecha: fechaBase,
+      total: pesos(30000),
+      costoBase: pesos(24000),
+      pagado: pesos(30001),
+    };
+
+    it('distribuirCascada and liquidarTodo reject with FACTURA_INVALIDA when an invoice has pagado > total', () => {
+      const facturaValida: FacturaAbierta = {
+        idVenta: 49,
+        fecha: fechaHora('2026-11-01 10:00:00'),
+        total: pesos(20000),
+        costoBase: pesos(16000),
+        pagado: pesos(0),
+      };
+
+      expect(() => distribuirCascada([facturaValida, facturaPagadoSuperaTotal], pesos(10000))).toThrow(
+        expect.objectContaining({
+          name: 'ReglaNegocioError',
+          codigo: 'FACTURA_INVALIDA',
+        }),
+      );
+
+      expect(() => liquidarTodo([facturaValida, facturaPagadoSuperaTotal])).toThrow(
+        expect.objectContaining({
+          name: 'ReglaNegocioError',
+          codigo: 'FACTURA_INVALIDA',
+        }),
+      );
+    });
+
+    it('abonarFactura, repartirPago, saldo and deudaTotal reject with FACTURA_INVALIDA when pagado > total', () => {
+      expect(() => abonarFactura(facturaPagadoSuperaTotal, pesos(5000))).toThrow(
+        expect.objectContaining({
+          name: 'ReglaNegocioError',
+          codigo: 'FACTURA_INVALIDA',
+        }),
+      );
+
+      expect(() => repartirPago(facturaPagadoSuperaTotal, pesos(5000))).toThrow(
+        expect.objectContaining({
+          name: 'ReglaNegocioError',
+          codigo: 'FACTURA_INVALIDA',
+        }),
+      );
+
+      expect(() => saldo(facturaPagadoSuperaTotal)).toThrow(
+        expect.objectContaining({
+          name: 'ReglaNegocioError',
+          codigo: 'FACTURA_INVALIDA',
+        }),
+      );
+
+      expect(() => deudaTotal([facturaPagadoSuperaTotal])).toThrow(
+        expect.objectContaining({
+          name: 'ReglaNegocioError',
+          codigo: 'FACTURA_INVALIDA',
+        }),
+      );
+    });
+
+    it('saldo, repartirPago, abonarFactura and distribuirCascada accept a below-cost sale (costoBase > total) and allocate the entire payment to capital', () => {
+      const facturaBajoCosto: FacturaAbierta = {
+        idVenta: 60,
+        fecha: fechaBase,
+        total: pesos(20000),
+        costoBase: pesos(24000),
+        pagado: pesos(0),
+      };
+
+      expect(saldo(facturaBajoCosto)).toBe(20000);
+      expect(repartirPago(facturaBajoCosto, pesos(20000))).toEqual({
+        capital: 20000,
+        ganancia: 0,
+      });
+      expect(abonarFactura(facturaBajoCosto, pesos(20000))).toEqual({
+        idVenta: 60,
+        monto: 20000,
+        capital: 20000,
+        ganancia: 0,
+        quedaPagada: true,
+      });
+      expect(distribuirCascada([facturaBajoCosto], pesos(15000))).toEqual([
+        {
+          idVenta: 60,
+          monto: 15000,
+          capital: 15000,
+          ganancia: 0,
+          quedaPagada: false,
+        },
+      ]);
     });
   });
 });

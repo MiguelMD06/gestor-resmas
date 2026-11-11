@@ -85,6 +85,39 @@ describe('AporteModalComponent', () => {
     expect(mockModalCtrl.dismiss).toHaveBeenCalledWith({ guardado: true }, 'guardado');
   });
 
+  it('records the contribution only once and disables Guardar aporte while a save is in flight', async () => {
+    let resolverRegistro: (valor: number) => void = () => undefined;
+    mockRegistrarAporte.registrar.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolverRegistro = resolve;
+      }),
+    );
+    component.monto.set(300000);
+
+    const primerGuardado = component.guardar();
+    const segundoGuardado = component.guardar();
+    fixture.detectChanges();
+
+    const botonGuardar = fixture.debugElement.query(By.css('[data-testid="btn-guardar-aporte"]'));
+    expect(botonGuardar.nativeElement.disabled || botonGuardar.attributes['disabled'] !== undefined).toBe(true);
+
+    resolverRegistro(1);
+    await Promise.all([primerGuardado, segundoGuardado]);
+
+    expect(mockRegistrarAporte.registrar).toHaveBeenCalledTimes(1);
+    expect(mockModalCtrl.dismiss).toHaveBeenCalledTimes(1);
+  });
+
+  it('enables Guardar aporte again after a failed save', async () => {
+    mockRegistrarAporte.registrar.mockRejectedValueOnce(new Error('write failed'));
+    component.monto.set(300000);
+
+    await component.guardar();
+
+    expect(mockToastCtrl.create).toHaveBeenCalled();
+    expect(component.puedeGuardar()).toBe(true);
+  });
+
   it('shows Elige una fecha and disables Guardar aporte when date is empty', async () => {
     component.fecha.set('');
     fixture.detectChanges();

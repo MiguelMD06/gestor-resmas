@@ -154,22 +154,53 @@ describe('createCapacitorSqlDatabase factory', () => {
     expect(executeMock).toHaveBeenCalledWith('PRAGMA foreign_keys = ON;', false);
   });
 
-  it('calls closeConnection(DB_NAME, false) and rethrows the same error when open() rejects on first attempt', async () => {
+  it('calls closeConnection(DB_NAME, false) and rethrows the original error when open() rejects on first attempt', async () => {
     const openError = new Error('Database open failed');
     openMock.mockRejectedValueOnce(openError);
 
-    await expect(createCapacitorSqlDatabase()).rejects.toThrow('Database open failed');
+    await expect(createCapacitorSqlDatabase()).rejects.toBe(openError);
 
     expect(closeConnectionMock).toHaveBeenCalledTimes(1);
     expect(closeConnectionMock).toHaveBeenCalledWith(DB_NAME, false);
   });
 
-  it('reuses existing connection via retrieveConnection without calling createConnection on a second attempt after failure', async () => {
-    const openError = new Error('First attempt failed');
+  it('calls closeConnection(DB_NAME, false) and rethrows the original error when isDBOpen() rejects', async () => {
+    const isDBOpenError = new Error('isDBOpen check failed');
+    isDBOpenMock.mockRejectedValueOnce(isDBOpenError);
+
+    await expect(createCapacitorSqlDatabase()).rejects.toBe(isDBOpenError);
+
+    expect(closeConnectionMock).toHaveBeenCalledTimes(1);
+    expect(closeConnectionMock).toHaveBeenCalledWith(DB_NAME, false);
+  });
+
+  it('calls createConnection again on a second attempt when the first failed in open() and closeConnection succeeded', async () => {
+    const openError = new Error('First attempt open failed');
     openMock.mockRejectedValueOnce(openError);
 
-    await expect(createCapacitorSqlDatabase()).rejects.toThrow('First attempt failed');
+    await expect(createCapacitorSqlDatabase()).rejects.toBe(openError);
     expect(createConnectionMock).toHaveBeenCalledTimes(1);
+    expect(closeConnectionMock).toHaveBeenCalledWith(DB_NAME, false);
+
+    isConnectionMock.mockResolvedValue({ result: false });
+
+    const db = await createCapacitorSqlDatabase();
+
+    expect(isConnectionMock).toHaveBeenLastCalledWith(DB_NAME, false);
+    expect(createConnectionMock).toHaveBeenCalledTimes(2);
+    expect(retrieveConnectionMock).not.toHaveBeenCalled();
+    expect(db).toBeDefined();
+  });
+
+  it('reuses existing connection via retrieveConnection without calling createConnection on a second attempt when closeConnection also failed', async () => {
+    const openError = new Error('First attempt open failed');
+    const closeError = new Error('closeConnection failed');
+    openMock.mockRejectedValueOnce(openError);
+    closeConnectionMock.mockRejectedValueOnce(closeError);
+
+    await expect(createCapacitorSqlDatabase()).rejects.toBe(openError);
+    expect(createConnectionMock).toHaveBeenCalledTimes(1);
+    expect(closeConnectionMock).toHaveBeenCalledWith(DB_NAME, false);
 
     isConnectionMock.mockResolvedValue({ result: true });
 
@@ -187,7 +218,7 @@ describe('createCapacitorSqlDatabase factory', () => {
     executeMock.mockRejectedValueOnce(pragmaError);
     closeConnectionMock.mockRejectedValueOnce(closeError);
 
-    await expect(createCapacitorSqlDatabase()).rejects.toThrow('PRAGMA failed');
+    await expect(createCapacitorSqlDatabase()).rejects.toBe(pragmaError);
 
     expect(closeConnectionMock).toHaveBeenCalledWith(DB_NAME, false);
   });

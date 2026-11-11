@@ -11,7 +11,7 @@ import { MIGRACIONES } from './shared/infrastructure/sqlite/migrations';
 import { migrar } from './shared/infrastructure/sqlite/migrations/migration-runner';
 import { SQL_DATABASE } from './shared/infrastructure/sqlite/sql-database.token';
 
-describe('Independent verification V2: Acceptance examples E1-E7 via public API', () => {
+describe('Acceptance examples E1-E7 through use cases, with repository-level seeding', () => {
   let db: SqlJsDatabase;
   let registrarAporte: RegistrarAporte;
   let consultarSaldos: ConsultarSaldos;

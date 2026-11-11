@@ -14,11 +14,11 @@ export const MENSAJES_ERROR: Record<CodigoRegla, string> = {
   STOCK_INSUFICIENTE: 'No hay suficientes resmas disponibles en el lote',
 };
 
-export const MENSAJE_ERROR_GENERICO = 'Ocurrió un error inesperado';
+const MENSAJE_ERROR_GENERICO = 'Ocurrió un error inesperado';
 
 export function mensajeDeError(error: unknown): string {
   if (error instanceof ReglaNegocioError) {
-    return MENSAJES_ERROR[error.codigo] ?? MENSAJE_ERROR_GENERICO;
+    return MENSAJES_ERROR[error.codigo];
   }
   return MENSAJE_ERROR_GENERICO;
 }

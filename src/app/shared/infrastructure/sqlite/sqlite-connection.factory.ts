@@ -7,7 +7,7 @@ import type { SqlDatabase } from './sql-database.port';
 export const DB_NAME = 'gestor_resmas';
 
 let sqliteInstance: SQLiteConnection | null = null;
-const initializedWebStores = new WeakSet<SQLiteConnection>();
+let webStoreInicializado = false;
 
 function getSQLiteConnection(): SQLiteConnection {
   if (!sqliteInstance) {
@@ -28,9 +28,9 @@ export async function createCapacitorSqlDatabase(): Promise<SqlDatabase> {
       document.body.appendChild(jeep);
     }
     await customElements.whenDefined('jeep-sqlite');
-    if (!initializedWebStores.has(sqlite)) {
+    if (!webStoreInicializado) {
       await sqlite.initWebStore();
-      initializedWebStores.add(sqlite);
+      webStoreInicializado = true;
     }
   }
 

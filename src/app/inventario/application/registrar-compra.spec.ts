@@ -228,6 +228,10 @@ describe('RegistrarCompra', () => {
       await libroRepo.registrar(tx, movCobro);
     });
 
+    const movsAntesPrevisualizar = await db.query<{ count: number }>(
+      'SELECT COUNT(*) AS count FROM movimientos_dinero;',
+    );
+
     const prevE3 = await casoDeUso.previsualizar({
       tipoPapel: 'OFICIO',
       cajas: 1,
@@ -262,6 +266,9 @@ describe('RegistrarCompra', () => {
     // 3. Verify no rows were created by previsualizar
     const lotesCount = await db.query<{ count: number }>('SELECT COUNT(*) AS count FROM lotes_cajas;');
     expect(lotesCount[0].count).toBe(0);
+
+    const movsCount = await db.query<{ count: number }>('SELECT COUNT(*) AS count FROM movimientos_dinero;');
+    expect(movsCount[0].count).toBe(movsAntesPrevisualizar[0].count);
 
     // 4. Input validations still throw in previsualizar
     await expect(

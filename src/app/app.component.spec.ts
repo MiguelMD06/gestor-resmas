@@ -1,4 +1,5 @@
 import { signal } from '@angular/core';
+import type { ComponentFixture } from '@angular/core/testing';
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
@@ -9,34 +10,15 @@ import { ErrorArranqueComponent } from './shell/error-arranque.component';
 import { EstadoArranque, type EstadoArranqueTipo } from './shell/estado-arranque';
 
 describe('AppComponent', () => {
-  it('con estado listo muestra ion-router-outlet y no app-error-arranque', async () => {
-    const estadoMock = signal<EstadoArranqueTipo>('listo');
-    const mockEstadoArranque = {
-      estado: estadoMock,
-      iniciar: vi.fn(),
-      reintentar: vi.fn(),
-    };
-
-    await TestBed.configureTestingModule({
-      imports: [AppComponent],
-      providers: [provideRouter([]), { provide: EstadoArranque, useValue: mockEstadoArranque }],
-    }).compileComponents();
-
-    const fixture = TestBed.createComponent(AppComponent);
-    fixture.detectChanges();
-
-    const routerOutlet = fixture.debugElement.query(By.css('ion-router-outlet'));
-    const errorComp = fixture.debugElement.query(By.directive(ErrorArranqueComponent));
-
-    expect(routerOutlet).toBeTruthy();
-    expect(errorComp).toBeNull();
-  });
-
-  it('con estado error muestra app-error-arranque y no ion-router-outlet; al tocar Reintentar llama a reintentar() y muestra el spinner global mientras el estado es cargando (E9)', async () => {
-    const estadoMock = signal<EstadoArranqueTipo>('error');
-    const reintentarSpy = vi.fn(() => {
-      estadoMock.set('cargando');
-    });
+  async function setupComponent(
+    estadoInicial: EstadoArranqueTipo,
+    reintentarSpy = vi.fn(),
+  ): Promise<{
+    fixture: ComponentFixture<AppComponent>;
+    estadoMock: ReturnType<typeof signal<EstadoArranqueTipo>>;
+    reintentarSpy: ReturnType<typeof vi.fn>;
+  }> {
+    const estadoMock = signal<EstadoArranqueTipo>(estadoInicial);
     const mockEstadoArranque = {
       estado: estadoMock,
       iniciar: vi.fn(),
@@ -51,48 +33,69 @@ describe('AppComponent', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
 
+    return { fixture, estadoMock, reintentarSpy };
+  }
+
+  it('displays ion-router-outlet and does not display app-error-arranque when state is listo', async () => {
+    const { fixture } = await setupComponent('listo');
+
     const routerOutlet = fixture.debugElement.query(By.css('ion-router-outlet'));
     const errorComp = fixture.debugElement.query(By.directive(ErrorArranqueComponent));
+
+    expect(routerOutlet).toBeTruthy();
+    expect(errorComp).toBeNull();
+  });
+
+  it('displays app-error-arranque when state is error, and upon retry transitions to cargando with spinner, then to listo showing router-outlet (E9)', async () => {
+    let mockRef: { estadoMock: ReturnType<typeof signal<EstadoArranqueTipo>> } | null = null;
+    const reintentarSpy = vi.fn(() => {
+      mockRef?.estadoMock.set('cargando');
+    });
+
+    const { fixture, estadoMock } = await setupComponent('error', reintentarSpy);
+    mockRef = { estadoMock };
+
+    let routerOutlet = fixture.debugElement.query(By.css('ion-router-outlet'));
+    let errorComp = fixture.debugElement.query(By.directive(ErrorArranqueComponent));
 
     expect(routerOutlet).toBeNull();
     expect(errorComp).toBeTruthy();
 
-    // Verificamos el contenido de error
     const texto = fixture.nativeElement.textContent;
     expect(texto).toContain('No se pudo abrir la base de datos');
     expect(texto).toContain('Revisa el espacio disponible en el teléfono y vuelve a intentarlo.');
 
-    // Simula tocar el botón Reintentar
     const botonReintentar = fixture.debugElement.query(By.css('ion-button'));
     expect(botonReintentar).toBeTruthy();
     botonReintentar.nativeElement.click();
 
     expect(reintentarSpy).toHaveBeenCalledTimes(1);
 
-    // Al cambiar a cargando, se muestra el spinner global y desaparece app-error-arranque
+    // After retry clicked, state changes to 'cargando' -> global spinner displayed, error component gone
     fixture.detectChanges();
-    const spinner = fixture.debugElement.query(By.css('ion-spinner'));
-    const errorCompDespues = fixture.debugElement.query(By.directive(ErrorArranqueComponent));
+    let spinner = fixture.debugElement.query(By.css('ion-spinner'));
+    errorComp = fixture.debugElement.query(By.directive(ErrorArranqueComponent));
+    routerOutlet = fixture.debugElement.query(By.css('ion-router-outlet'));
 
     expect(spinner).toBeTruthy();
-    expect(errorCompDespues).toBeNull();
+    expect(errorComp).toBeNull();
+    expect(routerOutlet).toBeNull();
+
+    // State completes initialization and transitions to 'listo'
+    estadoMock.set('listo');
+    fixture.detectChanges();
+
+    spinner = fixture.debugElement.query(By.css('ion-spinner'));
+    errorComp = fixture.debugElement.query(By.directive(ErrorArranqueComponent));
+    routerOutlet = fixture.debugElement.query(By.css('ion-router-outlet'));
+
+    expect(routerOutlet).toBeTruthy();
+    expect(errorComp).toBeNull();
+    expect(spinner).toBeNull();
   });
 
-  it('con estado cargando muestra ion-spinner y ni router-outlet ni app-error-arranque', async () => {
-    const estadoMock = signal<EstadoArranqueTipo>('cargando');
-    const mockEstadoArranque = {
-      estado: estadoMock,
-      iniciar: vi.fn(),
-      reintentar: vi.fn(),
-    };
-
-    await TestBed.configureTestingModule({
-      imports: [AppComponent],
-      providers: [provideRouter([]), { provide: EstadoArranque, useValue: mockEstadoArranque }],
-    }).compileComponents();
-
-    const fixture = TestBed.createComponent(AppComponent);
-    fixture.detectChanges();
+  it('displays ion-spinner and neither router-outlet nor app-error-arranque when state is cargando', async () => {
+    const { fixture } = await setupComponent('cargando');
 
     const routerOutlet = fixture.debugElement.query(By.css('ion-router-outlet'));
     const errorComp = fixture.debugElement.query(By.directive(ErrorArranqueComponent));

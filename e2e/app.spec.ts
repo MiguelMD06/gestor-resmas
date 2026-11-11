@@ -1,13 +1,10 @@
 import { expect, test } from '@playwright/test';
 
+import { capturarErroresConsola } from './helpers/errores-consola';
+
 test.describe('Navegación principal por pestañas', () => {
   test('abre / y queda en /inventario, con las 4 pestañas visibles en el orden establecido', async ({ page }) => {
-    const consoleErrors: string[] = [];
-    page.on('console', (msg) => {
-      if (msg.type() === 'error') {
-        consoleErrors.push(msg.text());
-      }
-    });
+    const consoleErrors = capturarErroresConsola(page);
 
     await page.goto('/');
 
@@ -34,12 +31,7 @@ test.describe('Navegación principal por pestañas', () => {
   });
 
   test('un clic en cada pestaña navega a su URL y muestra su título', async ({ page }) => {
-    const consoleErrors: string[] = [];
-    page.on('console', (msg) => {
-      if (msg.type() === 'error') {
-        consoleErrors.push(msg.text());
-      }
-    });
+    const consoleErrors = capturarErroresConsola(page);
 
     await page.goto('/');
     await expect(page).toHaveURL(/\/inventario$/);
@@ -62,12 +54,7 @@ test.describe('Navegación principal por pestañas', () => {
   });
 
   test('abrir /no-existe termina en /inventario', async ({ page }) => {
-    const consoleErrors: string[] = [];
-    page.on('console', (msg) => {
-      if (msg.type() === 'error') {
-        consoleErrors.push(msg.text());
-      }
-    });
+    const consoleErrors = capturarErroresConsola(page);
 
     await page.goto('/no-existe');
     await expect(page).toHaveURL(/\/inventario$/);

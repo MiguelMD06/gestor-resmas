@@ -1,3 +1,15 @@
 <ion-app>
-  <ion-router-outlet></ion-router-outlet>
+  @switch (estado()) {
+    @case ('listo') {
+      <ion-router-outlet></ion-router-outlet>
+    }
+    @case ('error') {
+      <app-error-arranque></app-error-arranque>
+    }
+    @case ('cargando') {
+      <div class="cargando-container">
+        <ion-spinner name="crescent"></ion-spinner>
+      </div>
+    }
+  }
 </ion-app>

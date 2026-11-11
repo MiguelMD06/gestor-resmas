@@ -1,13 +1,15 @@
 import type { Routes } from '@angular/router';
 
+import { TabsPage } from './shell/tabs.page';
+
 export const routes: Routes = [
   {
-    path: 'home',
-    loadComponent: () => import('./home/home.page').then((m) => m.HomePage),
+    path: '',
+    component: TabsPage,
+    loadChildren: () => import('./shell/tabs.routes').then((m) => m.routes),
   },
   {
-    path: '',
-    redirectTo: 'home',
-    pathMatch: 'full',
+    path: '**',
+    redirectTo: '',
   },
 ];

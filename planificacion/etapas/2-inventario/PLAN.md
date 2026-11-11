@@ -188,7 +188,9 @@ Para que no se repita, se agregaron las **reglas de calidad obligatorias** en `C
 - `LoteRepository.descontar`, `LoteRepository.porId` y `descontarResmas`: base para la **Etapa 3** (venta).
 - `ConsultarSaldos`: base para la **Etapa 5** (dashboard de Finanzas).
 
-**Pendiente fuera de lo automatizable:** probar en un dispositivo Android que **Reintentar** funciona tras un arranque fallido. Las pruebas cubren el plugin con dobles y el navegador con jeep-sqlite, pero no el plugin nativo.
+**B2.4e:** `e0bdf5d` corrige lo que señaló la revisión final: solo la última carga del inventario actualiza la pantalla, **Reintentar** queda deshabilitado mientras carga, vuelve el mensaje genérico para códigos desconocidos y los modales comparten `soloCierreExplicito`. Miguel omitió la revisión nativa de este commit. Checks finales en `e0bdf5d`: `lint` limpio, 252 pruebas unitarias, `build` correcto y 7 pruebas e2e.
+
+**Prueba manual en Android (L10):** Miguel instaló la APK de debug de `e0bdf5d` y probó la etapa en su dispositivo, sin problemas. El reintento tras un arranque fallido no se puede provocar desde la interfaz, así que ese caso queda cubierto solo por las pruebas unitarias del plugin con dobles y por el e2e en el navegador.
 
 ## Log
 
@@ -203,3 +205,4 @@ Mensajes del usuario copiados textualmente; las notas del coordinador van entre 
 - **L7** (2026-11-11): "Quiero que revises la pr #11, verifica si no existe codigo muerto, bug o cualquier error que nos pueda dar problemas apoyate de gentle-ai para esta actividad." [Revisión en cuatro tramos: el PR completo supera el presupuesto del revisor. Hallazgo crítico: doble envío en compra y aporte, corregido en `d880fc5` y `60202a3`. Quedan tres problemas reales y código usado solo por pruebas.]
 - **L8** (2026-11-11): "Haz un plan para implementar las soluciones a esos problemas que aún estan pendientes y dejar completa esta etapa sin ningun tipo de problema" [Plan B2.4 en tres bloques: B2.4a reintento de arranque, B2.4b pantallas y B2.4c limpieza.]
 - **L9** (2026-11-11): "Quiero que hagas una regla en el claude.md para que se tenga en cuenta todos estos criterios de calidad e inclusive más si propones algunos (yo los revisaré) para evitar que esto suceda en proximos pr. De ante mano el plan me parece correcto" y luego "apruebo las propuestas P1 a P6" [Plan aprobado. `CLAUDE.md` con las reglas 1 a 6 y las propuestas P1 a P6, aprobadas como reglas 7 a 12.]
+- **L10** (2026-11-11): "He hecho las pruebas manuales de la etapa 2 y todo salió bien" [Prueba manual con la APK de debug de `e0bdf5d`. La Etapa 2 queda cerrada y el PR #11, listo para merge.]

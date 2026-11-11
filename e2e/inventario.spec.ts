@@ -2,20 +2,20 @@ import { expect, test } from '@playwright/test';
 
 import { capturarErroresConsola } from './helpers/errores-consola';
 
-test.describe('Flujo de inventario: aporte de capital y compra de cajas', () => {
-  test('permite aportar capital, comprar cajas de papel Carta y conserva el lote tras recargar la página', async ({
+test.describe('Inventory flow: capital contribution and box purchase', () => {
+  test('allows contributing capital, buying Carta paper boxes and preserves the lot after reloading the page', async ({
     page,
   }) => {
     const consoleErrors = capturarErroresConsola(page);
 
-    // 1. Abrir la app en / (redirige a /inventario)
+    // 1. Open the app at / (redirects to /inventario)
     await page.goto('/');
     await expect(page).toHaveURL(/\/inventario$/);
 
-    // Inicialmente no hay lotes, se ve el mensaje vacío
+    // Initially there are no lots, empty message is visible
     await expect(page.locator('[data-testid="mensaje-vacio"]')).toBeVisible();
 
-    // 2. Aportar capital de $300.000 en efectivo
+    // 2. Contribute $300,000 capital in cash
     const fabPrincipal = page.locator('[data-testid="fab-principal"]');
     await fabPrincipal.click();
 
@@ -23,58 +23,58 @@ test.describe('Flujo de inventario: aporte de capital y compra de cajas', () => 
     await expect(fabAporte).toBeVisible();
     await fabAporte.click();
 
-    // Modal de aporte abierto
+    // Contribution modal open
     await expect(page.locator('ion-title', { hasText: 'Aporte de capital' })).toBeVisible();
 
-    // El botón Guardar aporte abre deshabilitado hasta escribir un monto
+    // Save contribution button opens disabled until an amount is entered
     const btnGuardarAporte = page.locator('[data-testid="btn-guardar-aporte"]');
     await expect(btnGuardarAporte).toHaveAttribute('aria-disabled', 'true');
     await expect(btnGuardarAporte).toHaveAttribute('disabled', '');
 
-    // Diligenciar monto de $300.000
+    // Fill in amount of $300,000
     const inputMonto = page.locator('[data-testid="input-monto"] input');
     await inputMonto.fill('300000');
 
-    // Ahora se habilita
+    // Now it is enabled
     await expect(btnGuardarAporte).not.toHaveAttribute('disabled', '');
     await btnGuardarAporte.click();
 
-    // Esperar a que el modal de aporte se cierre
+    // Wait for contribution modal to close
     await expect(page.locator('app-aporte-modal')).toHaveCount(0);
 
-    // 3. Registrar compra de 2 cajas Carta a $120.000 en efectivo
+    // 3. Record purchase of 2 Carta boxes at $120,000 in cash
     await fabPrincipal.click();
 
     const fabCompra = page.locator('[data-testid="fab-nueva-compra"]');
     await expect(fabCompra).toBeVisible();
     await fabCompra.click();
 
-    // Modal de nueva compra abierto
+    // New purchase modal open
     await expect(page.locator('ion-title', { hasText: 'Nueva compra' })).toBeVisible();
 
-    // Cantidad de cajas: 2
+    // Quantity of boxes: 2
     const inputCajas = page.locator('[data-testid="input-cajas"] input');
     await inputCajas.fill('2');
 
-    // Costo por caja: 120000
+    // Cost per box: 120000
     const inputCosto = page.locator('[data-testid="input-costo-caja"] input');
     await inputCosto.fill('120000');
 
-    // Guardar compra
+    // Save purchase
     const btnGuardarCompra = page.locator('[data-testid="btn-guardar-compra"]');
     await expect(btnGuardarCompra).toBeEnabled();
     await btnGuardarCompra.click();
 
-    // Esperar a que el modal de compra se cierre
+    // Wait for purchase modal to close
     await expect(page.locator('app-nueva-compra-modal')).toHaveCount(0);
 
-    // 4. Ver la tarjeta con "20 de 20 resmas" a $ 12.000 por resma
+    // 4. Check lot card with "20 de 20 resmas" at $ 12.000 per ream
     const tarjeta = page.locator('[data-testid="tarjeta-lote"]');
     await expect(tarjeta).toHaveCount(1);
     await expect(tarjeta).toContainText('20 de 20 resmas');
     await expect(tarjeta).toContainText('$ 12.000');
 
-    // 5. Recargar la página (los datos deben persistir en jeep-sqlite)
+    // 5. Reload the page (data must persist in jeep-sqlite)
     await page.reload();
     await expect(page).toHaveURL(/\/inventario$/);
 
@@ -83,11 +83,11 @@ test.describe('Flujo de inventario: aporte de capital y compra de cajas', () => 
     await expect(tarjetaDespues).toContainText('20 de 20 resmas');
     await expect(tarjetaDespues).toContainText('$ 12.000');
 
-    // Sin errores en consola
+    // No console errors
     expect(consoleErrors).toEqual([]);
   });
 
-  test('muestra vista previa con saldo insuficiente y boton deshabilitado al ingresar cajas sin fondos', async ({
+  test('shows live preview with insufficient balance and disabled button when entering boxes without funds', async ({
     page,
   }) => {
     const consoleErrors = capturarErroresConsola(page);
@@ -95,7 +95,7 @@ test.describe('Flujo de inventario: aporte de capital y compra de cajas', () => 
     await page.goto('/');
     await expect(page).toHaveURL(/\/inventario$/);
 
-    // Abrir modal de nueva compra directamente sin aporte previo
+    // Open new purchase modal directly without previous contribution
     const fabPrincipal = page.locator('[data-testid="fab-principal"]');
     await fabPrincipal.click();
 
@@ -105,33 +105,33 @@ test.describe('Flujo de inventario: aporte de capital y compra de cajas', () => 
 
     await expect(page.locator('ion-title', { hasText: 'Nueva compra' })).toBeVisible();
 
-    // Diligenciar 2 cajas a $120.000
+    // Fill in 2 boxes at $120,000
     const inputCajas = page.locator('[data-testid="input-cajas"] input');
     await inputCajas.fill('2');
 
     const inputCosto = page.locator('[data-testid="input-costo-caja"] input');
     await inputCosto.fill('120000');
 
-    // Verificar vista previa con "Costo total" y "$ 240.000"
+    // Verify preview with "Costo total" and "$ 240.000"
     const card = page.locator('app-nueva-compra-modal ion-card');
     await expect(card).toBeVisible();
     await expect(card).toContainText('Costo total: $ 240.000');
 
-    // Aviso de saldo insuficiente visible
+    // Insufficient balance warning visible
     const avisoSaldo = page.locator('[data-testid="aviso-saldo-insuficiente"]');
     await expect(avisoSaldo).toBeVisible();
     await expect(avisoSaldo).toContainText('El saldo del bolsillo no alcanza para esta compra');
 
-    // Botón Aportar capital visible
+    // Contribute capital button visible
     const btnAporte = page.locator('[data-testid="btn-aportar-capital"]');
     await expect(btnAporte).toBeVisible();
 
-    // Botón Guardar compra deshabilitado
+    // Save purchase button disabled
     const btnGuardarCompra = page.locator('[data-testid="btn-guardar-compra"]');
     await expect(btnGuardarCompra).toHaveAttribute('aria-disabled', 'true');
     await expect(btnGuardarCompra).toHaveAttribute('disabled', '');
 
-    // Sin errores en consola
+    // No console errors
     expect(consoleErrors).toEqual([]);
   });
 });

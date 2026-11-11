@@ -5,6 +5,19 @@ import { cajas, fechaHora, pesos, resmas } from '../../shared/domain';
 import { agruparPorTipo, descontarResmas, nuevoLote, progreso, type Lote } from './lote';
 
 describe('nuevoLote', () => {
+  it('calculates 10 reams, $12.000 unit cost and $120.000 total cost for 1 box at $120.000', () => {
+    const nuevo = nuevoLote('CARTA', 1, 120000);
+
+    expect(nuevo).toEqual({
+      tipoPapel: 'CARTA',
+      cantidadCajas: 1,
+      costoPorCaja: 120000,
+      costoUnitarioResma: 12000,
+      resmasIniciales: 10,
+      costoTotal: 120000,
+    });
+  });
+
   it('calculates 20 reams, $12.000 unit cost and $240.000 total cost for 2 boxes at $120.000', () => {
     const nuevo = nuevoLote('CARTA', 2, 120000);
 

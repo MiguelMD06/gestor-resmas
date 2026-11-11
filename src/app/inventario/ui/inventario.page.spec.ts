@@ -139,4 +139,46 @@ describe('InventarioPage', () => {
     );
     expect(spyCargar).toHaveBeenCalled();
   });
+
+  it('displays error message and Reintentar button without empty state when activos rejects, and shows lots on retry', async () => {
+    mockConsultarInventario.activos.mockRejectedValueOnce(new Error('Network failure'));
+
+    await component.cargarLotes();
+    fixture.detectChanges();
+
+    expect(component.errorCarga()).toBe('Ocurrió un error inesperado');
+
+    const mensajeError = fixture.debugElement.query(By.css('[data-testid="mensaje-error-carga"]'));
+    expect(mensajeError).toBeTruthy();
+    expect(mensajeError.nativeElement.textContent).toContain('Ocurrió un error inesperado');
+
+    const btnReintentar = fixture.debugElement.query(By.css('[data-testid="btn-reintentar"]'));
+    expect(btnReintentar).toBeTruthy();
+
+    const emptyState = fixture.debugElement.query(By.css('[data-testid="mensaje-vacio"]'));
+    expect(emptyState).toBeNull();
+
+    // Retry with successful resolution
+    mockConsultarInventario.activos.mockResolvedValueOnce({
+      CARTA: [loteCartaE8],
+      OFICIO: [],
+    });
+
+    btnReintentar.nativeElement.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(component.errorCarga()).toBeNull();
+    const tarjetas = fixture.debugElement.queryAll(By.css('[data-testid="tarjeta-lote"]'));
+    expect(tarjetas).toHaveLength(1);
+    expect(fixture.debugElement.query(By.css('[data-testid="mensaje-error-carga"]'))).toBeNull();
+  });
+
+  it('calls activos exactly once on first entry via ionViewWillEnter and does not implement ngOnInit', async () => {
+    expect((component as unknown as { ngOnInit?: unknown }).ngOnInit).toBeUndefined();
+
+    await component.ionViewWillEnter();
+
+    expect(mockConsultarInventario.activos).toHaveBeenCalledTimes(1);
+  });
 });

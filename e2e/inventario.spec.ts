@@ -26,12 +26,18 @@ test.describe('Flujo de inventario: aporte de capital y compra de cajas', () => 
     // Modal de aporte abierto
     await expect(page.locator('ion-title', { hasText: 'Aporte de capital' })).toBeVisible();
 
+    // El botón Guardar aporte abre deshabilitado hasta escribir un monto
+    const btnGuardarAporte = page.locator('[data-testid="btn-guardar-aporte"]');
+    await expect(btnGuardarAporte).toHaveAttribute('aria-disabled', 'true');
+    await expect(btnGuardarAporte).toHaveAttribute('disabled', '');
+
     // Diligenciar monto de $300.000
     const inputMonto = page.locator('[data-testid="input-monto"] input');
     await inputMonto.fill('300000');
 
-    // Guardar aporte
-    await page.locator('[data-testid="btn-guardar-aporte"]').click();
+    // Ahora se habilita
+    await expect(btnGuardarAporte).not.toHaveAttribute('disabled', '');
+    await btnGuardarAporte.click();
 
     // Esperar a que el modal de aporte se cierre
     await expect(page.locator('app-aporte-modal')).toHaveCount(0);

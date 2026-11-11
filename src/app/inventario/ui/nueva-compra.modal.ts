@@ -55,7 +55,7 @@ function esVacio(val: unknown): boolean {
       <ion-toolbar>
         <ion-title>Nueva compra de cajas</ion-title>
         <ion-buttons slot="end">
-          <ion-button (click)="cancelar()">Cancelar</ion-button>
+          <ion-button (click)="cancelar()" [disabled]="guardando()" data-testid="btn-cancelar">Cancelar</ion-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-header>
@@ -66,6 +66,7 @@ function esVacio(val: unknown): boolean {
           label="Tipo de papel"
           labelPlacement="stacked"
           [value]="tipoPapel()"
+          [disabled]="guardando()"
           (ionChange)="onTipoPapelChange($event)"
           data-testid="select-tipo-papel"
         >
@@ -80,6 +81,7 @@ function esVacio(val: unknown): boolean {
           labelPlacement="stacked"
           type="date"
           [value]="fecha()"
+          [disabled]="guardando()"
           (ionInput)="onFechaInput($event)"
           (ionChange)="onFechaInput($event)"
           data-testid="input-fecha"
@@ -97,6 +99,7 @@ function esVacio(val: unknown): boolean {
           labelPlacement="stacked"
           type="number"
           [value]="cajas()"
+          [disabled]="guardando()"
           (ionInput)="onCajasInput($event)"
           placeholder="Ej: 2"
           data-testid="input-cajas"
@@ -114,6 +117,7 @@ function esVacio(val: unknown): boolean {
           labelPlacement="stacked"
           type="number"
           [value]="costoPorCaja()"
+          [disabled]="guardando()"
           (ionInput)="onCostoInput($event)"
           placeholder="Ej: 120000"
           data-testid="input-costo-caja"
@@ -130,6 +134,7 @@ function esVacio(val: unknown): boolean {
           label="Medio de pago"
           labelPlacement="stacked"
           [value]="medio()"
+          [disabled]="guardando()"
           (ionChange)="onMedioChange($event)"
           data-testid="select-medio"
         >
@@ -169,6 +174,7 @@ function esVacio(val: unknown): boolean {
                   expand="block"
                   color="secondary"
                   class="ion-margin-top"
+                  [disabled]="guardando()"
                   (click)="abrirModalAporte()"
                   data-testid="btn-aportar-capital"
                 >
@@ -235,9 +241,10 @@ export class NuevaCompraModalComponent implements OnInit {
   readonly errorFecha = computed(() => (this.fecha().trim() ? null : 'Elige una fecha'));
 
   readonly guardando = signal(false);
+  readonly calculando = signal(false);
 
   readonly puedeGuardar = computed(() => {
-    if (this.guardando()) {
+    if (this.guardando() || this.calculando()) {
       return false;
     }
     const tieneFecha = Boolean(this.fecha().trim());
@@ -292,6 +299,9 @@ export class NuevaCompraModalComponent implements OnInit {
   }
 
   async cancelar(): Promise<void> {
+    if (this.guardando()) {
+      return;
+    }
     await this.modalCtrl.dismiss(null, 'cancel');
   }
 
@@ -307,12 +317,14 @@ export class NuevaCompraModalComponent implements OnInit {
 
     if (esVacio(rawCajas) || esVacio(rawCosto)) {
       this.vistaPrevia.set(null);
+      this.calculando.set(false);
       return;
     }
 
     const numCajas = Number(rawCajas);
     const numCosto = Number(rawCosto);
 
+    this.calculando.set(true);
     try {
       const res = await this.registrarCompra.previsualizar({
         tipoPapel: this.tipoPapel(),
@@ -343,12 +355,20 @@ export class NuevaCompraModalComponent implements OnInit {
       } else {
         this.errorInesperado.set(mensajeDeError(error));
       }
+    } finally {
+      if (idPeticion === this.peticionActual) {
+        this.calculando.set(false);
+      }
     }
   }
 
   async abrirModalAporte(): Promise<void> {
+    if (this.guardando()) {
+      return;
+    }
     const modal = await this.modalCtrl.create({
       component: AporteModalComponent,
+      canDismiss: async (_data, role) => role === 'guardado' || role === 'cancel',
     });
     await modal.present();
     const { data } = await modal.onDidDismiss();

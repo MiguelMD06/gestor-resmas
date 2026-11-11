@@ -226,7 +226,179 @@ describe('NuevaCompraModalComponent', () => {
 
     await component.guardar();
 
-    expect(mockToastCtrl.create).toHaveBeenCalled();
+    expect(mockToastCtrl.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: 'Ocurrió un error inesperado',
+      }),
+    );
+    expect(component.puedeGuardar()).toBe(true);
+  });
+
+  it('disables Guardar compra while previsualizar is in flight, and an old response arriving after vigente does not reactivate button or change preview', async () => {
+    let resolveCall1!: (value: unknown) => void;
+    const promise1 = new Promise((resolve) => {
+      resolveCall1 = resolve;
+    });
+    let resolveCall2!: (value: unknown) => void;
+    const promise2 = new Promise((resolve) => {
+      resolveCall2 = resolve;
+    });
+
+    mockRegistrarCompra.previsualizar.mockReturnValueOnce(promise1).mockReturnValueOnce(promise2);
+
+    // Call 1
+    component.cajas.set(1);
+    component.costoPorCaja.set(120000);
+    const peticion1 = component.actualizarPrevisualizacion();
+
+    // Call 2
+    component.cajas.set(2);
+    component.costoPorCaja.set(120000);
+    const peticion2 = component.actualizarPrevisualizacion();
+    fixture.detectChanges();
+
+    // While Call 2 is pending, calculando is true and Guardar compra is disabled
+    expect(component.calculando()).toBe(true);
+    expect(component.puedeGuardar()).toBe(false);
+
+    // Resolve Call 2 with alcanza: false
+    resolveCall2({
+      costoTotal: pesos(240000),
+      costoUnitarioResma: pesos(12000),
+      reinversion: pesos(0),
+      saldoBolsillo: pesos(100000),
+      alcanza: false,
+    });
+    await peticion2;
+    fixture.detectChanges();
+
+    expect(component.calculando()).toBe(false);
+    expect(component.puedeGuardar()).toBe(false);
+    expect(component.vistaPrevia()?.costoTotal).toBe(pesos(240000));
+
+    // Resolve Call 1 later with alcanza: true (old response arriving after vigente)
+    resolveCall1({
+      costoTotal: pesos(120000),
+      costoUnitarioResma: pesos(12000),
+      reinversion: pesos(0),
+      saldoBolsillo: pesos(100000),
+      alcanza: true,
+    });
+    await peticion1;
+    fixture.detectChanges();
+
+    // Button must NOT be reactivated and preview must NOT be replaced by old response
+    expect(component.puedeGuardar()).toBe(false);
+    expect(component.vistaPrevia()?.costoTotal).toBe(pesos(240000));
+  });
+
+  it('an old response arriving while a newer call is in flight does not turn off calculando', async () => {
+    let resolveCall1!: (value: unknown) => void;
+    const promise1 = new Promise((resolve) => {
+      resolveCall1 = resolve;
+    });
+    let resolveCall2!: (value: unknown) => void;
+    const promise2 = new Promise((resolve) => {
+      resolveCall2 = resolve;
+    });
+
+    mockRegistrarCompra.previsualizar.mockReturnValueOnce(promise1).mockReturnValueOnce(promise2);
+
+    // Call 1
+    component.cajas.set(1);
+    component.costoPorCaja.set(120000);
+    const peticion1 = component.actualizarPrevisualizacion();
+
+    // Call 2
+    component.cajas.set(2);
+    component.costoPorCaja.set(120000);
+    const peticion2 = component.actualizarPrevisualizacion();
+    fixture.detectChanges();
+
+    // Resolve Call 1 while Call 2 is still pending
+    resolveCall1({
+      costoTotal: pesos(120000),
+      costoUnitarioResma: pesos(12000),
+      reinversion: pesos(0),
+      saldoBolsillo: pesos(200000),
+      alcanza: true,
+    });
+    await peticion1;
+    fixture.detectChanges();
+
+    // calculando MUST still be true because Call 2 is still in flight
+    expect(component.calculando()).toBe(true);
+    expect(component.puedeGuardar()).toBe(false);
+
+    // Now resolve Call 2
+    resolveCall2({
+      costoTotal: pesos(240000),
+      costoUnitarioResma: pesos(12000),
+      reinversion: pesos(0),
+      saldoBolsillo: pesos(300000),
+      alcanza: true,
+    });
+    await peticion2;
+    fixture.detectChanges();
+
+    expect(component.calculando()).toBe(false);
+    expect(component.puedeGuardar()).toBe(true);
+  });
+
+  it('disables Cancelar button, form fields and Aportar capital button while save is in flight, blocks cancelar(), and re-enables all after error', async () => {
+    let rejectRegistro!: (error: unknown) => void;
+    mockRegistrarCompra.registrar.mockReturnValueOnce(
+      new Promise((_, reject) => {
+        rejectRegistro = reject;
+      }),
+    );
+
+    component.fecha.set('2026-11-05');
+    component.cajas.set(2);
+    component.costoPorCaja.set(120000);
+    await component.actualizarPrevisualizacion();
+    fixture.detectChanges();
+
+    const guardarPromise = component.guardar();
+    fixture.detectChanges();
+
+    // While save is in flight:
+    // 1. Cancel button is disabled
+    const btnCancelar = fixture.debugElement.query(By.css('[data-testid="btn-cancelar"]'));
+    expect(btnCancelar.nativeElement.disabled || btnCancelar.attributes['disabled'] !== undefined).toBe(true);
+
+    // 2. Form fields are disabled
+    const selectTipo = fixture.debugElement.query(By.css('[data-testid="select-tipo-papel"]'));
+    expect(selectTipo.nativeElement.disabled || selectTipo.attributes['disabled'] !== undefined).toBe(true);
+
+    const inputFecha = fixture.debugElement.query(By.css('[data-testid="input-fecha"]'));
+    expect(inputFecha.nativeElement.disabled || inputFecha.attributes['disabled'] !== undefined).toBe(true);
+
+    const inputCajas = fixture.debugElement.query(By.css('[data-testid="input-cajas"]'));
+    expect(inputCajas.nativeElement.disabled || inputCajas.attributes['disabled'] !== undefined).toBe(true);
+
+    const inputCosto = fixture.debugElement.query(By.css('[data-testid="input-costo-caja"]'));
+    expect(inputCosto.nativeElement.disabled || inputCosto.attributes['disabled'] !== undefined).toBe(true);
+
+    const selectMedio = fixture.debugElement.query(By.css('[data-testid="select-medio"]'));
+    expect(selectMedio.nativeElement.disabled || selectMedio.attributes['disabled'] !== undefined).toBe(true);
+
+    // 3. Calling cancelar() does nothing (does not dismiss)
+    await component.cancelar();
+    expect(mockModalCtrl.dismiss).not.toHaveBeenCalled();
+
+    // 4. Reject with error
+    rejectRegistro(new Error('fail'));
+    await guardarPromise;
+    fixture.detectChanges();
+
+    // 5. After error, everything is enabled again
+    expect(btnCancelar.nativeElement.disabled || btnCancelar.attributes['disabled'] !== undefined).toBe(false);
+    expect(selectTipo.nativeElement.disabled || selectTipo.attributes['disabled'] !== undefined).toBe(false);
+    expect(inputFecha.nativeElement.disabled || inputFecha.attributes['disabled'] !== undefined).toBe(false);
+    expect(inputCajas.nativeElement.disabled || inputCajas.attributes['disabled'] !== undefined).toBe(false);
+    expect(inputCosto.nativeElement.disabled || inputCosto.attributes['disabled'] !== undefined).toBe(false);
+    expect(selectMedio.nativeElement.disabled || selectMedio.attributes['disabled'] !== undefined).toBe(false);
     expect(component.puedeGuardar()).toBe(true);
   });
 
@@ -354,5 +526,32 @@ describe('NuevaCompraModalComponent', () => {
       }),
     );
     expect(spyPrevisualizar).toHaveBeenCalled();
+  });
+
+  it('disables Aportar capital button while save is in flight and blocks abrirModalAporte()', async () => {
+    mockRegistrarCompra.previsualizar.mockResolvedValueOnce({
+      costoTotal: pesos(120000),
+      costoUnitarioResma: pesos(12000),
+      reinversion: pesos(0),
+      saldoBolsillo: pesos(0),
+      alcanza: false,
+    });
+    component.cajas.set(1);
+    component.costoPorCaja.set(120000);
+    await component.actualizarPrevisualizacion();
+    fixture.detectChanges();
+
+    component.guardando.set(true);
+    fixture.detectChanges();
+
+    const btnAporte = fixture.debugElement.query(By.css('[data-testid="btn-aportar-capital"]'));
+    expect(btnAporte.nativeElement.disabled || btnAporte.attributes['disabled'] !== undefined).toBe(true);
+
+    await component.abrirModalAporte();
+    expect(mockModalCtrl.create).not.toHaveBeenCalled();
+
+    component.guardando.set(false);
+    fixture.detectChanges();
+    expect(btnAporte.nativeElement.disabled || btnAporte.attributes['disabled'] !== undefined).toBe(false);
   });
 });

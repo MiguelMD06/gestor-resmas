@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
-import type { OnInit } from '@angular/core';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {
+  IonButton,
   IonCard,
   IonCardContent,
   IonCardHeader,
@@ -27,6 +27,7 @@ import { add, cartOutline, walletOutline } from 'ionicons/icons';
 
 import { AporteModalComponent } from '../../finanzas/ui/aporte.modal';
 import { formatearPesos, type TipoPapel } from '../../shared/domain';
+import { mensajeDeError } from '../../shared/ui/mensajes-error';
 import { ConsultarInventario } from '../application/consultar-inventario';
 import { progreso, type Lote } from '../domain/lote';
 
@@ -56,7 +57,16 @@ import { NuevaCompraModalComponent } from './nueva-compra.modal';
     </ion-header>
 
     <ion-content class="ion-padding">
-      @if (lotesVisibles().length === 0) {
+      @if (cargando()) {
+        <ion-progress-bar type="indeterminate" data-testid="indicador-carga"></ion-progress-bar>
+      }
+
+      @if (errorCarga(); as error) {
+        <div class="estado-error ion-text-center ion-padding" data-testid="estado-error">
+          <p data-testid="mensaje-error-carga">{{ error }}</p>
+          <ion-button (click)="cargarLotes()" data-testid="btn-reintentar">Reintentar</ion-button>
+        </div>
+      } @else if (lotesVisibles().length === 0) {
         <div class="mensaje-vacio ion-text-center ion-padding" data-testid="mensaje-vacio">
           <p>No hay lotes activos de papel {{ tipoSeleccionado() === 'CARTA' ? 'Carta' : 'Oficio' }}.</p>
           <p>Registra tu primera compra usando el botón de acciones (+).</p>
@@ -105,7 +115,8 @@ import { NuevaCompraModalComponent } from './nueva-compra.modal';
     </ion-content>
   `,
   styles: `
-    .mensaje-vacio {
+    .mensaje-vacio,
+    .estado-error {
       margin-top: 3rem;
       color: var(--ion-color-step-600, #666);
     }
@@ -121,6 +132,7 @@ import { NuevaCompraModalComponent } from './nueva-compra.modal';
     IonToolbar,
     IonTitle,
     IonContent,
+    IonButton,
     IonSegment,
     IonSegmentButton,
     IonLabel,
@@ -136,12 +148,15 @@ import { NuevaCompraModalComponent } from './nueva-compra.modal';
     IonIcon,
   ],
 })
-export class InventarioPage implements OnInit {
+export class InventarioPage {
   private readonly consultarInventario = inject(ConsultarInventario);
   private readonly modalCtrl = inject(ModalController);
 
   readonly tipoSeleccionado = signal<TipoPapel>('CARTA');
   readonly lotes = signal<{ CARTA: Lote[]; OFICIO: Lote[] }>({ CARTA: [], OFICIO: [] });
+
+  readonly cargando = signal(false);
+  readonly errorCarga = signal<string | null>(null);
 
   readonly lotesVisibles = computed(() => this.lotes()[this.tipoSeleccionado()] ?? []);
 
@@ -159,22 +174,27 @@ export class InventarioPage implements OnInit {
     }
   }
 
-  async ngOnInit(): Promise<void> {
-    await this.cargarLotes();
-  }
-
   async ionViewWillEnter(): Promise<void> {
     await this.cargarLotes();
   }
 
   async cargarLotes(): Promise<void> {
-    const datos = await this.consultarInventario.activos();
-    this.lotes.set(datos);
+    this.cargando.set(true);
+    this.errorCarga.set(null);
+    try {
+      const datos = await this.consultarInventario.activos();
+      this.lotes.set(datos);
+    } catch (error: unknown) {
+      this.errorCarga.set(mensajeDeError(error));
+    } finally {
+      this.cargando.set(false);
+    }
   }
 
   async abrirModalNuevaCompra(): Promise<void> {
     const modal = await this.modalCtrl.create({
       component: NuevaCompraModalComponent,
+      canDismiss: async (_data, role) => role === 'guardado' || role === 'cancel',
     });
     await modal.present();
     const { data } = await modal.onDidDismiss();
@@ -186,6 +206,7 @@ export class InventarioPage implements OnInit {
   async abrirModalAporte(): Promise<void> {
     const modal = await this.modalCtrl.create({
       component: AporteModalComponent,
+      canDismiss: async (_data, role) => role === 'guardado' || role === 'cancel',
     });
     await modal.present();
     const { data } = await modal.onDidDismiss();

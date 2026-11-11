@@ -6,7 +6,7 @@ import { DatabaseProvider } from '../shared/infrastructure/sqlite/database.provi
 import { EstadoArranque } from './estado-arranque';
 
 describe('EstadoArranque', () => {
-  it('queda en listo si init() funciona a la primera', async () => {
+  it('transitions to ready if init() succeeds on the first attempt', async () => {
     const initSpy = vi.fn().mockResolvedValue(undefined);
 
     TestBed.configureTestingModule({
@@ -28,7 +28,7 @@ describe('EstadoArranque', () => {
     expect(initSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('maneja un fallo de init() dejando estado error sin relanzar, y reintentar() pasa por cargando y termina en listo', async () => {
+  it('handles an init() failure by entering error state without rethrowing, and reintentar() passes through cargando and finishes in listo', async () => {
     const errorOriginal = new Error('Disk full');
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
@@ -54,13 +54,13 @@ describe('EstadoArranque', () => {
     const estadoArranque = TestBed.inject(EstadoArranque);
     expect(estadoArranque.estado()).toBe('cargando');
 
-    // Primera llamada (falla): no debe relanzar, la promesa se resuelve
+    // First call (fails): should not rethrow, the promise resolves
     await expect(estadoArranque.iniciar()).resolves.toBeUndefined();
     expect(estadoArranque.estado()).toBe('error');
     expect(consoleErrorSpy).toHaveBeenCalledWith(errorOriginal);
     expect(initSpy).toHaveBeenCalledTimes(1);
 
-    // Reintentar: pasa por 'cargando' y luego termina en 'listo'
+    // Retry: passes through 'cargando' and then finishes in 'listo'
     let estadoDuranteReintento: string | undefined;
     initSpy.mockImplementationOnce(async () => {
       estadoDuranteReintento = estadoArranque.estado();

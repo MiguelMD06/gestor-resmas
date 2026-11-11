@@ -62,4 +62,28 @@ describe('DatabaseProvider', () => {
     const rows = await provider.db.query<{ user_version: number }>('PRAGMA user_version;');
     expect(rows[0]?.user_version).toBeGreaterThan(0);
   });
+
+  it('discards the failed promise when migrar fails and succeeds on a subsequent init() retry with working migrations', async () => {
+    const provider = new DatabaseProvider();
+    const migrationError = new Error('Migration script failed');
+    let attempts = 0;
+    const createDatabase = vi.fn(async () => {
+      attempts += 1;
+      const db = await SqlJsDatabase.create();
+      if (attempts === 1) {
+        vi.spyOn(db, 'transaction').mockRejectedValueOnce(migrationError);
+      }
+      return db;
+    });
+
+    await expect(provider.init(createDatabase)).rejects.toBe(migrationError);
+    expect(() => provider.db).toThrow('DatabaseProvider has not been initialized. Call init() first.');
+
+    await provider.init(createDatabase);
+
+    expect(createDatabase).toHaveBeenCalledTimes(2);
+    expect(provider.db).toBeDefined();
+    const rows = await provider.db.query<{ user_version: number }>('PRAGMA user_version;');
+    expect(rows[0]?.user_version).toBeGreaterThan(0);
+  });
 });

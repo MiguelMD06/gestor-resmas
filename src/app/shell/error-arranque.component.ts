@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { IonButton, IonContent, IonSpinner } from '@ionic/angular';
+import { IonButton, IonContent } from '@ionic/angular';
 
 import { EstadoArranque } from './estado-arranque';
 
@@ -10,12 +10,7 @@ import { EstadoArranque } from './estado-arranque';
       <div class="contenedor-error">
         <h2>No se pudo abrir la base de datos</h2>
         <p>Revisa el espacio disponible en el teléfono y vuelve a intentarlo.</p>
-        @if (estadoArranque.estado() === 'cargando') {
-          <ion-spinner name="crescent"></ion-spinner>
-        }
-        <ion-button [disabled]="estadoArranque.estado() === 'cargando'" (click)="estadoArranque.reintentar()">
-          Reintentar
-        </ion-button>
+        <ion-button (click)="estadoArranque.reintentar()"> Reintentar </ion-button>
       </div>
     </ion-content>
   `,
@@ -30,7 +25,7 @@ import { EstadoArranque } from './estado-arranque';
       gap: 1rem;
     }
   `,
-  imports: [IonContent, IonButton, IonSpinner],
+  imports: [IonContent, IonButton],
 })
 export class ErrorArranqueComponent {
   readonly estadoArranque = inject(EstadoArranque);

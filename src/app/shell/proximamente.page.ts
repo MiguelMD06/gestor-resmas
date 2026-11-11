@@ -1,4 +1,4 @@
-import { Component, inject, input } from '@angular/core';
+import { Component, computed, inject, input } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { IonContent, IonHeader, IonTitle, IonToolbar } from '@ionic/angular';
 
@@ -22,11 +22,6 @@ export class ProximamentePage {
   readonly titulo = input<string>();
   readonly etapa = input<number | string>();
 
-  get displayTitulo(): () => string {
-    return () => this.titulo() ?? (this.route?.snapshot.data['titulo'] as string) ?? '';
-  }
-
-  get displayEtapa(): () => number | string {
-    return () => this.etapa() ?? (this.route?.snapshot.data['etapa'] as number | string) ?? '';
-  }
+  readonly displayTitulo = computed(() => this.titulo() ?? (this.route?.snapshot.data['titulo'] as string) ?? '');
+  readonly displayEtapa = computed(() => this.etapa() ?? (this.route?.snapshot.data['etapa'] as number | string) ?? '');
 }

@@ -4,6 +4,7 @@ import {
   pesos,
   ReglaNegocioError,
   resmas,
+  RESMAS_POR_CAJA,
   type Cajas,
   type FechaHora,
   type MedioPago,
@@ -44,16 +45,16 @@ export function nuevoLote(tipoPapel: TipoPapel, cantidadCajasInput: number, cost
     );
   }
 
-  if (!Number.isSafeInteger(costoPorCajaInput) || costoPorCajaInput <= 0 || costoPorCajaInput % 10 !== 0) {
+  if (!Number.isSafeInteger(costoPorCajaInput) || costoPorCajaInput <= 0 || costoPorCajaInput % RESMAS_POR_CAJA !== 0) {
     throw new ReglaNegocioError(
       'COSTO_CAJA_INVALIDO',
-      `Box cost must be a positive integer divisible by 10, got: ${costoPorCajaInput}`,
+      `Box cost must be a positive integer divisible by ${RESMAS_POR_CAJA}, got: ${costoPorCajaInput}`,
     );
   }
 
   const cantidadCajas = cajas(cantidadCajasInput);
   const costoPorCaja = pesos(costoPorCajaInput);
-  const costoUnitarioResma = pesos(costoPorCajaInput / 10);
+  const costoUnitarioResma = pesos(costoPorCajaInput / RESMAS_POR_CAJA);
   const resmasIniciales = cajasAResmas(cantidadCajas);
   const costoTotal = pesos(cantidadCajasInput * costoPorCajaInput);
 

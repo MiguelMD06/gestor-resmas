@@ -13,8 +13,7 @@ export const routes: Routes = [
   },
   {
     path: 'inventario',
-    loadComponent: () => import('./proximamente.page').then((m) => m.ProximamentePage),
-    data: { titulo: 'Inventario', etapa: 2 },
+    loadComponent: () => import('../inventario/ui/inventario.page').then((m) => m.InventarioPage),
   },
   {
     path: 'clientes',

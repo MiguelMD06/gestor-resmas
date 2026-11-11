@@ -56,7 +56,7 @@ src/app/
    - nada de `try/catch` para verificar un error: si no se lanza, la prueba tiene que fallar;
    - los casos límite usan el valor límite exacto.
 7. **Engram:** tienes acceso de solo lectura. Úsalo si te sirve para tener contexto; nunca intentes escribir en él.
-8. **Reglas de calidad de `CLAUDE.md`:** lee `CLAUDE.md` en la raíz del repositorio. Sus reglas 1 a 6 (validación de campos, doble envío, bloqueo durante procesos, errores visibles, reintentos seguros y pruebas obligatorias) son de cumplimiento obligatorio en todo lo que escribas.
+8. **Reglas de calidad de `CLAUDE.md`:** lee `CLAUDE.md` en la raíz del repositorio. Sus reglas 1 a 12 son de cumplimiento obligatorio en todo lo que escribas.
 
 ## Trampas conocidas del stack
 

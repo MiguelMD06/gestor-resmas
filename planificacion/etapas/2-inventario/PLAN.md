@@ -165,10 +165,30 @@ El reporte de la etapa va en Engram (`etapas/2-inventario/reporte`).
 - **Checks finales:** `lint` limpio, 220 pruebas unitarias (39 archivos), `build` correcto y 7 pruebas e2e.
 - **Revisiones nativas:** ola 1 aprobada dos veces (0 bloqueantes) y el commit del CI revisado solo (0 hallazgos). La ola 2 no se revisó: la rama completa supera el presupuesto del revisor y Miguel omitió la revisión del tramo de la ola 2.
 - **Hallazgo de la revisión del coordinador en la ola 2:** la app es *zoneless*, así que el estado que cambia después de un `await` tiene que vivir en signals. El modal de compra no lo hacía y se corrigió en B2.3-C, con un e2e que lo prueba en el navegador.
-- **Observaciones que quedan para después:**
-  1. `src/app/finanzas/index.ts` no reexporta `finanzas/application` (sí lo hace `inventario/index.ts`).
-  2. Quedan títulos de pruebas en español en `estado-arranque.spec.ts`, `tabs.page.spec.ts`, `e2e/app.spec.ts` y `e2e/inventario.spec.ts`.
-  3. `lote.spec.ts` prueba la frontera positiva de `nuevoLote` con 2 cajas en lugar de 1.
+- **Observaciones que quedaban para después:** las tres se cerraron en B2.4 (ver abajo): `finanzas/index.ts` reexporta `application`, los títulos de pruebas pasaron al inglés y `lote.spec.ts` prueba la frontera de 1 caja.
+
+### Revisión del PR #11 y bloque B2.4 (L7–L9)
+
+La revisión del PR #11 con `gentle-ai` (cuatro tramos, cuatro lentes) encontró un defecto crítico y tres problemas reales que no debieron llegar al PR. Se corrigieron así:
+
+| Problema | Corrección | Commit |
+|----------|------------|--------|
+| Doble envío: un doble toque en **Guardar** registraba dos compras o dos aportes | Signal `guardando` que deshabilita el guardado mientras la escritura está en curso | `d880fc5`, `60202a3` |
+| **Reintentar** fallaba siempre en Android si el arranque fallaba después de crear la conexión (`Connection gestor_resmas already exists`) | Una sola `SQLiteConnection` para toda la app y cierre de la conexión cuando falla al abrirla (B2.4a) | `ff175ca` |
+| Se podía guardar una compra con una vista previa vieja | Signal `calculando`: **Guardar compra** queda deshabilitado mientras se recalcula (B2.4b) | `54108e8` |
+| Un error al cargar el inventario se mostraba como "sin lotes" | Estado de error con **Reintentar** y un solo cargado al entrar (B2.4b) | `54108e8` |
+| El aporte se podía guardar sin monto | **Guardar aporte** exige monto; sin conversión silenciosa a 0 (B2.4b) | `54108e8` |
+| Modales que se podían cerrar o editar mientras guardaban | Campos, **Cancelar** y **Aportar capital** deshabilitados mientras se guarda; `canDismiss` solo acepta los roles `guardado` y `cancel` (B2.4b) | `54108e8` |
+| Limpieza: `esVacio` duplicado, rama inalcanzable en `mensajes-error.ts`, pruebas de reintento poco realistas | B2.4c y B2.4d | `425eb80` y siguiente |
+
+Para que no se repita, se agregaron las **reglas de calidad obligatorias** en `CLAUDE.md` (raíz del repositorio): validación de cada campo, idempotencia y doble envío, vista bloqueada mientras procesa, errores visibles, reintentos seguros, pruebas obligatorias, dinero en enteros, confirmación de acciones irreversibles, sin código muerto, accesibilidad mínima, fechas desde `CLOCK` y checklist antes del PR.
+
+**Base para etapas futuras (regla 9 de `CLAUDE.md`):** hoy solo las usan las pruebas, a propósito.
+
+- `LoteRepository.descontar`, `LoteRepository.porId` y `descontarResmas`: base para la **Etapa 3** (venta).
+- `ConsultarSaldos`: base para la **Etapa 5** (dashboard de Finanzas).
+
+**Pendiente fuera de lo automatizable:** probar en un dispositivo Android que **Reintentar** funciona tras un arranque fallido. Las pruebas cubren el plugin con dobles y el navegador con jeep-sqlite, pero no el plugin nativo.
 
 ## Log
 
@@ -180,3 +200,6 @@ Mensajes del usuario copiados textualmente; las notas del coordinador van entre 
 - **L4** (2026-11-10): "Me sirve así, apruebo los 7 puntos" [Plan aprobado. Se integra el PR del plan.]
 - **L5** (2026-11-11): "Revisa el estado del proyecto y continuemos con la tarea pendiente" [Arranca la ola 2 (B2.3). Ajustes al bloque: (1) no había caso de uso para listar lotes y la pantalla no puede leer el repositorio directo (`ui` → `application`), así que B2.3 agrega `ConsultarInventario` en `inventario/application/`; (2) las 9 observaciones no bloqueantes de la segunda revisión de la ola 1 entran como parte B de B2.3.]
 - **L6** (2026-11-11): "Sí, arranca con la ola 3" [V2 sin bloqueantes. Antes, en la revisión nativa de la ola 2, Miguel eligió "Omitir esta vez". Se agregan las pruebas del verificador, se cierra el plan y se abre el PR.]
+- **L7** (2026-11-11): "Quiero que revises la pr #11, verifica si no existe codigo muerto, bug o cualquier error que nos pueda dar problemas apoyate de gentle-ai para esta actividad." [Revisión en cuatro tramos: el PR completo supera el presupuesto del revisor. Hallazgo crítico: doble envío en compra y aporte, corregido en `d880fc5` y `60202a3`. Quedan tres problemas reales y código usado solo por pruebas.]
+- **L8** (2026-11-11): "Haz un plan para implementar las soluciones a esos problemas que aún estan pendientes y dejar completa esta etapa sin ningun tipo de problema" [Plan B2.4 en tres bloques: B2.4a reintento de arranque, B2.4b pantallas y B2.4c limpieza.]
+- **L9** (2026-11-11): "Quiero que hagas una regla en el claude.md para que se tenga en cuenta todos estos criterios de calidad e inclusive más si propones algunos (yo los revisaré) para evitar que esto suceda en proximos pr. De ante mano el plan me parece correcto" y luego "apruebo las propuestas P1 a P6" [Plan aprobado. `CLAUDE.md` con las reglas 1 a 6 y las propuestas P1 a P6, aprobadas como reglas 7 a 12.]

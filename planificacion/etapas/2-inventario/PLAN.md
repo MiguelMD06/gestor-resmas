@@ -104,7 +104,7 @@ Cada uno es una prueba. Los números siguen el ejemplo de Ana de la Etapa 1 (caj
 
 ### B2.3 — Pantallas de inventario, compra y aporte
 
-- **Rutas permitidas:** `src/app/inventario/ui/**`, `src/app/finanzas/ui/**`, `src/app/shared/ui/**`, `src/app/shell/tabs.routes.ts`, `e2e/inventario.spec.ts`
+- **Rutas permitidas:** `src/app/inventario/ui/**`, `src/app/finanzas/ui/**`, `src/app/shared/ui/**`, `src/app/shell/tabs.routes.ts`, `e2e/inventario.spec.ts`, más `src/app/inventario/application/consultar-inventario.ts` y los archivos de las observaciones de la ola 1 (ver L5 y `bloques/B2.3-pantallas/tarea.md`)
 - **Qué hacer:**
   1. **`inventario/ui/inventario.page`** (S5, S9, S10, E8): `ion-segment` con **Carta** y **Oficio**. Una tarjeta por lote activo con la fecha de ingreso, "N de M resmas", el costo por resma en pesos (`formatearPesos`) y una `ion-progress-bar` con `progreso(lote)`. Si no hay lotes, un mensaje que invita a registrar la primera compra. Un `ion-fab` con dos acciones: **Nueva compra** y **Aportar capital**.
   2. **`inventario/ui/nueva-compra.modal`** (S3, S4, S8): tipo de papel, fecha (por defecto, la del `CLOCK`; se puede cambiar), cantidad de cajas, costo por caja y medio (**Efectivo** o **Transferencia**). Muestra el saldo del bolsillo elegido, el costo total y el costo por resma mientras se escribe. Si `previsualizar` indica reinversión, la avisa en un `ion-note` de color `warning` antes del botón **Guardar compra**. Si el bolsillo no alcanza, lo dice y ofrece **Aportar capital** (ver "Por aprobar" 1).
@@ -167,3 +167,4 @@ Mensajes del usuario copiados textualmente; las notas del coordinador van entre 
 - **L2** (2026-11-10): "Sí integra el #8 y arranca el plan de la etapa 2" [Se escribe este plan. No se ejecuta nada hasta que Miguel lo apruebe.]
 - **L3** (2026-11-10): "Tengo una duda sobree el aporte del capital, a que te refieres con donde se registra" [Se explicó que "dónde" es la pantalla y el botón desde los que se registra el aporte: los bolsillos empiezan en $0 y Finanzas llega en la Etapa 5, por eso las dos entradas están en Inventario.]
 - **L4** (2026-11-10): "Me sirve así, apruebo los 7 puntos" [Plan aprobado. Se integra el PR del plan.]
+- **L5** (2026-11-11): "Revisa el estado del proyecto y continuemos con la tarea pendiente" [Arranca la ola 2 (B2.3). Ajustes al bloque: (1) no había caso de uso para listar lotes y la pantalla no puede leer el repositorio directo (`ui` → `application`), así que B2.3 agrega `ConsultarInventario` en `inventario/application/`; (2) las 9 observaciones no bloqueantes de la segunda revisión de la ola 1 entran como parte B de B2.3.]

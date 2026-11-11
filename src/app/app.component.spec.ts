@@ -32,9 +32,11 @@ describe('AppComponent', () => {
     expect(errorComp).toBeNull();
   });
 
-  it('con estado error muestra app-error-arranque y no ion-router-outlet; al tocar Reintentar llama a reintentar() (E9)', async () => {
+  it('con estado error muestra app-error-arranque y no ion-router-outlet; al tocar Reintentar llama a reintentar() y muestra el spinner global mientras el estado es cargando (E9)', async () => {
     const estadoMock = signal<EstadoArranqueTipo>('error');
-    const reintentarSpy = vi.fn();
+    const reintentarSpy = vi.fn(() => {
+      estadoMock.set('cargando');
+    });
     const mockEstadoArranque = {
       estado: estadoMock,
       iniciar: vi.fn(),
@@ -66,6 +68,14 @@ describe('AppComponent', () => {
     botonReintentar.nativeElement.click();
 
     expect(reintentarSpy).toHaveBeenCalledTimes(1);
+
+    // Al cambiar a cargando, se muestra el spinner global y desaparece app-error-arranque
+    fixture.detectChanges();
+    const spinner = fixture.debugElement.query(By.css('ion-spinner'));
+    const errorCompDespues = fixture.debugElement.query(By.directive(ErrorArranqueComponent));
+
+    expect(spinner).toBeTruthy();
+    expect(errorCompDespues).toBeNull();
   });
 
   it('con estado cargando muestra ion-spinner y ni router-outlet ni app-error-arranque', async () => {

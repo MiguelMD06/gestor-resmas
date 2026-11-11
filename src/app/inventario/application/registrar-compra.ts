@@ -16,7 +16,9 @@ import { SQL_DATABASE } from '../../shared/infrastructure/sqlite/sql-database.to
 import { nuevoLote } from '../domain/lote';
 import { LoteRepository } from '../infrastructure/lote.repository';
 
+// compraLote requires fecha and idLote to construct the movement, but previsualizar only reads reinversion and discards the movement.
 const FECHA_PREVISUALIZACION = fechaHora('2000-01-01 00:00:00');
+const ID_LOTE_PREVISUALIZACION = 0;
 
 @Injectable({
   providedIn: 'root',
@@ -64,7 +66,13 @@ export class RegistrarCompra {
     let alcanza = true;
 
     try {
-      const resultado = compraLote(saldos, FECHA_PREVISUALIZACION, params.medio, nuevo.costoTotal, 0);
+      const resultado = compraLote(
+        saldos,
+        FECHA_PREVISUALIZACION,
+        params.medio,
+        nuevo.costoTotal,
+        ID_LOTE_PREVISUALIZACION,
+      );
       reinversion = resultado.reinversion;
     } catch (error) {
       if (error instanceof ReglaNegocioError && error.codigo === 'SALDO_INSUFICIENTE') {

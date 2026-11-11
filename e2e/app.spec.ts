@@ -60,4 +60,19 @@ test.describe('Navegación principal por pestañas', () => {
 
     expect(consoleErrors).toEqual([]);
   });
+
+  test('abrir /no-existe termina en /inventario', async ({ page }) => {
+    const consoleErrors: string[] = [];
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') {
+        consoleErrors.push(msg.text());
+      }
+    });
+
+    await page.goto('/no-existe');
+    await expect(page).toHaveURL(/\/inventario$/);
+    await expect(page.locator('ion-title', { hasText: 'Inventario' })).toBeVisible();
+
+    expect(consoleErrors).toEqual([]);
+  });
 });

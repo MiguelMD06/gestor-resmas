@@ -183,6 +183,39 @@ describe('RegistrarCompra', () => {
     expect(movsDespues[0].count).toBe(movsAntes[0].count);
   });
 
+  it('registrar rejects invalid box cost (E5) and invalid quantity (E6) without leaving rows in lotes_cajas or movimientos_dinero', async () => {
+    const lotesAntes = await db.query<{ count: number }>('SELECT COUNT(*) AS count FROM lotes_cajas;');
+    const movsAntes = await db.query<{ count: number }>('SELECT COUNT(*) AS count FROM movimientos_dinero;');
+
+    // E5: COSTO_CAJA_INVALIDO ($120.005)
+    await expect(
+      casoDeUso.registrar({
+        tipoPapel: 'CARTA',
+        cajas: 1,
+        costoPorCaja: 120005,
+        fecha: fechaDummy,
+        medio: 'EFECTIVO',
+      }),
+    ).rejects.toThrow(expect.objectContaining({ codigo: 'COSTO_CAJA_INVALIDO' }));
+
+    // E6: CANTIDAD_INVALIDA (0 cajas)
+    await expect(
+      casoDeUso.registrar({
+        tipoPapel: 'CARTA',
+        cajas: 0,
+        costoPorCaja: 120000,
+        fecha: fechaDummy,
+        medio: 'EFECTIVO',
+      }),
+    ).rejects.toThrow(expect.objectContaining({ codigo: 'CANTIDAD_INVALIDA' }));
+
+    const lotesDespues = await db.query<{ count: number }>('SELECT COUNT(*) AS count FROM lotes_cajas;');
+    const movsDespues = await db.query<{ count: number }>('SELECT COUNT(*) AS count FROM movimientos_dinero;');
+
+    expect(lotesDespues[0].count).toBe(lotesAntes[0].count);
+    expect(movsDespues[0].count).toBe(movsAntes[0].count);
+  });
+
   it('previsualizar calculates values without modifying the database, reports reinversion in E3 and false alcanza in E4', async () => {
     // 1. In E3 conditions:
     await db.transaction(async (tx) => {

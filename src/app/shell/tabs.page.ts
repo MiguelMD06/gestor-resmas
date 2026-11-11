@@ -34,15 +34,6 @@ import { cartOutline, cubeOutline, peopleOutline, walletOutline } from 'ionicons
 })
 export class TabsPage {
   constructor() {
-    addIcons({
-      'wallet-outline': walletOutline,
-      'cart-outline': cartOutline,
-      'cube-outline': cubeOutline,
-      'people-outline': peopleOutline,
-      walletOutline,
-      cartOutline,
-      cubeOutline,
-      peopleOutline,
-    });
+    addIcons({ walletOutline, cartOutline, cubeOutline, peopleOutline });
   }
 }

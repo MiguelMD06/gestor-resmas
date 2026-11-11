@@ -26,6 +26,19 @@ interface LoteRow {
   estado: string;
 }
 
+const COLUMNAS_LOTE = `
+  id_lote,
+  tipo_papel,
+  fecha_compra,
+  cantidad_cajas,
+  costo_por_caja,
+  costo_unitario_resma,
+  resmas_iniciales,
+  resmas_disponibles,
+  medio_pago_compra,
+  estado
+`;
+
 function mapearFilaALote(row: LoteRow): Lote {
   return {
     idLote: row.id_lote,
@@ -80,16 +93,7 @@ export class LoteRepository {
   async activos(db: SqlDatabase | SqlExecutor): Promise<Lote[]> {
     const rows = await db.query<LoteRow>(
       `SELECT
-        id_lote,
-        tipo_papel,
-        fecha_compra,
-        cantidad_cajas,
-        costo_por_caja,
-        costo_unitario_resma,
-        resmas_iniciales,
-        resmas_disponibles,
-        medio_pago_compra,
-        estado
+        ${COLUMNAS_LOTE}
       FROM lotes_cajas
       WHERE estado = 'ACTIVO'
       ORDER BY fecha_compra ASC, id_lote ASC;`,
@@ -101,16 +105,7 @@ export class LoteRepository {
   async porId(db: SqlDatabase | SqlExecutor, idLote: number): Promise<Lote | null> {
     const rows = await db.query<LoteRow>(
       `SELECT
-        id_lote,
-        tipo_papel,
-        fecha_compra,
-        cantidad_cajas,
-        costo_por_caja,
-        costo_unitario_resma,
-        resmas_iniciales,
-        resmas_disponibles,
-        medio_pago_compra,
-        estado
+        ${COLUMNAS_LOTE}
       FROM lotes_cajas
       WHERE id_lote = ?;`,
       [idLote],

@@ -5,7 +5,8 @@ export type CodigoRegla =
   | 'SIN_DEUDA' // payment or settlement with no debt
   | 'SALDO_INSUFICIENTE' // pocket balance < amount
   | 'GANANCIA_INSUFICIENTE' // free profit < withdrawal
-  | 'TRASPASO_MISMO_MEDIO'; // transfer with the same source and target
+  | 'TRASPASO_MISMO_MEDIO' // transfer with the same source and target
+  | 'FACTURA_INVALIDA'; // invoice data out of domain: paid < 0, paid > total or cost base < 0
 
 export class ReglaNegocioError extends Error {
   constructor(

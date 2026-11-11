@@ -94,4 +94,68 @@ describe('repartirPago domain rule (R-01)', () => {
       expect.objectContaining({ codigo: 'MONTO_SUPERA_SALDO_FACTURA' }),
     );
   });
+
+  it('repartirPago rejects invoice when pagado is -1 with FACTURA_INVALIDA', () => {
+    const factura: FacturaAbierta = {
+      idVenta: 5,
+      fecha: fechaHora('2026-11-08 12:00:00'),
+      total: pesos(30000),
+      costoBase: pesos(20000),
+      pagado: pesos(-1),
+    };
+
+    expect(() => repartirPago(factura, pesos(5000))).toThrow(expect.objectContaining({ codigo: 'FACTURA_INVALIDA' }));
+  });
+
+  it('repartirPago rejects invoice when pagado is total + 1 with FACTURA_INVALIDA', () => {
+    const factura: FacturaAbierta = {
+      idVenta: 6,
+      fecha: fechaHora('2026-11-08 12:00:00'),
+      total: pesos(30000),
+      costoBase: pesos(20000),
+      pagado: pesos(30001),
+    };
+
+    expect(() => repartirPago(factura, pesos(5000))).toThrow(expect.objectContaining({ codigo: 'FACTURA_INVALIDA' }));
+  });
+
+  it('repartirPago rejects invoice when costoBase is -1 with FACTURA_INVALIDA', () => {
+    const factura: FacturaAbierta = {
+      idVenta: 7,
+      fecha: fechaHora('2026-11-08 12:00:00'),
+      total: pesos(30000),
+      costoBase: pesos(-1),
+      pagado: pesos(10000),
+    };
+
+    expect(() => repartirPago(factura, pesos(5000))).toThrow(expect.objectContaining({ codigo: 'FACTURA_INVALIDA' }));
+  });
+
+  it('repartirPago rejects invalid invoice with monto = 0 with FACTURA_INVALIDA rather than MONTO_INVALIDO', () => {
+    const factura: FacturaAbierta = {
+      idVenta: 8,
+      fecha: fechaHora('2026-11-08 12:00:00'),
+      total: pesos(30000),
+      costoBase: pesos(20000),
+      pagado: pesos(-1),
+    };
+
+    expect(() => repartirPago(factura, pesos(0))).toThrow(expect.objectContaining({ codigo: 'FACTURA_INVALIDA' }));
+  });
+
+  it('repartirPago allocates entire payment to profit when costoBase is 0', () => {
+    const factura: FacturaAbierta = {
+      idVenta: 9,
+      fecha: fechaHora('2026-11-08 12:00:00'),
+      total: pesos(10000),
+      costoBase: pesos(0),
+      pagado: pesos(0),
+    };
+
+    const resultado = repartirPago(factura, pesos(4000));
+
+    expect(resultado.capital).toBe(0);
+    expect(resultado.ganancia).toBe(4000);
+    expect(resultado.capital + resultado.ganancia).toBe(4000);
+  });
 });

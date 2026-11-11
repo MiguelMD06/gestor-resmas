@@ -1,6 +1,6 @@
 # Etapa 2 — Inventario y aportes de capital
 
-**Estado:** 📝 plan escrito, espera la aprobación de Miguel · **Rama del plan:** `docs/plan-etapa-2` · **Rama de implementación:** `feat/etapa-2-inventario` (sale del `main` actual) · **Entrega:** un PR a `main` · **Pruebas:** Vitest (`ng test`) + Playwright (`e2e/`)
+**Estado:** ✅ plan aprobado (L4), sin ejecutar · **Rama del plan:** `docs/plan-etapa-2` · **Rama de implementación:** `feat/etapa-2-inventario` (sale del `main` actual) · **Entrega:** un PR a `main` · **Pruebas:** Vitest (`ng test`) + Playwright (`e2e/`)
 **Objetivo:** primera etapa con interfaz. El usuario puede meter dinero al negocio (aporte de capital), comprar cajas de papel, que se convierten en lotes con su costo por resma, y ver el inventario por lotes activos. La app pasa a tener la barra de 4 pestañas y una pantalla de error si la base no abre.
 
 ## Qué hay hoy
@@ -149,6 +149,8 @@ El reporte de la etapa va en Engram (`etapas/2-inventario/reporte`).
 
 ## Por aprobar
 
+✅ Los 7 puntos se aprobaron tal como están (L4).
+
 1. **Dónde se registra el aporte de capital:** propongo dos entradas, en el botón flotante de Inventario y dentro del formulario de compra cuando el bolsillo no alcanza. Sin esto no se podría comprar nada en esta etapa, porque los bolsillos empiezan en $0 y el dashboard de Finanzas llega en la Etapa 5.
 2. **Fecha de compra:** por defecto es la de hoy y se puede cambiar. No propongo restringir fechas futuras ni pasadas, porque no lo pide ningún requisito.
 3. **Pestaña inicial:** Inventario mientras Finanzas no tiene contenido. En la Etapa 5 pasa a ser Finanzas, como dice el documento maestro.
@@ -163,3 +165,5 @@ Mensajes del usuario copiados textualmente; las notas del coordinador van entre 
 
 - **L1** (2026-11-10): "Si apruebo el plan, y trabajemos como me estas recomendando. Primero integrar las reglas de calidad, luego solucionar los pendientes y ahí si proceder con la etapa 2." [Orden acordado. Reglas de calidad integradas (PR #6 y #7) y pendientes de la Etapa 1 cerrados (PR #8).]
 - **L2** (2026-11-10): "Sí integra el #8 y arranca el plan de la etapa 2" [Se escribe este plan. No se ejecuta nada hasta que Miguel lo apruebe.]
+- **L3** (2026-11-10): "Tengo una duda sobree el aporte del capital, a que te refieres con donde se registra" [Se explicó que "dónde" es la pantalla y el botón desde los que se registra el aporte: los bolsillos empiezan en $0 y Finanzas llega en la Etapa 5, por eso las dos entradas están en Inventario.]
+- **L4** (2026-11-10): "Me sirve así, apruebo los 7 puntos" [Plan aprobado. Se integra el PR del plan.]

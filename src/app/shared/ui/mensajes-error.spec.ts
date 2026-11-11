@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
-import { ReglaNegocioError } from '../domain/regla-negocio.error';
+import { ReglaNegocioError, type CodigoRegla } from '../domain/regla-negocio.error';
 
-import { MENSAJES_ERROR, mensajeDeError } from './mensajes-error';
+import { MENSAJE_ERROR_GENERICO, MENSAJES_ERROR, mensajeDeError } from './mensajes-error';
 
 describe('mensajes-error', () => {
   it('translates SALDO_INSUFICIENTE to the expected Spanish message', () => {
@@ -34,5 +34,11 @@ describe('mensajes-error', () => {
     expect(mensajeDeError(null)).toBe('Ocurrió un error inesperado');
     expect(mensajeDeError(undefined)).toBe('Ocurrió un error inesperado');
     expect(mensajeDeError(42)).toBe('Ocurrió un error inesperado');
+  });
+
+  it('returns generic error text for a ReglaNegocioError with an unknown code at runtime', () => {
+    expect(MENSAJE_ERROR_GENERICO).toBe('Ocurrió un error inesperado');
+    const unknownError = new ReglaNegocioError('CODIGO_DESCONOCIDO' as CodigoRegla, 'x');
+    expect(mensajeDeError(unknownError)).toBe(MENSAJE_ERROR_GENERICO);
   });
 });

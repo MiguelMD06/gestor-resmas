@@ -27,6 +27,7 @@ import { add, cartOutline, walletOutline } from 'ionicons/icons';
 
 import { AporteModalComponent } from '../../finanzas/ui/aporte.modal';
 import { formatearPesos, type TipoPapel } from '../../shared/domain';
+import { soloCierreExplicito } from '../../shared/ui/formulario';
 import { mensajeDeError } from '../../shared/ui/mensajes-error';
 import { ConsultarInventario } from '../application/consultar-inventario';
 import { progreso, type Lote } from '../domain/lote';
@@ -64,7 +65,9 @@ import { NuevaCompraModalComponent } from './nueva-compra.modal';
       @if (errorCarga(); as error) {
         <div class="estado-error ion-text-center ion-padding" data-testid="estado-error">
           <p data-testid="mensaje-error-carga">{{ error }}</p>
-          <ion-button (click)="cargarLotes()" data-testid="btn-reintentar">Reintentar</ion-button>
+          <ion-button (click)="cargarLotes()" [disabled]="cargando()" data-testid="btn-reintentar"
+            >Reintentar</ion-button
+          >
         </div>
       } @else if (lotesVisibles().length === 0) {
         <div class="mensaje-vacio ion-text-center ion-padding" data-testid="mensaje-vacio">
@@ -152,6 +155,8 @@ export class InventarioPage {
   private readonly consultarInventario = inject(ConsultarInventario);
   private readonly modalCtrl = inject(ModalController);
 
+  private peticionActual = 0;
+
   readonly tipoSeleccionado = signal<TipoPapel>('CARTA');
   readonly lotes = signal<{ CARTA: Lote[]; OFICIO: Lote[] }>({ CARTA: [], OFICIO: [] });
 
@@ -179,22 +184,31 @@ export class InventarioPage {
   }
 
   async cargarLotes(): Promise<void> {
+    const idPeticion = ++this.peticionActual;
     this.cargando.set(true);
-    this.errorCarga.set(null);
     try {
       const datos = await this.consultarInventario.activos();
+      if (idPeticion !== this.peticionActual) {
+        return;
+      }
       this.lotes.set(datos);
+      this.errorCarga.set(null);
     } catch (error: unknown) {
+      if (idPeticion !== this.peticionActual) {
+        return;
+      }
       this.errorCarga.set(mensajeDeError(error));
     } finally {
-      this.cargando.set(false);
+      if (idPeticion === this.peticionActual) {
+        this.cargando.set(false);
+      }
     }
   }
 
   async abrirModalNuevaCompra(): Promise<void> {
     const modal = await this.modalCtrl.create({
       component: NuevaCompraModalComponent,
-      canDismiss: async (_data, role) => role === 'guardado' || role === 'cancel',
+      canDismiss: soloCierreExplicito,
     });
     await modal.present();
     const { data } = await modal.onDidDismiss();
@@ -206,7 +220,7 @@ export class InventarioPage {
   async abrirModalAporte(): Promise<void> {
     const modal = await this.modalCtrl.create({
       component: AporteModalComponent,
-      canDismiss: async (_data, role) => role === 'guardado' || role === 'cancel',
+      canDismiss: soloCierreExplicito,
     });
     await modal.present();
     const { data } = await modal.onDidDismiss();

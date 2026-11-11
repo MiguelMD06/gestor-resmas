@@ -84,3 +84,6 @@ planificacion/etapas/*/logs/
 .env
 .env.*
 !.env.example
+
+# Debug APK built by `npm run apk` (never committed)
+/apk/

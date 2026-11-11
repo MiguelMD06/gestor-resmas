@@ -11,7 +11,19 @@ npm install
 npm start          # servidor de desarrollo en el navegador
 npm test           # pruebas unitarias (Vitest) y e2e (Playwright)
 npm run lint       # ESLint, chequeo de tipos e2e y Prettier
+npm run apk        # APK de debug para probar en un dispositivo Android
 ```
+
+## Probar en Android
+
+`npm run apk` compila la web, sincroniza el proyecto nativo (`android/`) y genera `apk/gestor-resmas-debug.apk`. La carpeta `apk/` está ignorada por git: la APK nunca se sube al repositorio.
+
+Requisitos:
+
+- **Android SDK**, el que instala Android Studio. El script lo busca en `ANDROID_HOME`, `ANDROID_SDK_ROOT` o en la ubicación por defecto de Android Studio, y crea `android/local.properties` si no existe.
+- **Un JDK entre 21 y 24.** Gradle 8.14 no corre con versiones más nuevas. El script prueba, en orden, `APK_JAVA_HOME`, `JAVA_HOME`, el JDK que trae Android Studio y los JDK instalados. Si tu `JAVA_HOME` es más nuevo, no hace falta cambiarlo.
+
+Para instalarla, pasa el archivo al teléfono (cable USB, Drive o mensaje) y ábrelo. Android pide permitir "instalar apps desconocidas" la primera vez. Con el teléfono conectado y la depuración USB activa, también sirve `adb install -r apk/gestor-resmas-debug.apk`.
 
 ## Stack
 

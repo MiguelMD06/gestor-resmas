@@ -1,6 +1,6 @@
 # Etapa 2 — Inventario y aportes de capital
 
-**Estado:** ✅ plan aprobado (L4), sin ejecutar · **Rama del plan:** `docs/plan-etapa-2` · **Rama de implementación:** `feat/etapa-2-inventario` (sale del `main` actual) · **Entrega:** un PR a `main` · **Pruebas:** Vitest (`ng test`) + Playwright (`e2e/`)
+**Estado:** ✅ implementado y verificado (V2 sin bloqueantes), PR abierto · **Rama del plan:** `docs/plan-etapa-2` · **Rama de implementación:** `feat/etapa-2-inventario` (sale del `main` actual) · **Entrega:** un PR a `main` · **Pruebas:** Vitest (`ng test`) + Playwright (`e2e/`)
 **Objetivo:** primera etapa con interfaz. El usuario puede meter dinero al negocio (aporte de capital), comprar cajas de papel, que se convierten en lotes con su costo por resma, y ver el inventario por lotes activos. La app pasa a tener la barra de 4 pestañas y una pantalla de error si la base no abre.
 
 ## Qué hay hoy
@@ -159,6 +159,17 @@ El reporte de la etapa va en Engram (`etapas/2-inventario/reporte`).
 6. **D1 a D6** tal como están arriba.
 7. **Alcance:** no entra la venta (Etapa 3), aunque el descuento de stock y el paso a `AGOTADO` (S6) quedan listos y probados. Tampoco entran el historial de lotes agotados en pantalla, el valor del inventario (que es del dashboard, Etapa 5) ni la corrección o anulación de una compra mal cargada (Etapa 6, A7).
 
+## Resultado
+
+- **Verificación independiente (V2, `agy` · `gemini-4-argon-medium`):** 0 bloqueantes. `S1`–`S12` y `E1`–`E9` cumplen. E9 se reprodujo en el navegador haciendo fallar el primer arranque de `jeep-sqlite`. Las pruebas del verificador quedaron como regresión en `src/app/inventario.acceptance.spec.ts` (E1–E7) y `e2e/inventario.acceptance.spec.ts` (E8, E9 y flujos de la interfaz).
+- **Checks finales:** `lint` limpio, 220 pruebas unitarias (39 archivos), `build` correcto y 7 pruebas e2e.
+- **Revisiones nativas:** ola 1 aprobada dos veces (0 bloqueantes) y el commit del CI revisado solo (0 hallazgos). La ola 2 no se revisó: la rama completa supera el presupuesto del revisor y Miguel omitió la revisión del tramo de la ola 2.
+- **Hallazgo de la revisión del coordinador en la ola 2:** la app es *zoneless*, así que el estado que cambia después de un `await` tiene que vivir en signals. El modal de compra no lo hacía y se corrigió en B2.3-C, con un e2e que lo prueba en el navegador.
+- **Observaciones que quedan para después:**
+  1. `src/app/finanzas/index.ts` no reexporta `finanzas/application` (sí lo hace `inventario/index.ts`).
+  2. Quedan títulos de pruebas en español en `estado-arranque.spec.ts`, `tabs.page.spec.ts`, `e2e/app.spec.ts` y `e2e/inventario.spec.ts`.
+  3. `lote.spec.ts` prueba la frontera positiva de `nuevoLote` con 2 cajas en lugar de 1.
+
 ## Log
 
 Mensajes del usuario copiados textualmente; las notas del coordinador van entre corchetes.
@@ -168,3 +179,4 @@ Mensajes del usuario copiados textualmente; las notas del coordinador van entre 
 - **L3** (2026-11-10): "Tengo una duda sobree el aporte del capital, a que te refieres con donde se registra" [Se explicó que "dónde" es la pantalla y el botón desde los que se registra el aporte: los bolsillos empiezan en $0 y Finanzas llega en la Etapa 5, por eso las dos entradas están en Inventario.]
 - **L4** (2026-11-10): "Me sirve así, apruebo los 7 puntos" [Plan aprobado. Se integra el PR del plan.]
 - **L5** (2026-11-11): "Revisa el estado del proyecto y continuemos con la tarea pendiente" [Arranca la ola 2 (B2.3). Ajustes al bloque: (1) no había caso de uso para listar lotes y la pantalla no puede leer el repositorio directo (`ui` → `application`), así que B2.3 agrega `ConsultarInventario` en `inventario/application/`; (2) las 9 observaciones no bloqueantes de la segunda revisión de la ola 1 entran como parte B de B2.3.]
+- **L6** (2026-11-11): "Sí, arranca con la ola 3" [V2 sin bloqueantes. Antes, en la revisión nativa de la ola 2, Miguel eligió "Omitir esta vez". Se agregan las pruebas del verificador, se cierra el plan y se abre el PR.]

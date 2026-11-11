@@ -109,7 +109,8 @@ export class AporteModalComponent {
   readonly monto = signal<number | null>(null);
 
   readonly errorFecha = computed(() => (this.fecha().trim() ? null : 'Elige una fecha'));
-  readonly puedeGuardar = computed(() => Boolean(this.fecha().trim()));
+  readonly guardando = signal(false);
+  readonly puedeGuardar = computed(() => !this.guardando() && Boolean(this.fecha().trim()));
 
   onFechaInput(event: CustomEvent | Event): void {
     const detail = (event as CustomEvent).detail;
@@ -140,6 +141,7 @@ export class AporteModalComponent {
       return;
     }
 
+    this.guardando.set(true);
     try {
       const valorMonto = Number(this.monto() ?? 0);
       const horaActual = this.clock.ahora().split(' ')[1];
@@ -160,6 +162,8 @@ export class AporteModalComponent {
         position: 'bottom',
       });
       await toast.present();
+    } finally {
+      this.guardando.set(false);
     }
   }
 }

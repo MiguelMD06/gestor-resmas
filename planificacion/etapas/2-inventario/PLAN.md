@@ -1,6 +1,6 @@
 # Etapa 2 — Inventario y aportes de capital
 
-**Estado:** ✅ implementado y verificado (V2 sin bloqueantes), PR abierto · **Rama del plan:** `docs/plan-etapa-2` · **Rama de implementación:** `feat/etapa-2-inventario` (sale del `main` actual) · **Entrega:** un PR a `main` · **Pruebas:** Vitest (`ng test`) + Playwright (`e2e/`)
+**Estado:** ✅ hecha (PR #11, integrado en `main`) · **Rama del plan:** `docs/plan-etapa-2` · **Rama de implementación:** `feat/etapa-2-inventario` (sale del `main` actual) · **Entrega:** un PR a `main` · **Pruebas:** Vitest (`ng test`) + Playwright (`e2e/`)
 **Objetivo:** primera etapa con interfaz. El usuario puede meter dinero al negocio (aporte de capital), comprar cajas de papel, que se convierten en lotes con su costo por resma, y ver el inventario por lotes activos. La app pasa a tener la barra de 4 pestañas y una pantalla de error si la base no abre.
 
 ## Qué hay hoy

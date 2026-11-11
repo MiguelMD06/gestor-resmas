@@ -18,7 +18,7 @@ export class CapacitorSqlDatabase implements SqlDatabase {
     private readonly options?: CapacitorSqlDatabaseOptions,
   ) {}
 
-  private async saveIfWeb(): Promise<void> {
+  private async persistStore(escrituraAplicada: boolean): Promise<void> {
     if (!this.options?.esWeb) {
       return;
     }
@@ -27,13 +27,20 @@ export class CapacitorSqlDatabase implements SqlDatabase {
       this.pendienteGuardar = false;
     } catch (cause) {
       this.pendienteGuardar = true;
-      throw new GuardadoWebError('Failed to persist web database store.', cause);
+      const message = escrituraAplicada
+        ? 'Failed to persist web database store after write.'
+        : 'Failed to flush pending web database save; write was not executed.';
+      throw new GuardadoWebError(message, escrituraAplicada, cause);
     }
+  }
+
+  private async saveIfWeb(): Promise<void> {
+    await this.persistStore(true);
   }
 
   private async flushPendingSaveIfWeb(): Promise<void> {
     if (this.pendienteGuardar) {
-      await this.saveIfWeb();
+      await this.persistStore(false);
     }
   }
 

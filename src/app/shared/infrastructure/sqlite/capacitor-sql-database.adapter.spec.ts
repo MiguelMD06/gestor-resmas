@@ -112,20 +112,17 @@ describe('CapacitorSqlDatabase adapter', () => {
       guardar,
     });
 
-    let caughtError: unknown;
-    try {
-      await db.transaction(async (tx) => {
-        await tx.run('INSERT INTO test VALUES (?)', [1]);
-      });
-    } catch (err) {
-      caughtError = err;
-    }
+    const promise = db.transaction(async (tx) => {
+      await tx.run('INSERT INTO test VALUES (?)', [1]);
+    });
+    await expect(promise).rejects.toBeInstanceOf(GuardadoWebError);
+    await expect(promise).rejects.toMatchObject({
+      escrituraAplicada: true,
+      cause,
+    });
 
     expect(mockDb.commitTransaction).toHaveBeenCalledTimes(1);
     expect(mockDb.rollbackTransaction).not.toHaveBeenCalled();
-    expect(caughtError).toBeInstanceOf(GuardadoWebError);
-    expect((caughtError as GuardadoWebError).name).toBe('GuardadoWebError');
-    expect((caughtError as GuardadoWebError).cause).toBe(cause);
   });
 
   it('throws GuardadoWebError and calls db.run only once when guardar() fails after non-transactional run', async () => {
@@ -137,16 +134,33 @@ describe('CapacitorSqlDatabase adapter', () => {
       guardar,
     });
 
-    let caughtError: unknown;
-    try {
-      await db.run('INSERT INTO test VALUES (?)', [1]);
-    } catch (err) {
-      caughtError = err;
-    }
+    const promise = db.run('INSERT INTO test VALUES (?)', [1]);
+    await expect(promise).rejects.toBeInstanceOf(GuardadoWebError);
+    await expect(promise).rejects.toMatchObject({
+      escrituraAplicada: true,
+      cause,
+    });
 
     expect(mockDb.run).toHaveBeenCalledTimes(1);
-    expect(caughtError).toBeInstanceOf(GuardadoWebError);
-    expect((caughtError as GuardadoWebError).cause).toBe(cause);
+  });
+
+  it('throws GuardadoWebError and calls db.execute only once when guardar() fails after exec', async () => {
+    const mockDb = createMockDb();
+    const cause = new Error('IndexedDB write failed');
+    const guardar = vi.fn().mockRejectedValue(cause);
+    const db = new CapacitorSqlDatabase(mockDb as unknown as SQLiteDBConnection, {
+      esWeb: true,
+      guardar,
+    });
+
+    const promise = db.exec('CREATE TABLE test (id INT);');
+    await expect(promise).rejects.toBeInstanceOf(GuardadoWebError);
+    await expect(promise).rejects.toMatchObject({
+      escrituraAplicada: true,
+      cause,
+    });
+
+    expect(mockDb.execute).toHaveBeenCalledTimes(1);
   });
 
   it('retries guardar() before the next write when pending and executes the write if guardar() succeeds', async () => {
@@ -171,7 +185,10 @@ describe('CapacitorSqlDatabase adapter', () => {
       guardar,
     });
 
-    await expect(db.run('INSERT INTO test VALUES (?)', [1])).rejects.toBeInstanceOf(GuardadoWebError);
+    await expect(db.run('INSERT INTO test VALUES (?)', [1])).rejects.toMatchObject({
+      name: 'GuardadoWebError',
+      escrituraAplicada: true,
+    });
 
     const res = await db.run('INSERT INTO test VALUES (?)', [2]);
     expect(res).toEqual({ changes: 1, lastInsertId: 10 });
@@ -202,7 +219,10 @@ describe('CapacitorSqlDatabase adapter', () => {
       guardar,
     });
 
-    await expect(db.exec('CREATE TABLE t1 (id INT);')).rejects.toBeInstanceOf(GuardadoWebError);
+    await expect(db.exec('CREATE TABLE t1 (id INT);')).rejects.toMatchObject({
+      name: 'GuardadoWebError',
+      escrituraAplicada: true,
+    });
 
     await db.exec('CREATE TABLE t2 (id INT);');
     expect(order).toEqual(['db.execute', 'guardar-1-fail', 'guardar-ok', 'db.execute', 'guardar-ok']);
@@ -244,7 +264,10 @@ describe('CapacitorSqlDatabase adapter', () => {
       db.transaction(async (tx) => {
         await tx.run('INSERT INTO test VALUES (?)', [1]);
       }),
-    ).rejects.toBeInstanceOf(GuardadoWebError);
+    ).rejects.toMatchObject({
+      name: 'GuardadoWebError',
+      escrituraAplicada: true,
+    });
 
     const res = await db.transaction(async (tx) => tx.run('INSERT INTO test VALUES (?)', [2]));
     expect(res).toEqual({ changes: 1, lastInsertId: 10 });
@@ -265,7 +288,7 @@ describe('CapacitorSqlDatabase adapter', () => {
     expect(guardar).toHaveBeenCalledTimes(3);
   });
 
-  it('throws GuardadoWebError without calling db.run when pending and guardar() fails again on the next write', async () => {
+  it('throws GuardadoWebError without calling db.run when pending and guardar() fails again before run', async () => {
     const mockDb = createMockDb();
     const firstCause = new Error('First save failed');
     const secondCause = new Error('Second save failed');
@@ -276,21 +299,85 @@ describe('CapacitorSqlDatabase adapter', () => {
       guardar,
     });
 
-    await expect(db.run('INSERT INTO test VALUES (?)', [1])).rejects.toBeInstanceOf(GuardadoWebError);
+    await expect(db.run('INSERT INTO test VALUES (?)', [1])).rejects.toMatchObject({
+      name: 'GuardadoWebError',
+      escrituraAplicada: true,
+      cause: firstCause,
+    });
     expect(mockDb.run).toHaveBeenCalledTimes(1);
 
     mockDb.run.mockClear();
 
-    let secondError: unknown;
-    try {
-      await db.run('INSERT INTO test VALUES (?)', [2]);
-    } catch (err) {
-      secondError = err;
-    }
-
-    expect(secondError).toBeInstanceOf(GuardadoWebError);
-    expect((secondError as GuardadoWebError).cause).toBe(secondCause);
+    await expect(db.run('INSERT INTO test VALUES (?)', [2])).rejects.toMatchObject({
+      name: 'GuardadoWebError',
+      escrituraAplicada: false,
+      cause: secondCause,
+    });
     expect(mockDb.run).not.toHaveBeenCalled();
+  });
+
+  it('throws GuardadoWebError without calling db.execute when pending and guardar() fails again before exec', async () => {
+    const mockDb = createMockDb();
+    const firstCause = new Error('First save failed');
+    const secondCause = new Error('Second save failed');
+    const guardar = vi.fn().mockRejectedValueOnce(firstCause).mockRejectedValueOnce(secondCause);
+
+    const db = new CapacitorSqlDatabase(mockDb as unknown as SQLiteDBConnection, {
+      esWeb: true,
+      guardar,
+    });
+
+    await expect(db.exec('CREATE TABLE t1 (id INT);')).rejects.toMatchObject({
+      name: 'GuardadoWebError',
+      escrituraAplicada: true,
+      cause: firstCause,
+    });
+    expect(mockDb.execute).toHaveBeenCalledTimes(1);
+
+    mockDb.execute.mockClear();
+
+    await expect(db.exec('CREATE TABLE t2 (id INT);')).rejects.toMatchObject({
+      name: 'GuardadoWebError',
+      escrituraAplicada: false,
+      cause: secondCause,
+    });
+    expect(mockDb.execute).not.toHaveBeenCalled();
+  });
+
+  it('throws GuardadoWebError without calling db.beginTransaction when pending and guardar() fails again before transaction', async () => {
+    const mockDb = createMockDb();
+    const firstCause = new Error('First save failed');
+    const secondCause = new Error('Second save failed');
+    const guardar = vi.fn().mockRejectedValueOnce(firstCause).mockRejectedValueOnce(secondCause);
+
+    const db = new CapacitorSqlDatabase(mockDb as unknown as SQLiteDBConnection, {
+      esWeb: true,
+      guardar,
+    });
+
+    await expect(
+      db.transaction(async (tx) => {
+        await tx.run('INSERT INTO test VALUES (?)', [1]);
+      }),
+    ).rejects.toMatchObject({
+      name: 'GuardadoWebError',
+      escrituraAplicada: true,
+      cause: firstCause,
+    });
+    expect(mockDb.beginTransaction).toHaveBeenCalledTimes(1);
+
+    mockDb.beginTransaction.mockClear();
+
+    await expect(
+      db.transaction(async (tx) => {
+        await tx.run('INSERT INTO test VALUES (?)', [2]);
+      }),
+    ).rejects.toMatchObject({
+      name: 'GuardadoWebError',
+      escrituraAplicada: false,
+      cause: secondCause,
+    });
+    expect(mockDb.beginTransaction).not.toHaveBeenCalled();
   });
 
   it('does not call guardar() on query even when a previous save is pending', async () => {
@@ -303,7 +390,10 @@ describe('CapacitorSqlDatabase adapter', () => {
       guardar,
     });
 
-    await expect(db.exec('CREATE TABLE test (id INT);')).rejects.toBeInstanceOf(GuardadoWebError);
+    await expect(db.exec('CREATE TABLE test (id INT);')).rejects.toMatchObject({
+      name: 'GuardadoWebError',
+      escrituraAplicada: true,
+    });
     expect(guardar).toHaveBeenCalledTimes(1);
 
     const rows = await db.query<{ id: number }>('SELECT id FROM test');

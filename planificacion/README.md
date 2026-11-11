@@ -7,7 +7,7 @@
 | # | Etapa | Requisitos que cubre | Estado | Plan | Reporte (Engram) |
 |---|-------|----------------------|--------|------|------------------|
 | 0 | Fundaciones | RNF-01, RNF-02, RNF-03, RNF-04; esquema con A1, A2, A5, A6 y las correcciones B | ✅ hecha (PR #3) | [PLAN](etapas/0-fundaciones/PLAN.md) | `etapas/0-fundaciones/reporte` |
-| 1 | Motor contable (dominio puro, sin interfaz) | RN-03, RF-11, RF-16; reglas de RF-12, RF-13, RF-14, RF-17, RF-19 y RF-20; A1, A3, A4; pendientes de la revisión de la Etapa 0 | ✅ implementada y verificada; PR pendiente de la validación de Miguel | [PLAN](etapas/1-motor-contable/PLAN.md) | `etapas/1-motor-contable/reporte` |
+| 1 | Motor contable (dominio puro, sin interfaz) | RN-03, RF-11, RF-16; reglas de RF-12, RF-13, RF-14, RF-17, RF-19 y RF-20; A1, A3, A4; pendientes de la revisión de la Etapa 0 | ✅ hecha (PR #5) | [PLAN](etapas/1-motor-contable/PLAN.md) | `etapas/1-motor-contable/reporte` |
 | 2 | Inventario y aportes de capital | RN-01, RN-02, RF-01, RF-02, RF-03, RF-04; A2, A3; navegación con pestañas | pendiente | — | — |
 | 3 | Clientes y punto de venta | RF-05, RF-07, RF-08, RF-09, RF-10, RNF-05; A4 (aviso) | pendiente | — | — |
 | 4 | Cartera y expediente del cliente | RF-06, RF-11, RF-12, RF-13, RF-14, RF-15 | pendiente | — | — |

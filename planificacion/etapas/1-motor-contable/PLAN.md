@@ -1,6 +1,6 @@
 # Etapa 1 — Motor contable
 
-**Estado:** ✅ implementada y verificada (L5), PR pendiente de la validación de Miguel · **Rama:** `feat/etapa-1-motor-contable` · **Entrega:** un PR a `main` · **Pruebas:** Vitest (`ng test`)
+**Estado:** ✅ hecha (PR #5, integrado en `main`) · **Rama:** `feat/etapa-1-motor-contable` · **Entrega:** un PR a `main` · **Pruebas:** Vitest (`ng test`)
 **Objetivo:** construir las reglas que deciden, en cada movimiento de dinero, cuánto es capital y cuánto es ganancia (cobros, cascada de abonos, compras, retiros y traspasos), como código puro probado con ejemplos, más un repositorio único del libro de dinero que van a reutilizar todas las etapas. Antes, cerrar los pendientes de la revisión de la Etapa 0.
 
 ## Qué hay hoy

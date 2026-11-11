@@ -114,7 +114,73 @@ describe('AporteModalComponent', () => {
 
     await component.guardar();
 
-    expect(mockToastCtrl.create).toHaveBeenCalled();
+    expect(mockToastCtrl.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: 'Ocurrió un error inesperado',
+      }),
+    );
+    expect(component.puedeGuardar()).toBe(true);
+  });
+
+  it('disables Guardar aporte when monto is empty, does not call registrar, and enables with 300000', async () => {
+    expect(component.monto()).toBeNull();
+    expect(component.puedeGuardar()).toBe(false);
+
+    const botonGuardar = fixture.debugElement.query(By.css('[data-testid="btn-guardar-aporte"]'));
+    expect(botonGuardar.nativeElement.disabled || botonGuardar.attributes['disabled'] !== undefined).toBe(true);
+
+    await component.guardar();
+    expect(mockRegistrarAporte.registrar).not.toHaveBeenCalled();
+
+    component.monto.set(300000);
+    fixture.detectChanges();
+
+    expect(component.puedeGuardar()).toBe(true);
+    expect(botonGuardar.nativeElement.disabled).toBe(false);
+  });
+
+  it('disables Cancelar button and form fields while save is in flight, blocks cancelar(), and re-enables all after error', async () => {
+    let rejectRegistro!: (error: unknown) => void;
+    mockRegistrarAporte.registrar.mockReturnValueOnce(
+      new Promise((_, reject) => {
+        rejectRegistro = reject;
+      }),
+    );
+
+    component.monto.set(300000);
+    fixture.detectChanges();
+
+    const guardarPromise = component.guardar();
+    fixture.detectChanges();
+
+    // 1. Cancel button is disabled
+    const btnCancelar = fixture.debugElement.query(By.css('[data-testid="btn-cancelar"]'));
+    expect(btnCancelar.nativeElement.disabled || btnCancelar.attributes['disabled'] !== undefined).toBe(true);
+
+    // 2. Form fields are disabled
+    const inputFecha = fixture.debugElement.query(By.css('[data-testid="input-fecha"]'));
+    expect(inputFecha.nativeElement.disabled || inputFecha.attributes['disabled'] !== undefined).toBe(true);
+
+    const selectMedio = fixture.debugElement.query(By.css('[data-testid="select-medio"]'));
+    expect(selectMedio.nativeElement.disabled || selectMedio.attributes['disabled'] !== undefined).toBe(true);
+
+    const inputMonto = fixture.debugElement.query(By.css('[data-testid="input-monto"]'));
+    expect(inputMonto.nativeElement.disabled || inputMonto.attributes['disabled'] !== undefined).toBe(true);
+
+    // 3. Calling cancelar() does nothing
+    await component.cancelar();
+    expect(mockModalCtrl.dismiss).not.toHaveBeenCalled();
+
+    // 4. Reject with error
+    rejectRegistro(new Error('fail'));
+    await guardarPromise;
+    fixture.detectChanges();
+
+    // 5. After error, everything is enabled again
+    expect(btnCancelar.nativeElement.disabled || btnCancelar.attributes['disabled'] !== undefined).toBe(false);
+    expect(inputFecha.nativeElement.disabled || inputFecha.attributes['disabled'] !== undefined).toBe(false);
+    expect(selectMedio.nativeElement.disabled || selectMedio.attributes['disabled'] !== undefined).toBe(false);
+    expect(inputMonto.nativeElement.disabled || inputMonto.attributes['disabled'] !== undefined).toBe(false);
     expect(component.puedeGuardar()).toBe(true);
   });
 

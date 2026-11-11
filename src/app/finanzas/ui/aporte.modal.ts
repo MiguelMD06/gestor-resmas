@@ -21,6 +21,13 @@ import { CLOCK } from '../../shared/infrastructure/clock/clock.token';
 import { mensajeDeError } from '../../shared/ui/mensajes-error';
 import { RegistrarAporte } from '../application/registrar-aporte';
 
+function esVacio(val: unknown): boolean {
+  if (val === null || val === undefined) return true;
+  if (typeof val === 'string' && val.trim() === '') return true;
+  if (typeof val === 'number' && Number.isNaN(val)) return true;
+  return false;
+}
+
 @Component({
   selector: 'app-aporte-modal',
   template: `
@@ -28,7 +35,7 @@ import { RegistrarAporte } from '../application/registrar-aporte';
       <ion-toolbar>
         <ion-title>Aporte de capital</ion-title>
         <ion-buttons slot="end">
-          <ion-button (click)="cancelar()">Cancelar</ion-button>
+          <ion-button (click)="cancelar()" [disabled]="guardando()" data-testid="btn-cancelar">Cancelar</ion-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-header>
@@ -40,6 +47,7 @@ import { RegistrarAporte } from '../application/registrar-aporte';
           labelPlacement="stacked"
           type="date"
           [value]="fecha()"
+          [disabled]="guardando()"
           (ionInput)="onFechaInput($event)"
           (ionChange)="onFechaInput($event)"
           data-testid="input-fecha"
@@ -56,6 +64,7 @@ import { RegistrarAporte } from '../application/registrar-aporte';
           label="Medio de pago"
           labelPlacement="stacked"
           [value]="medio()"
+          [disabled]="guardando()"
           (ionChange)="onMedioChange($event)"
           data-testid="select-medio"
         >
@@ -70,6 +79,7 @@ import { RegistrarAporte } from '../application/registrar-aporte';
           labelPlacement="stacked"
           type="number"
           [value]="monto()"
+          [disabled]="guardando()"
           (ionInput)="onMontoInput($event)"
           placeholder="Ej: 300000"
           data-testid="input-monto"
@@ -110,7 +120,14 @@ export class AporteModalComponent {
 
   readonly errorFecha = computed(() => (this.fecha().trim() ? null : 'Elige una fecha'));
   readonly guardando = signal(false);
-  readonly puedeGuardar = computed(() => !this.guardando() && Boolean(this.fecha().trim()));
+  readonly puedeGuardar = computed(() => {
+    if (this.guardando()) {
+      return false;
+    }
+    const tieneFecha = Boolean(this.fecha().trim());
+    const tieneMonto = !esVacio(this.monto());
+    return tieneFecha && tieneMonto;
+  });
 
   onFechaInput(event: CustomEvent | Event): void {
     const detail = (event as CustomEvent).detail;
@@ -133,6 +150,9 @@ export class AporteModalComponent {
   }
 
   async cancelar(): Promise<void> {
+    if (this.guardando()) {
+      return;
+    }
     await this.modalCtrl.dismiss(null, 'cancel');
   }
 
@@ -143,7 +163,7 @@ export class AporteModalComponent {
 
     this.guardando.set(true);
     try {
-      const valorMonto = Number(this.monto() ?? 0);
+      const valorMonto = Number(this.monto());
       const horaActual = this.clock.ahora().split(' ')[1];
       const parsedFecha = fechaHora(`${this.fecha().trim()} ${horaActual}`);
 

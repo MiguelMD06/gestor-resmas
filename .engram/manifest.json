@@ -48,6 +48,14 @@
       "sessions": 1,
       "memories": 1,
       "prompts": 0
+    },
+    {
+      "id": "469ed8e0",
+      "created_by": "MIGUEL ANGEL",
+      "created_at": "2026-11-16T23:50:15.1811656Z",
+      "sessions": 11,
+      "memories": 22,
+      "prompts": 0
     }
   ]
 }

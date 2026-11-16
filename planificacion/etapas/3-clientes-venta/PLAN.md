@@ -57,7 +57,7 @@ Cada uno es una prueba. Los números siguen el ejemplo de Ana: lote **A** Carta 
 | E12 | Venta de 21 resmas del lote A (con 20). | se rechaza (`STOCK_INSUFICIENTE`) y **no** cambia ninguna tabla: ni `ventas`, ni `detalle_ventas`, ni `lotes_cajas`, ni `abonos`, ni `movimientos_dinero` |
 | E13 | Venta de las 10 resmas del lote B, de contado. | B queda con 0 y `AGOTADO`; ya no aparece en el selector de lotes de Vender ni en Inventario |
 | E14 | Línea de 1 resma del lote A a $11.000. | al escribir el precio aparece el aviso "Precio por debajo del costo: pierdes $1.000"; la venta se puede guardar; de contado, el cobro es capital $11.000 y ganancia $0 |
-| E15 | Línea con precio vacío o $0, o cantidad vacía o 0. | **Confirmar venta** está deshabilitado y el campo muestra el error; el dominio lo rechaza (`PRECIO_INVALIDO` o `CANTIDAD_INVALIDA`) |
+| E15 | Línea con precio vacío o $0, o cantidad vacía o 0. | **Confirmar venta** está deshabilitado y el campo muestra el error; el dominio lo rechaza (`PRECIO_INVALIDO` o `CANTIDAD_RESMAS_INVALIDA`) |
 | E16 | Confirmar una venta sin líneas, o con el mismo lote en dos líneas. | se rechaza (`VENTA_SIN_LINEAS` o `LOTE_REPETIDO`); en la pantalla, un lote ya agregado no se puede volver a elegir |
 | E17 | Doble toque en **Confirmar venta** (dos ejecuciones concurrentes). | se registra **una sola** venta, un solo descuento de stock y un solo movimiento |
 | E18 | La carga de lotes o de clientes falla. | se ve el estado de error con **Reintentar**, no la lista vacía |
@@ -74,7 +74,7 @@ Cada uno es una prueba. Los números siguen el ejemplo de Ana: lote **A** Carta 
 | D4 | **La venta es una sola transacción**, en este orden: validar el cliente, leer cada lote y descontarlo con `LoteRepository.descontar`, insertar la venta y sus líneas, y, si entra dinero, insertar el abono con su detalle y registrar el `COBRO` con `LibroRepository.registrar`. Si algo falla, no queda nada escrito. | R-11 (RNF-03). Leer el stock dentro de la transacción evita vender dos veces la misma resma. `DatabaseProvider` ya serializa las transacciones. |
 | D5 | **Una línea por lote.** Para vender más resmas del mismo lote se cambia la cantidad de su línea. | Evita que dos líneas del mismo lote sumen más que su stock sin que ninguna lo supere sola. |
 | D6 | **La fecha de la venta viene puesta con la del `CLOCK` y se puede cambiar a una fecha pasada**, nunca a una futura (`FECHA_FUTURA`). El abono y el movimiento `COBRO` de esa venta llevan la misma fecha. | L3: hay que poder cargar una venta del día anterior. Si el cobro llevara la fecha de carga, la ganancia caería en el mes equivocado (A5). La regla 11 de `CLAUDE.md` se cumple: "ahora" sale del `CLOCK`. |
-| D7 | **Mensajes nuevos en la misma tabla** (`shared/ui/mensajes-error.ts`): `NOMBRE_INVALIDO`, `TELEFONO_INVALIDO`, `PRECIO_INVALIDO`, `VENTA_SIN_LINEAS`, `LOTE_REPETIDO`, `ABONO_INICIAL_INVALIDO`, `MOSTRADOR_SOLO_CONTADO`, `CLIENTE_INEXISTENTE`, `FECHA_FUTURA` y `TELEFONO_REPETIDO`. | Continúa la D5 de la Etapa 2. |
+| D7 | **Mensajes nuevos en la misma tabla** (`shared/ui/mensajes-error.ts`): `NOMBRE_INVALIDO`, `TELEFONO_INVALIDO`, `PRECIO_INVALIDO`, `VENTA_SIN_LINEAS`, `LOTE_REPETIDO`, `ABONO_INICIAL_INVALIDO`, `MOSTRADOR_SOLO_CONTADO`, `CLIENTE_INEXISTENTE`, `FECHA_FUTURA`, `TELEFONO_REPETIDO` y `CANTIDAD_RESMAS_INVALIDA` ("La cantidad de resmas debe ser un número entero mayor a cero"). | Continúa la D5 de la Etapa 2. `CANTIDAD_INVALIDA` habla de cajas y sigue siendo de la compra; la venta usa su propio código para no cambiar un texto que ya está en uso (L7). |
 | D9 | **El teléfono es único:** dos clientes no pueden tener el mismo celular; el teléfono vacío no cuenta. Se valida en la pantalla y en el caso de uso (`TELEFONO_REPETIDO`), y la base lo garantiza con un índice único parcial en la migración `002` (`CREATE UNIQUE INDEX ux_clientes_telefono ON clientes (telefono) WHERE telefono IS NOT NULL`). | L5 y L6: cada persona se registra con su propio celular. Que el teléfono sea único es una regla de negocio, independiente de la clave primaria `id_cliente`. La migración no falla en instalaciones existentes: hasta esta etapa el único cliente es el Mostrador, sin teléfono. |
 | D8 | **Lotes del selector en el orden de la Etapa 2** (más antiguo primero) y con el mismo caso de uso `ConsultarInventario`. | Una sola fuente para "lotes activos"; el agotado desaparece de los dos lados a la vez (S9). |
 
@@ -95,7 +95,7 @@ Si Hydrogen se queda sin cuota: código con `gemini-3.8-flash-high` y verificaci
 ### B3.0 — Códigos de regla y mensajes (coordinador)
 
 - **Rutas:** `src/app/shared/domain/regla-negocio.error.ts`, `src/app/shared/ui/mensajes-error.ts` y sus `.spec.ts`
-- Agrega los 10 códigos de D7 a `CodigoRegla` y su texto en español a la tabla, con una prueba del texto exacto de cada uno.
+- Agrega los 11 códigos de D7 a `CodigoRegla` y su texto en español a la tabla, con una prueba del texto exacto de cada uno.
 
 ### B3.1 — Clientes
 
@@ -118,7 +118,7 @@ Si Hydrogen se queda sin cuota: código con `gemini-3.8-flash-high` y verificaci
 - **Rutas permitidas:** `src/app/ventas/**` (sin `ui/`), `src/app/cartera/infrastructure/**`, `src/app/cartera/index.ts`, `src/app/inventario/infrastructure/lote.repository.ts` (solo si hace falta leer un lote dentro de la transacción), y el `.spec.ts` de cada uno
 - **Qué hacer:**
   1. **`ventas/domain/venta.ts`**: `armarVenta({ idCliente, esMostrador, fecha, ahora, lineas, pago }) → { totalVenta, costoTotalBase, montoPagado, saldoPendiente, estadoPago, lineas: (línea + evaluarLinea)[], cobro: { tipoAbono, monto, medio, capital, ganancia } | null }`.
-     - `lineas`: `{ idLote, costoUnitario, disponibles, cantidad, precioUnitario }`; rechaza `VENTA_SIN_LINEAS`, `LOTE_REPETIDO`, `CANTIDAD_INVALIDA`, `PRECIO_INVALIDO` (no entero o ≤ 0) y `STOCK_INSUFICIENTE`.
+     - `lineas`: `{ idLote, costoUnitario, disponibles, cantidad, precioUnitario }`; rechaza `VENTA_SIN_LINEAS`, `LOTE_REPETIDO`, `CANTIDAD_RESMAS_INVALIDA` (cantidad no entera o ≤ 0), `PRECIO_INVALIDO` (no entero o ≤ 0) y `STOCK_INSUFICIENTE`.
      - `pago`: `{ modalidad: 'CONTADO', medio } | { modalidad: 'FIADO' } | { modalidad: 'ABONO_INICIAL', monto, medio }`. Contado cobra el total; abono inicial de 1 a total − 1 (`ABONO_INICIAL_INVALIDO`); Mostrador solo contado (`MOSTRADOR_SOLO_CONTADO`).
      - `fecha` posterior a `ahora` se rechaza (`FECHA_FUTURA`, D6); `ahora` lo pasa el caso de uso desde el `CLOCK`.
      - El reparto del cobro sale de `repartirPago` sobre la factura recién creada (pagado 0). **No** reimplementes R-01.
@@ -204,3 +204,4 @@ Mensajes del usuario copiados textualmente; las notas del coordinador van entre 
 - **L4** (2026-11-15): "Apruebo los puntos 3, 6 y 11. Pero quiero saber si D9 no existía previamente, es decir, los clientes no estaban configurados en la DB con una primary key que los identificaras o por que es necesario aclarar eso como una decisión en D9" [`id_cliente` es la clave primaria desde la migración `001` (Etapa 0). D9 se reescribe con la decisión real: el teléfono no es único. Plan aprobado; se integra el PR del plan.]
 - **L5** (2026-11-15): "Como se te ocurre que el número de telefono no es único, el telefono debe ser único si la mujer de un cliente se registra como otra cliente pues se registra con el numero de ella no con el numero del esposo. No tiene nada que ver la primary key con que el telefono sea unico si tienes otra duda no supongas y pregunta primero" [D9 estaba mal: era una suposición del coordinador. Se propone teléfono único con validación en pantalla y caso de uso, más índice único en la migración `002`.]
 - **L6** (2026-11-15): "Sí apruebo" [D9, E3b, B3.1 (migración `002` y `TELEFONO_REPETIDO`), D7 y los commits se actualizan. Las otras dudas se preguntan antes de implementar, una por vez.]
+- **L7** (2026-11-15): "Elijo la A" [El mensaje de `CANTIDAD_INVALIDA` habla de cajas. Opción A: código nuevo `CANTIDAD_RESMAS_INVALIDA` para la venta; el texto de la compra no cambia (D7, E15, B3.0, B3.2).]

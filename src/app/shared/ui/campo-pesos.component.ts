@@ -47,10 +47,12 @@ export class CampoPesosComponent {
   readonly disabled = input<boolean>(false);
   readonly error = input<string | null>(null);
   readonly errorTestId = input<string | null>(null);
+  readonly generacion = input<number>(0);
 
   private readonly errorFormato = signal<string | null>(null);
   private readonly textoInvalido = signal<string | null>(null);
   private cambioInterno = false;
+  private ultimaGeneracion = 0;
   readonly errorMostrado = computed(() => this.errorFormato() ?? this.error());
 
   readonly textoMostrado = computed(() => {
@@ -68,10 +70,14 @@ export class CampoPesosComponent {
   constructor() {
     effect(() => {
       this.valor();
-      if (this.cambioInterno) {
+      const gen = this.generacion();
+      const cambioGeneracion = gen !== this.ultimaGeneracion;
+      this.ultimaGeneracion = gen;
+      if (this.cambioInterno && !cambioGeneracion) {
         this.cambioInterno = false;
         return;
       }
+      this.cambioInterno = false;
       this.errorFormato.set(null);
       this.textoInvalido.set(null);
     });

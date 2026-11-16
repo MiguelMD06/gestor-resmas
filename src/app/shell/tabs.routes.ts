@@ -8,8 +8,7 @@ export const routes: Routes = [
   },
   {
     path: 'vender',
-    loadComponent: () => import('./proximamente.page').then((m) => m.ProximamentePage),
-    data: { titulo: 'Vender', etapa: 3 },
+    loadComponent: () => import('../ventas/ui/vender.page').then((m) => m.VenderPage),
   },
   {
     path: 'inventario',

@@ -55,6 +55,7 @@ export class RegistrarVenta {
 
         lineasEntrada.push({
           idLote: linea.idLote,
+          fechaCompra: lote.fechaCompra,
           costoUnitario: lote.costoUnitarioResma,
           disponibles: lote.resmasDisponibles,
           cantidad: linea.cantidad,

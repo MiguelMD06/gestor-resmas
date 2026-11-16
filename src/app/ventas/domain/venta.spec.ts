@@ -10,6 +10,7 @@ describe('armarVenta', () => {
 
   const lineaBase = {
     idLote: 1,
+    fechaCompra: fechaHora('2026-11-10 09:00:00'),
     costoUnitario: pesos(12000),
     disponibles: resmas(20),
     cantidad: 5,
@@ -169,6 +170,79 @@ describe('armarVenta', () => {
     ).toThrow(expect.objectContaining({ codigo: 'FECHA_FUTURA' }));
   });
 
+  it('rejects fecha before latest lot purchase date (1s before rejected, equal valid; multilote uses latest) with VENTA_ANTERIOR_A_COMPRA (G2, E22)', () => {
+    const compraLoteA = fechaHora('2026-11-10 09:00:00');
+    const compraLoteB = fechaHora('2026-11-14 10:00:00');
+    const lineaA = { ...lineaBase, idLote: 1, fechaCompra: compraLoteA };
+    const lineaB = { ...lineaBase, idLote: 2, fechaCompra: compraLoteB };
+
+    expect(() =>
+      armarVenta({
+        idCliente: 2,
+        esMostrador: false,
+        fecha: fechaHora('2026-11-10 18:00:00'),
+        ahora,
+        lineas: [lineaB],
+        pago: { modalidad: 'CONTADO', medio: 'EFECTIVO' },
+      }),
+    ).toThrow(expect.objectContaining({ codigo: 'VENTA_ANTERIOR_A_COMPRA' }));
+
+    expect(() =>
+      armarVenta({
+        idCliente: 2,
+        esMostrador: false,
+        fecha: fechaHora('2026-11-14 09:59:59'),
+        ahora,
+        lineas: [lineaB],
+        pago: { modalidad: 'CONTADO', medio: 'EFECTIVO' },
+      }),
+    ).toThrow(expect.objectContaining({ codigo: 'VENTA_ANTERIOR_A_COMPRA' }));
+
+    const ventaIgual = armarVenta({
+      idCliente: 2,
+      esMostrador: false,
+      fecha: compraLoteB,
+      ahora,
+      lineas: [lineaB],
+      pago: { modalidad: 'CONTADO', medio: 'EFECTIVO' },
+    });
+    expect(ventaIgual.totalVenta).toBe(75000);
+
+    // Multilote: valid for A (Nov 10) but before B (Nov 14 10:00) -> rejected
+    expect(() =>
+      armarVenta({
+        idCliente: 2,
+        esMostrador: false,
+        fecha: fechaHora('2026-11-14 09:59:59'),
+        ahora,
+        lineas: [lineaA, lineaB],
+        pago: { modalidad: 'CONTADO', medio: 'EFECTIVO' },
+      }),
+    ).toThrow(expect.objectContaining({ codigo: 'VENTA_ANTERIOR_A_COMPRA' }));
+
+    const ventaMultiloteIgual = armarVenta({
+      idCliente: 2,
+      esMostrador: false,
+      fecha: compraLoteB,
+      ahora,
+      lineas: [lineaA, lineaB],
+      pago: { modalidad: 'CONTADO', medio: 'EFECTIVO' },
+    });
+    expect(ventaMultiloteIgual.totalVenta).toBe(150000);
+
+    // FECHA_FUTURA runs before VENTA_ANTERIOR_A_COMPRA
+    expect(() =>
+      armarVenta({
+        idCliente: 2,
+        esMostrador: false,
+        fecha: fechaHora('2026-11-13 10:00:00'),
+        ahora: fechaHora('2026-11-12 10:00:00'),
+        lineas: [lineaB],
+        pago: { modalidad: 'CONTADO', medio: 'EFECTIVO' },
+      }),
+    ).toThrow(expect.objectContaining({ codigo: 'FECHA_FUTURA' }));
+  });
+
   it('rejects non-cash payment for Mostrador with MOSTRADOR_SOLO_CONTADO (S11, E11)', () => {
     expect(() =>
       armarVenta({
@@ -276,8 +350,22 @@ describe('armarVenta', () => {
       fecha: fechaValida,
       ahora,
       lineas: [
-        { idLote: 1, costoUnitario: pesos(12000), disponibles: resmas(20), cantidad: 3, precioUnitario: 15000 },
-        { idLote: 2, costoUnitario: pesos(13000), disponibles: resmas(10), cantidad: 2, precioUnitario: 16000 },
+        {
+          idLote: 1,
+          fechaCompra: fechaHora('2026-11-10 09:00:00'),
+          costoUnitario: pesos(12000),
+          disponibles: resmas(20),
+          cantidad: 3,
+          precioUnitario: 15000,
+        },
+        {
+          idLote: 2,
+          fechaCompra: fechaHora('2026-11-11 09:00:00'),
+          costoUnitario: pesos(13000),
+          disponibles: resmas(10),
+          cantidad: 2,
+          precioUnitario: 16000,
+        },
       ],
       pago: { modalidad: 'CONTADO', medio: 'TRANSFERENCIA' },
     });

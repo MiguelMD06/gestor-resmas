@@ -19,6 +19,7 @@ export type TipoAbonoVenta = 'PAGO_CONTADO' | 'ABONO_INICIAL';
 
 export interface LineaEntradaVenta {
   readonly idLote: number;
+  readonly fechaCompra: FechaHora;
   readonly costoUnitario: Pesos;
   readonly disponibles: Resmas;
   readonly cantidad: number;
@@ -62,6 +63,19 @@ export interface VentaArmada {
   readonly estadoPago: EstadoPagoVenta;
   readonly lineas: readonly LineaVenta[];
   readonly cobro: CobroVenta | null;
+}
+
+/**
+ * Returns the latest purchase date among the given lines, or null when there are no lines.
+ */
+export function ultimaFechaCompra(lineas: readonly { readonly fechaCompra: FechaHora }[]): FechaHora | null {
+  let ultima: FechaHora | null = null;
+  for (const linea of lineas) {
+    if (ultima === null || linea.fechaCompra > ultima) {
+      ultima = linea.fechaCompra;
+    }
+  }
+  return ultima;
 }
 
 /**
@@ -126,6 +140,14 @@ export function armarVenta(input: ArmarVentaInput): VentaArmada {
 
   if (fecha > ahora) {
     throw new ReglaNegocioError('FECHA_FUTURA', `Sale date ${fecha} cannot be after current time ${ahora}`);
+  }
+
+  const ultimaCompra = ultimaFechaCompra(lineas);
+  if (ultimaCompra !== null && fecha < ultimaCompra) {
+    throw new ReglaNegocioError(
+      'VENTA_ANTERIOR_A_COMPRA',
+      `Sale date ${fecha} cannot be before latest lot purchase date ${ultimaCompra}`,
+    );
   }
 
   if (esMostrador && pago.modalidad !== 'CONTADO') {

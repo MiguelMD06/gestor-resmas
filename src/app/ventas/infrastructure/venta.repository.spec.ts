@@ -50,7 +50,16 @@ describe('VentaRepository', () => {
       esMostrador: true,
       fecha,
       ahora: fecha,
-      lineas: [{ idLote, costoUnitario: pesos(12000), disponibles: resmas(20), cantidad: 5, precioUnitario: 15000 }],
+      lineas: [
+        {
+          idLote,
+          costoUnitario: pesos(12000),
+          disponibles: resmas(20),
+          cantidad: 5,
+          precioUnitario: 15000,
+          fechaCompra: fecha,
+        },
+      ],
       pago: { modalidad: 'CONTADO', medio: 'EFECTIVO' },
     });
 

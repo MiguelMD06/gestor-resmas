@@ -20,7 +20,8 @@ export type CodigoRegla =
   | 'LOTE_REPETIDO' // the same lot appears in two lines of a sale
   | 'ABONO_INICIAL_INVALIDO' // initial payment outside 1..total - 1
   | 'MOSTRADOR_SOLO_CONTADO' // counter customer sale on credit or with an initial payment
-  | 'FECHA_FUTURA'; // sale date after the current clock time
+  | 'FECHA_FUTURA' // sale date after the current clock time
+  | 'VENTA_ANTERIOR_A_COMPRA'; // sale date before the latest lot purchase date
 
 export class ReglaNegocioError extends Error {
   constructor(

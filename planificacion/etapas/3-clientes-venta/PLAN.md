@@ -187,7 +187,7 @@ El reporte de la etapa va en Engram (`etapas/3-clientes-venta/reporte`).
 4. ✅ **Cómo se cuentan los toques (RNF-05):** no cuenta lo que se escribe con el teclado (cantidad, precio, búsqueda). Con eso, una venta a un cliente registrado se hace en 4 toques y una de Mostrador en 2 (E19). Para lograrlo, tocar un lote agrega la línea con cantidad 1, sin un botón **Agregar** aparte.
 5. ✅ **Una línea por lote** (D5).
 6. ✅ **Abono inicial** entre $1 y el total menos $1. Si el cliente paga todo, la venta es de Contado.
-7. ✅ **Fecha de la venta:** viene puesta con la de ahora y se puede cambiar a una fecha pasada, para cargar una venta del día anterior (L3, D6, E20). No se aceptan fechas futuras: es una suposición del coordinador, porque L3 solo pide fechas pasadas.
+7. ✅ **Fecha de la venta:** viene puesta con la de ahora y se puede cambiar a una fecha pasada, para cargar una venta del día anterior (L3, D6, E20). No se aceptan fechas futuras: las ventas se registran cuando se hacen (L8).
 8. ✅ **Venta bajo costo** (A4): se permite, con el aviso en la línea. La pérdida acumulada se muestra en el dashboard (Etapa 5).
 9. ✅ **Crear un cliente desde Vender:** sí, con **Nuevo cliente** dentro del selector, para no salir de la venta.
 10. ✅ **Modelos de `agy`:** Hydrogen (`gemini-4-hydrogen-medium` para el código y `gemini-4-hydrogen-high` para la verificación), según el enrutamiento vigente, con Flash y Argon como respaldo si se agota la cuota. `planificacion/README.md` se actualiza en el mismo sentido.
@@ -205,3 +205,4 @@ Mensajes del usuario copiados textualmente; las notas del coordinador van entre 
 - **L5** (2026-11-15): "Como se te ocurre que el número de telefono no es único, el telefono debe ser único si la mujer de un cliente se registra como otra cliente pues se registra con el numero de ella no con el numero del esposo. No tiene nada que ver la primary key con que el telefono sea unico si tienes otra duda no supongas y pregunta primero" [D9 estaba mal: era una suposición del coordinador. Se propone teléfono único con validación en pantalla y caso de uso, más índice único en la migración `002`.]
 - **L6** (2026-11-15): "Sí apruebo" [D9, E3b, B3.1 (migración `002` y `TELEFONO_REPETIDO`), D7 y los commits se actualizan. Las otras dudas se preguntan antes de implementar, una por vez.]
 - **L7** (2026-11-15): "Elijo la A" [El mensaje de `CANTIDAD_INVALIDA` habla de cajas. Opción A: código nuevo `CANTIDAD_RESMAS_INVALIDA` para la venta; el texto de la compra no cambia (D7, E15, B3.0, B3.2).]
+- **L8** (2026-11-15): "Concuerdo con tu suposición ventas futuras no son necesarias, en el momento en que se hagan se registran" [Se confirma `FECHA_FUTURA` (D6, E20); deja de ser una suposición.]

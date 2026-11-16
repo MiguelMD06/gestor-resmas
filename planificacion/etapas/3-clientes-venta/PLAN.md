@@ -1,6 +1,6 @@
 # Etapa 3 — Clientes y punto de venta
 
-**Estado:** plan por aprobar · **Rama del plan:** `docs/plan-etapa-3` · **Rama de implementación:** `feat/etapa-3-clientes-venta` (sale del `main` actual) · **Entrega:** un PR a `main` · **Pruebas:** Vitest (`ng test`) + Playwright (`e2e/`)
+**Estado:** plan aprobado (L4) · **Rama del plan:** `docs/plan-etapa-3` · **Rama de implementación:** `feat/etapa-3-clientes-venta` (sale del `main` actual) · **Entrega:** un PR a `main` · **Pruebas:** Vitest (`ng test`) + Playwright (`e2e/`)
 **Objetivo:** el usuario puede registrar a sus clientes y vender: elige el cliente, toma resmas de uno o varios lotes activos con el precio que quiera, ve en vivo el costo y el margen, y cierra la venta de contado, fiada o con un abono inicial. La venta descuenta el stock, agota los lotes que llegan a 0 y, si entra dinero, lo registra en el libro con su reparto entre capital y ganancia.
 
 ## Qué hay hoy
@@ -74,7 +74,7 @@ Cada uno es una prueba. Los números siguen el ejemplo de Ana: lote **A** Carta 
 | D5 | **Una línea por lote.** Para vender más resmas del mismo lote se cambia la cantidad de su línea. | Evita que dos líneas del mismo lote sumen más que su stock sin que ninguna lo supere sola. |
 | D6 | **La fecha de la venta viene puesta con la del `CLOCK` y se puede cambiar a una fecha pasada**, nunca a una futura (`FECHA_FUTURA`). El abono y el movimiento `COBRO` de esa venta llevan la misma fecha. | L3: hay que poder cargar una venta del día anterior. Si el cobro llevara la fecha de carga, la ganancia caería en el mes equivocado (A5). La regla 11 de `CLAUDE.md` se cumple: "ahora" sale del `CLOCK`. |
 | D7 | **Mensajes nuevos en la misma tabla** (`shared/ui/mensajes-error.ts`): `NOMBRE_INVALIDO`, `TELEFONO_INVALIDO`, `PRECIO_INVALIDO`, `VENTA_SIN_LINEAS`, `LOTE_REPETIDO`, `ABONO_INICIAL_INVALIDO`, `MOSTRADOR_SOLO_CONTADO`, `CLIENTE_INEXISTENTE` y `FECHA_FUTURA`. | Continúa la D5 de la Etapa 2. |
-| D9 | **El cliente se identifica por `id_cliente`** (la clave primaria). El teléfono es solo un dato: no es único ni identifica a nadie. | L3. Dos clientes con el mismo nombre son filas distintas; en la pantalla se distinguen por el teléfono, si lo tienen. |
+| D9 | **El teléfono no es único:** dos clientes pueden tener el mismo celular, y no se agrega un índice `UNIQUE` sobre `telefono`. El cliente se identifica, como desde la Etapa 0, por `id_cliente`. | L3 y L4. Una pareja o un negocio y su dueño pueden compartir celular. En la pantalla, dos clientes con el mismo nombre se distinguen por el teléfono, si lo tienen. |
 | D8 | **Lotes del selector en el orden de la Etapa 2** (más antiguo primero) y con el mismo caso de uso `ConsultarInventario`. | Una sola fuente para "lotes activos"; el agotado desaparece de los dos lados a la vez (S9). |
 
 ## Bloques
@@ -176,19 +176,19 @@ El reporte de la etapa va en Engram (`etapas/3-clientes-venta/reporte`).
 
 ## Por aprobar
 
-Estado tras L3: aprobados 1, 2, 4, 5, 7 (con el cambio de L3), 8, 9, 10 y 12. Faltan el 3 y el 6, que Miguel pidió que se le expliquen, y el 11, que se revisa con los cambios de L3.
+✅ Los 12 puntos están aprobados: 1 y 7 con los cambios de L3, y 3, 6 y 11 después de explicarlos (L4).
 
 1. ✅ **Teléfono:** opcional. Si se escribe, debe ser un celular: exactamente 10 dígitos y empezar por 3 (L3). Los nombres repetidos se permiten. El cliente se identifica por `id_cliente` (D9); el teléfono solo ayuda a distinguir en pantalla a dos "Juan".
 2. ✅ **Búsqueda:** por nombre o teléfono, por coincidencia parcial, sin distinguir mayúsculas ni tildes.
-3. **Mostrador:** es el cliente por defecto en Vender, no se puede editar y no aparece en la lista de la pestaña Clientes.
+3. ✅ **Mostrador:** es el cliente por defecto en Vender, no se puede editar y no aparece en la lista de la pestaña Clientes.
 4. ✅ **Cómo se cuentan los toques (RNF-05):** no cuenta lo que se escribe con el teclado (cantidad, precio, búsqueda). Con eso, una venta a un cliente registrado se hace en 4 toques y una de Mostrador en 2 (E19). Para lograrlo, tocar un lote agrega la línea con cantidad 1, sin un botón **Agregar** aparte.
 5. ✅ **Una línea por lote** (D5).
-6. **Abono inicial** entre $1 y el total menos $1. Si el cliente paga todo, la venta es de Contado.
+6. ✅ **Abono inicial** entre $1 y el total menos $1. Si el cliente paga todo, la venta es de Contado.
 7. ✅ **Fecha de la venta:** viene puesta con la de ahora y se puede cambiar a una fecha pasada, para cargar una venta del día anterior (L3, D6, E20). No se aceptan fechas futuras: es una suposición del coordinador, porque L3 solo pide fechas pasadas.
 8. ✅ **Venta bajo costo** (A4): se permite, con el aviso en la línea. La pérdida acumulada se muestra en el dashboard (Etapa 5).
 9. ✅ **Crear un cliente desde Vender:** sí, con **Nuevo cliente** dentro del selector, para no salir de la venta.
 10. ✅ **Modelos de `agy`:** Hydrogen (`gemini-4-hydrogen-medium` para el código y `gemini-4-hydrogen-high` para la verificación), según el enrutamiento vigente, con Flash y Argon como respaldo si se agota la cuota. `planificacion/README.md` se actualiza en el mismo sentido.
-11. **D1 a D9** tal como están arriba. Con L3 cambiaron D6 (fecha editable hacia atrás) y D7 (código `FECHA_FUTURA`), y se agregó D9 (identificador del cliente). D1 a D5 y D8 no cambian.
+11. ✅ **D1 a D9** tal como están arriba. Con L3 cambiaron D6 (fecha editable hacia atrás) y D7 (código `FECHA_FUTURA`), y se agregó D9 (identificador del cliente). D1 a D5 y D8 no cambian.
 12. ✅ **Alcance:** no entran la deuda en la lista de clientes, el expediente ni los abonos posteriores (Etapa 4), el dashboard ni la pérdida acumulada (Etapa 5), ni anular o corregir una venta (Etapa 6, A7). Tampoco un comprobante para enviar al cliente, porque no lo pide ningún requisito.
 
 ## Log
@@ -198,3 +198,4 @@ Mensajes del usuario copiados textualmente; las notas del coordinador van entre 
 - **L1** (2026-11-15): "Recuerdo que yo tenia que hacer un test de la aplicación de forma manual, ese test lo hice y aprobé el funcionamiento, si puedes hacer el merge a la pr hazlo y limpia la rama local" [PR #13 integrado con rebase (`7a22a50`). La Etapa 2 queda cerrada.]
 - **L2** (2026-11-15): "Escribe el plan de la etapa 3 y dime como tienes configurado el trabajo con subagentes y agentes de agy" [Se escribe este plan. No se ejecuta nada hasta que Miguel lo apruebe.]
 - **L3** (2026-11-15): "Sobre el punto 1, el numero de telefono es opcional y si se recibe se debe validar que sea de telefono movil solamente que cuente con los 10 digitos y que comience con 3, sobre los nombres no es bueno que se use a el numero de telefono como identificador ya que para eso debe existir una primary key o no se si te refieres solo a que en vista de usuario se diferencia con el numero celular. Punto 2 aprobado. Punto 3 Explicame bien como va a funcionar esto. Punto 4 aprobado. Punto 5 Aprobado. Punto 6, Explicame bien. Punto 7, Las ventas debe permitir registrar fechas pasadas, porque puedo registrar en algun momento una venta que hice el dia anterior. Punto 8 aprobado. Punto 9 aprobado. Punto 10 aprobado. Punto 11 aprobado parcialmente porque mis decisiones anteriores pueden afectar D1 a D8. Punto 12 aprobado." [Teléfono: solo celular de 10 dígitos que empieza por 3 (E3, B3.1). El identificador siempre fue `id_cliente`; el teléfono solo distingue en pantalla (D9). Fecha de la venta editable hacia atrás (D6, D7, E20, B3.2, B3.3). Se explican los puntos 3 y 6.]
+- **L4** (2026-11-15): "Apruebo los puntos 3, 6 y 11. Pero quiero saber si D9 no existía previamente, es decir, los clientes no estaban configurados en la DB con una primary key que los identificaras o por que es necesario aclarar eso como una decisión en D9" [`id_cliente` es la clave primaria desde la migración `001` (Etapa 0). D9 se reescribe con la decisión real: el teléfono no es único. Plan aprobado; se integra el PR del plan.]

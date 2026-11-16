@@ -204,6 +204,7 @@ interface LineaEvaluadaUI extends LineaBorrador {
                   [disabled]="guardando()"
                   [error]="linea.errorPrecio"
                   errorTestId="error-precio-unitario"
+                  [generacion]="generacionReinicio()"
                   placeholder="Ej: 15000"
                   data-testid="input-precio-unitario"
                 />
@@ -312,6 +313,7 @@ interface LineaEvaluadaUI extends LineaBorrador {
                   [disabled]="guardando()"
                   [error]="errorAbonoInicial()"
                   errorTestId="error-abono-inicial"
+                  [generacion]="generacionReinicio()"
                   placeholder="Ej: 50000"
                   data-testid="input-abono-inicial"
                 />
@@ -472,6 +474,7 @@ export class VenderPage {
   readonly modalidad = signal<ModalidadVenta>('CONTADO');
   readonly medio = signal<MedioPago>('EFECTIVO');
   readonly montoAbonoInicial = signal<number | null>(null);
+  readonly generacionReinicio = signal(0);
 
   readonly selectorClienteAbierto = signal(false);
   readonly selectorFechaAbierto = signal(false);
@@ -489,7 +492,9 @@ export class VenderPage {
       const cantidadValida = Number.isSafeInteger(parsedCant) && parsedCant > 0;
 
       let errorCantidad: string | null = null;
-      if (!cantidadValida) {
+      if (linea.disponibles <= 0) {
+        errorCantidad = MENSAJES_ERROR.STOCK_INSUFICIENTE;
+      } else if (!cantidadValida) {
         errorCantidad = MENSAJES_ERROR.CANTIDAD_RESMAS_INVALIDA;
       } else if (parsedCant > linea.disponibles) {
         errorCantidad = MENSAJES_ERROR.STOCK_INSUFICIENTE;
@@ -617,7 +622,9 @@ export class VenderPage {
         return;
       }
 
-      this.lotes.set([...inventario.CARTA, ...inventario.OFICIO]);
+      const nuevosLotes = [...inventario.CARTA, ...inventario.OFICIO];
+      this.lotes.set(nuevosLotes);
+      this.sincronizarLineasConLotes(nuevosLotes);
       this.clientesSelector.set(clientes);
       if (this.clienteSeleccionado() === null) {
         const mostrador = clientes.find((c) => c.esMostrador) ?? null;
@@ -829,6 +836,9 @@ export class VenderPage {
       this.fechaSeleccionada.set(this.clock.ahora());
     }
 
+    let ventaGuardada = false;
+    let recargaPendiente: Promise<void> | null = null;
+
     this.abriendoResumen.set(true);
     try {
       const modal = await this.modalCtrl.create({
@@ -840,15 +850,24 @@ export class VenderPage {
           pago,
           fecha: this.fechaSeleccionada(),
           alCambiarGuardando: (estado: boolean) => this.guardando.set(estado),
+          alGuardar: () => {
+            ventaGuardada = true;
+            this.reiniciarFormulario();
+            recargaPendiente = this.cargarDatos();
+          },
         },
         canDismiss: soloCierreExplicito,
       });
 
       await modal.present();
       const { role } = await modal.onDidDismiss();
-      if (role === ROL_GUARDADO) {
-        this.reiniciarFormulario();
-        await this.cargarDatos();
+      if (role === ROL_GUARDADO || ventaGuardada) {
+        if (!ventaGuardada) {
+          this.reiniciarFormulario();
+          await this.cargarDatos();
+        } else if (recargaPendiente) {
+          await recargaPendiente;
+        }
       } else if (role === ROL_ERROR) {
         await this.cargarDatos();
       }
@@ -890,6 +909,26 @@ export class VenderPage {
     }
   }
 
+  private sincronizarLineasConLotes(nuevosLotes: readonly Lote[]): void {
+    const porId = new Map(nuevosLotes.map((l) => [l.idLote, l]));
+    this.lineas.update((actuales) =>
+      actuales.map((linea) => {
+        const loteActual = porId.get(linea.idLote);
+        if (!loteActual) {
+          return {
+            ...linea,
+            disponibles: 0,
+          };
+        }
+        return {
+          ...linea,
+          disponibles: loteActual.resmasDisponibles,
+          fechaCompra: loteActual.fechaCompra,
+        };
+      }),
+    );
+  }
+
   private reiniciarFormulario(): void {
     const mostrador = this.clientesSelector().find((c) => c.esMostrador) ?? null;
     this.clienteSeleccionado.set(mostrador);
@@ -897,6 +936,7 @@ export class VenderPage {
     this.modalidad.set('CONTADO');
     this.medio.set('EFECTIVO');
     this.montoAbonoInicial.set(null);
+    this.generacionReinicio.update((g) => g + 1);
     this.fechaEditadaManualmente = false;
     this.fechaSeleccionada.set(this.clock.ahora());
   }

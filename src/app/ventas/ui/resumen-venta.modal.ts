@@ -6,6 +6,7 @@ import {
   IonItem,
   IonLabel,
   IonList,
+  IonNote,
   IonProgressBar,
   IonTitle,
   IonToolbar,
@@ -63,10 +64,15 @@ export interface LineaResumenVenta {
       <p data-testid="resumen-fecha">Fecha: {{ fecha }}</p>
 
       <div class="resumen-acciones ion-padding-top">
+        @if (guardado()) {
+          <ion-note color="success" class="ion-text-center" data-testid="mensaje-venta-registrada">
+            Venta registrada
+          </ion-note>
+        }
         <ion-button
           expand="block"
-          [disabled]="guardando()"
-          [attr.aria-disabled]="guardando() ? 'true' : null"
+          [disabled]="guardando() || guardado()"
+          [attr.aria-disabled]="guardando() || guardado() ? 'true' : null"
           (click)="aceptar()"
           data-testid="btn-aceptar-venta"
         >
@@ -75,8 +81,8 @@ export interface LineaResumenVenta {
         <ion-button
           expand="block"
           fill="outline"
-          [disabled]="guardando()"
-          [attr.aria-disabled]="guardando() ? 'true' : null"
+          [disabled]="guardando() || guardado()"
+          [attr.aria-disabled]="guardando() || guardado() ? 'true' : null"
           (click)="volverAEditar()"
           data-testid="btn-volver-editar"
         >
@@ -97,7 +103,18 @@ export interface LineaResumenVenta {
       gap: 0.5rem;
     }
   `,
-  imports: [IonHeader, IonToolbar, IonTitle, IonProgressBar, IonContent, IonList, IonItem, IonLabel, IonButton],
+  imports: [
+    IonHeader,
+    IonToolbar,
+    IonTitle,
+    IonProgressBar,
+    IonContent,
+    IonList,
+    IonItem,
+    IonLabel,
+    IonNote,
+    IonButton,
+  ],
 })
 export class ResumenVentaModalComponent {
   private readonly registrarVenta = inject(RegistrarVenta);
@@ -110,8 +127,10 @@ export class ResumenVentaModalComponent {
   @Input({ required: true }) pago!: PagoVenta;
   @Input({ required: true }) fecha!: FechaHora;
   @Input() alCambiarGuardando?: (guardando: boolean) => void;
+  @Input() alGuardar?: () => void;
 
   readonly guardando = signal(false);
+  readonly guardado = signal(false);
   readonly formatearPesos = formatearPesos;
   readonly etiquetaPapel = etiquetaPapel;
 
@@ -128,14 +147,14 @@ export class ResumenVentaModalComponent {
   }
 
   async volverAEditar(): Promise<void> {
-    if (this.guardando()) {
+    if (this.guardando() || this.guardado()) {
       return;
     }
     await this.modalCtrl.dismiss(null, ROL_CANCELAR);
   }
 
   async aceptar(): Promise<void> {
-    if (this.guardando()) {
+    if (this.guardando() || this.guardado()) {
       return;
     }
 
@@ -153,6 +172,8 @@ export class ResumenVentaModalComponent {
         })),
         pago: this.pago,
       });
+      this.guardado.set(true);
+      this.alGuardar?.();
     } catch (error: unknown) {
       try {
         const toast = await this.toastCtrl.create({

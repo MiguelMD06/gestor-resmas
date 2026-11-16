@@ -289,6 +289,7 @@ describe('VenderPage', () => {
         pago: { modalidad: 'CONTADO', medio: 'EFECTIVO' },
         fecha: ahoraFija,
         alCambiarGuardando: expect.any(Function),
+        alGuardar: expect.any(Function),
       },
       canDismiss: soloCierreExplicito,
     });
@@ -767,5 +768,94 @@ describe('VenderPage', () => {
       fixture.debugElement.query(By.css('[data-testid="selector-cliente"]')).nativeElement.textContent,
     ).not.toContain('Mostrador');
     expect(component.clienteSeleccionado()).toBeNull();
+  });
+
+  it('resets draft and reloads lots via alGuardar even when summary modal dismiss fails (H1)', async () => {
+    await component.ionViewWillEnter();
+    component.seleccionarCliente(ana);
+    component.agregarLote(loteCartaA);
+    component.actualizarCantidad(loteCartaA.idLote, '2');
+    component.actualizarPrecio(loteCartaA.idLote, 15000);
+    fixture.detectChanges();
+
+    const loteActualizado: Lote = { ...loteCartaA, resmasDisponibles: resmas(18) };
+    mockConsultarInventario.activos.mockResolvedValueOnce({
+      CARTA: [loteActualizado],
+      OFICIO: [loteOficioC],
+    });
+
+    mockModalCtrl.create.mockImplementationOnce(async (opts: { componentProps?: { alGuardar?: () => void } }) => ({
+      present: vi.fn().mockResolvedValue(undefined),
+      onDidDismiss: vi.fn().mockImplementation(async () => {
+        opts.componentProps?.alGuardar?.();
+        return { data: undefined, role: undefined };
+      }),
+    }));
+
+    const genAntes = component.generacionReinicio();
+    await component.abrirResumen();
+    fixture.detectChanges();
+
+    expect(component.lineas()).toEqual([]);
+    expect(component.clienteSeleccionado()).toEqual(mostrador);
+    expect(component.lotes()).toEqual([loteActualizado, loteOficioC]);
+    expect(component.generacionReinicio()).toBe(genAntes + 1);
+  });
+
+  it('updates draft disponibles and fechaCompra on reload and marks STOCK_INSUFICIENTE when stock drops below draft quantity (H2)', async () => {
+    await component.ionViewWillEnter();
+    component.agregarLote(loteCartaA);
+    component.actualizarCantidad(loteCartaA.idLote, '5');
+    component.actualizarPrecio(loteCartaA.idLote, 15000);
+    fixture.detectChanges();
+
+    expect(estaDeshabilitado(botonConfirmar())).toBe(false);
+
+    const nuevaFechaCompra = fechaHora('2026-11-12 10:00:00');
+    const loteConMenosStock: Lote = {
+      ...loteCartaA,
+      resmasDisponibles: resmas(3),
+      fechaCompra: nuevaFechaCompra,
+    };
+    mockConsultarInventario.activos.mockResolvedValueOnce({
+      CARTA: [loteConMenosStock],
+      OFICIO: [loteOficioC],
+    });
+
+    await component.cargarDatos();
+    fixture.detectChanges();
+
+    expect(component.lineas()[0].disponibles).toBe(3);
+    expect(component.lineas()[0].fechaCompra).toBe(nuevaFechaCompra);
+    expect(fixture.debugElement.query(By.css('[data-testid="error-cantidad"]')).nativeElement.textContent.trim()).toBe(
+      MENSAJES_ERROR.STOCK_INSUFICIENTE,
+    );
+    expect(estaDeshabilitado(botonConfirmar())).toBe(true);
+  });
+
+  it('marks draft line with STOCK_INSUFICIENTE and disables Confirmar venta when lot disappears from active lots until removed (H2)', async () => {
+    await component.ionViewWillEnter();
+    component.agregarLote(loteCartaA);
+    component.actualizarCantidad(loteCartaA.idLote, '5');
+    component.actualizarPrecio(loteCartaA.idLote, 15000);
+    fixture.detectChanges();
+
+    mockConsultarInventario.activos.mockResolvedValueOnce({
+      CARTA: [],
+      OFICIO: [loteOficioC],
+    });
+
+    await component.cargarDatos();
+    fixture.detectChanges();
+
+    expect(component.lineas()[0].disponibles).toBe(0);
+    expect(fixture.debugElement.query(By.css('[data-testid="error-cantidad"]')).nativeElement.textContent.trim()).toBe(
+      MENSAJES_ERROR.STOCK_INSUFICIENTE,
+    );
+    expect(estaDeshabilitado(botonConfirmar())).toBe(true);
+
+    component.quitarLinea(loteCartaA.idLote);
+    fixture.detectChanges();
+    expect(component.lineas()).toEqual([]);
   });
 });

@@ -38,4 +38,29 @@ describe('002-telefono-unico migration', () => {
       db.run("INSERT INTO clientes (nombre, telefono, fecha_registro) VALUES ('Marta Sin Tel', NULL, ?);", [NOW]),
     ).resolves.toBeDefined();
   });
+
+  it('normalizes empty and whitespace-only phones to NULL before creating unique index and preserves Mostrador (R2, D9)', async () => {
+    await db.run("INSERT INTO clientes (nombre, telefono, fecha_registro) VALUES ('Cliente Vacio 1', '', ?);", [NOW]);
+    await db.run("INSERT INTO clientes (nombre, telefono, fecha_registro) VALUES ('Cliente Vacio 2', '', ?);", [NOW]);
+    await db.run("INSERT INTO clientes (nombre, telefono, fecha_registro) VALUES ('Cliente Espacios', '   ', ?);", [
+      NOW,
+    ]);
+
+    const version = await migrar(db, [migracion001, migracion002]);
+    expect(version).toBe(2);
+
+    const normalizados = await db.query<{ nombre: string; telefono: string | null }>(
+      "SELECT nombre, telefono FROM clientes WHERE nombre IN ('Cliente Vacio 1', 'Cliente Vacio 2', 'Cliente Espacios') ORDER BY id_cliente;",
+    );
+    expect(normalizados).toEqual([
+      { nombre: 'Cliente Vacio 1', telefono: null },
+      { nombre: 'Cliente Vacio 2', telefono: null },
+      { nombre: 'Cliente Espacios', telefono: null },
+    ]);
+
+    const mostrador = await db.query<{ nombre: string; es_mostrador: number }>(
+      'SELECT nombre, es_mostrador FROM clientes WHERE es_mostrador = 1;',
+    );
+    expect(mostrador).toEqual([{ nombre: 'Mostrador', es_mostrador: 1 }]);
+  });
 });

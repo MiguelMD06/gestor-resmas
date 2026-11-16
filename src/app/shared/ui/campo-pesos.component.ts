@@ -1,9 +1,12 @@
-import { Component, computed, input, model } from '@angular/core';
+import { Component, computed, input, model, signal } from '@angular/core';
 import { IonInput, IonItem, IonNote } from '@ionic/angular';
 
 import { formatearPesos, pesos } from '../domain/pesos';
 
+import { MENSAJE_MONTO_SIN_DECIMALES } from './mensajes-error';
+
 const MAX_DIGITOS_SEGUROS = 15;
+const CARACTERES_PERMITIDOS = /^[\d.$ ]*$/;
 
 /**
  * Reusable currency input for Colombian pesos (COP).
@@ -25,13 +28,14 @@ const MAX_DIGITOS_SEGUROS = 15;
         [value]="textoMostrado()"
         [disabled]="disabled()"
         [attr.aria-disabled]="disabled() ? 'true' : null"
+        [attr.aria-invalid]="errorMostrado() ? 'true' : null"
         [placeholder]="placeholder()"
         (ionInput)="onInput($event)"
       ></ion-input>
     </ion-item>
-    @if (error()) {
+    @if (errorMostrado()) {
       <ion-note color="danger" class="ion-padding-start" [attr.data-testid]="errorTestId()">
-        {{ error() }}
+        {{ errorMostrado() }}
       </ion-note>
     }
   `,
@@ -44,6 +48,9 @@ export class CampoPesosComponent {
   readonly disabled = input<boolean>(false);
   readonly error = input<string | null>(null);
   readonly errorTestId = input<string | null>(null);
+
+  private readonly errorFormato = signal<string | null>(null);
+  readonly errorMostrado = computed(() => this.errorFormato() ?? this.error());
 
   readonly textoMostrado = computed(() => {
     const v = this.valor();
@@ -61,6 +68,13 @@ export class CampoPesosComponent {
         : (event.target as HTMLInputElement | null)?.value;
 
     const texto = typeof raw === 'string' ? raw : raw == null ? '' : String(raw);
+    if (!CARACTERES_PERMITIDOS.test(texto)) {
+      this.errorFormato.set(MENSAJE_MONTO_SIN_DECIMALES);
+      this.valor.set(null);
+      return;
+    }
+
+    this.errorFormato.set(null);
     const digitos = texto.replace(/\D/g, '');
 
     let parsed: number | null = null;

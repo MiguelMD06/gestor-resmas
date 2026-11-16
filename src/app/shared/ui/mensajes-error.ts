@@ -26,6 +26,7 @@ export const MENSAJES_ERROR: Record<CodigoRegla, string> = {
 };
 
 export const MENSAJE_ERROR_GENERICO = 'Ocurrió un error inesperado';
+export const MENSAJE_MONTO_SIN_DECIMALES = 'Escribe el monto en pesos, sin decimales';
 
 export function mensajeDeError(error: unknown): string {
   if (error instanceof ReglaNegocioError) {

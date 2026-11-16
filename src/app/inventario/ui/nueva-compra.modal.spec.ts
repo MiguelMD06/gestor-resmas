@@ -592,4 +592,25 @@ describe('NuevaCompraModalComponent', () => {
     const botonGuardar = fixture.debugElement.query(By.css('[data-testid="btn-guardar-compra"]'));
     expect(botonGuardar.nativeElement.disabled || botonGuardar.attributes['disabled'] !== undefined).toBe(true);
   });
+
+  it('disables Guardar compra and does not call registrar when costoPorCaja has "3800,50" (R1)', async () => {
+    component.cajas.set(2);
+    fixture.detectChanges();
+
+    const campoPesos = fixture.debugElement.query(By.css('app-campo-pesos[data-testid="input-costo-caja"]'));
+    const ionInput = campoPesos.query(By.css('ion-input'));
+    ionInput.nativeElement.value = '3800,50';
+    ionInput.triggerEventHandler('ionInput', {
+      detail: { value: '3800,50' },
+      target: ionInput.nativeElement,
+    });
+    fixture.detectChanges();
+
+    expect(component.costoPorCaja()).toBeNull();
+    const botonGuardar = fixture.debugElement.query(By.css('[data-testid="btn-guardar-compra"]'));
+    expect(botonGuardar.nativeElement.disabled || botonGuardar.attributes['disabled'] !== undefined).toBe(true);
+
+    await component.guardar();
+    expect(mockRegistrarCompra.registrar).not.toHaveBeenCalled();
+  });
 });

@@ -18,6 +18,7 @@ import {
 
 import { fechaHora, pesos, type MedioPago } from '../../shared/domain';
 import { CLOCK } from '../../shared/infrastructure/clock/clock.token';
+import { CampoPesosComponent } from '../../shared/ui/campo-pesos.component';
 import { esVacio } from '../../shared/ui/formulario';
 import { mensajeDeError } from '../../shared/ui/mensajes-error';
 import { RegistrarAporte } from '../application/registrar-aporte';
@@ -67,18 +68,13 @@ import { RegistrarAporte } from '../application/registrar-aporte';
         </ion-select>
       </ion-item>
 
-      <ion-item>
-        <ion-input
-          label="Monto en pesos"
-          labelPlacement="stacked"
-          type="number"
-          [value]="monto()"
-          [disabled]="guardando()"
-          (ionInput)="onMontoInput($event)"
-          placeholder="Ej: 300000"
-          data-testid="input-monto"
-        ></ion-input>
-      </ion-item>
+      <app-campo-pesos
+        label="Monto en pesos"
+        [(valor)]="monto"
+        [disabled]="guardando()"
+        placeholder="Ej: 300000"
+        data-testid="input-monto"
+      />
 
       <div class="ion-padding-top">
         <ion-button expand="block" [disabled]="!puedeGuardar()" (click)="guardar()" data-testid="btn-guardar-aporte">
@@ -89,6 +85,7 @@ import { RegistrarAporte } from '../application/registrar-aporte';
   `,
   imports: [
     FormsModule,
+    CampoPesosComponent,
     IonHeader,
     IonToolbar,
     IonTitle,
@@ -134,13 +131,6 @@ export class AporteModalComponent {
     if (val === 'EFECTIVO' || val === 'TRANSFERENCIA') {
       this.medio.set(val);
     }
-  }
-
-  onMontoInput(event: CustomEvent | Event): void {
-    const detail = (event as CustomEvent).detail;
-    const raw = detail && 'value' in detail ? detail.value : (event.target as HTMLInputElement)?.value;
-    const parsed = raw === null || raw === undefined || String(raw).trim() === '' ? null : Number(raw);
-    this.monto.set(parsed);
   }
 
   async cancelar(): Promise<void> {

@@ -1,0 +1,147 @@
+import { Component, signal } from '@angular/core';
+import type { ComponentFixture } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
+import { beforeEach, describe, expect, it } from 'vitest';
+
+import { CampoPesosComponent } from './campo-pesos.component';
+
+@Component({
+  selector: 'app-test-campo-pesos-host',
+  template: `
+    <app-campo-pesos
+      [label]="label()"
+      [(valor)]="valor"
+      [disabled]="disabled()"
+      [error]="error()"
+      [errorTestId]="'error-campo'"
+      [placeholder]="'Ej: 3800'"
+    />
+  `,
+  imports: [CampoPesosComponent],
+})
+class TestHostComponent {
+  readonly label = signal('Precio');
+  readonly valor = signal<number | null>(null);
+  readonly disabled = signal(false);
+  readonly error = signal<string | null>(null);
+}
+
+describe('CampoPesosComponent', () => {
+  let fixture: ComponentFixture<TestHostComponent>;
+  let host: TestHostComponent;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [TestHostComponent],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(TestHostComponent);
+    host = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  function getIonInput() {
+    return fixture.debugElement.query(By.css('ion-input'));
+  }
+
+  function triggerIonInput(rawValue: string): void {
+    const ionInput = getIonInput();
+    ionInput.nativeElement.value = rawValue;
+    ionInput.triggerEventHandler('ionInput', {
+      detail: { value: rawValue },
+      target: ionInput.nativeElement,
+    });
+    fixture.detectChanges();
+  }
+
+  it('renders ion-input with inputmode="numeric" and visible label', () => {
+    const ionInput = getIonInput();
+    expect(ionInput).toBeTruthy();
+    expect(ionInput.attributes['inputmode']).toBe('numeric');
+    expect(ionInput.nativeElement.label ?? ionInput.attributes['label']).toBe('Precio');
+  });
+
+  it('formats "3800" as "$ 3.800" and sets valor to integer 3800 (E21)', () => {
+    triggerIonInput('3800');
+
+    expect(host.valor()).toBe(3800);
+    expect(getIonInput().nativeElement.value).toBe('$ 3.800');
+  });
+
+  it('sets valor to null (never 0) when cleared (E21)', () => {
+    triggerIonInput('3800');
+    expect(host.valor()).toBe(3800);
+
+    triggerIonInput('');
+    expect(host.valor()).toBeNull();
+    expect(getIonInput().nativeElement.value).toBe('');
+  });
+
+  it('parses pasted "3.800" and "$3.800" as 3800 and formats as "$ 3.800" (E21)', () => {
+    triggerIonInput('3.800');
+    expect(host.valor()).toBe(3800);
+    expect(getIonInput().nativeElement.value).toBe('$ 3.800');
+
+    triggerIonInput('');
+    triggerIonInput('$3.800');
+    expect(host.valor()).toBe(3800);
+    expect(getIonInput().nativeElement.value).toBe('$ 3.800');
+  });
+
+  it('ignores non-digit characters like letters (E21)', () => {
+    triggerIonInput('abc');
+    expect(host.valor()).toBeNull();
+    expect(getIonInput().nativeElement.value).toBe('');
+
+    triggerIonInput('38abc00');
+    expect(host.valor()).toBe(3800);
+    expect(getIonInput().nativeElement.value).toBe('$ 3.800');
+  });
+
+  it('disables ion-input and reflects disabled state for screen readers', () => {
+    host.disabled.set(true);
+    fixture.detectChanges();
+
+    const campo = fixture.debugElement.query(By.css('app-campo-pesos'));
+    const ionInput = getIonInput();
+    expect(ionInput.nativeElement.disabled || ionInput.attributes['disabled'] !== undefined).toBe(true);
+    expect(ionInput.attributes['aria-disabled'] === 'true' || campo.attributes['aria-disabled'] === 'true').toBe(true);
+
+    host.disabled.set(false);
+    fixture.detectChanges();
+    expect(ionInput.nativeElement.disabled).toBe(false);
+    expect(ionInput.attributes['aria-disabled']).toBeUndefined();
+  });
+
+  it('displays error message next to the field when error is set', () => {
+    expect(fixture.debugElement.query(By.css('[data-testid="error-campo"]'))).toBeNull();
+
+    host.error.set('El precio debe ser mayor a cero');
+    fixture.detectChanges();
+
+    const note = fixture.debugElement.query(By.css('[data-testid="error-campo"]'));
+    expect(note).toBeTruthy();
+    expect(note.nativeElement.textContent).toContain('El precio debe ser mayor a cero');
+  });
+
+  it('moves cursor to the end on native input after formatting', () => {
+    const ionInputEl = getIonInput().nativeElement as HTMLElement & { value?: string };
+    const nativeInput =
+      (ionInputEl.querySelector('input') as HTMLInputElement | null) ??
+      ionInputEl.appendChild(document.createElement('input'));
+
+    let selectionStart: number | null = null;
+    let selectionEnd: number | null = null;
+    nativeInput.setSelectionRange = (start: number | null, end: number | null) => {
+      selectionStart = start;
+      selectionEnd = end;
+    };
+
+    triggerIonInput('3800');
+
+    expect(nativeInput.value).toBe('$ 3.800');
+    expect(selectionStart).toBe('$ 3.800'.length);
+    expect(selectionEnd).toBe('$ 3.800'.length);
+  });
+});

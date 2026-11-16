@@ -103,7 +103,7 @@ Si Hydrogen se queda sin cuota: código con `gemini-3.8-flash-high` y verificaci
 - **Qué hacer:**
   0. **Migración `002`** (D9): crea `ux_clientes_telefono` y la registra en `migrations/index.ts`. Prueba: sobre una base con la `001` aplicada y el Mostrador, la `002` corre; después, un `INSERT` con un teléfono repetido falla y dos con `telefono` `NULL` funcionan.
   1. **`clientes/domain/cliente.ts`**, como funciones puras:
-     - `validarNombre(texto) → string` recortado; `NOMBRE_INVALIDO` si queda vacío o pasa de 80 caracteres (E2);
+     - `validarNombre(texto) → string` recortado; `NOMBRE_INVALIDO` si queda vacío o pasa de 80 caracteres (E2, L9);
      - `validarTelefono(texto | null) → string | null`: vacío es `null`; si no, debe ser un celular: exactamente 10 dígitos y empezar por 3 (E3, "Por aprobar" 1);
      - `normalizarBusqueda(texto)`: minúsculas y sin tildes, para comparar (E5).
   2. **`clientes/infrastructure/cliente.repository.ts`**: `insertar(db, datos, fecha) → idCliente`, `actualizar(db, id, datos)`, `porId(db, id)`, `mostrador(db)` y `todos(db)` sin el Mostrador, ordenados por nombre. `actualizar` rechaza el Mostrador (`CLIENTE_INEXISTENTE` si el id no existe o es el Mostrador).
@@ -206,3 +206,4 @@ Mensajes del usuario copiados textualmente; las notas del coordinador van entre 
 - **L6** (2026-11-15): "Sí apruebo" [D9, E3b, B3.1 (migración `002` y `TELEFONO_REPETIDO`), D7 y los commits se actualizan. Las otras dudas se preguntan antes de implementar, una por vez.]
 - **L7** (2026-11-15): "Elijo la A" [El mensaje de `CANTIDAD_INVALIDA` habla de cajas. Opción A: código nuevo `CANTIDAD_RESMAS_INVALIDA` para la venta; el texto de la compra no cambia (D7, E15, B3.0, B3.2).]
 - **L8** (2026-11-15): "Concuerdo con tu suposición ventas futuras no son necesarias, en el momento en que se hagan se registran" [Se confirma `FECHA_FUTURA` (D6, E20); deja de ser una suposición.]
+- **L9** (2026-11-15): "Me parece bien, si tienes más dudas envialas de una vez" [Se aprueba el máximo de 80 caracteres del nombre. Las dudas que quedan se envían juntas.]

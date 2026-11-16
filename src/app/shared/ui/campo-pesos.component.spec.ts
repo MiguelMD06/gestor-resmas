@@ -151,4 +151,79 @@ describe('CampoPesosComponent', () => {
     expect(selectionStart).toBe('$ 3.800'.length);
     expect(selectionEnd).toBe('$ 3.800'.length);
   });
+
+  it('accepts valid thousands-separated inputs and rejects invalid dot placements with decimal error (F1)', () => {
+    for (const [entrada, esperado] of [
+      ['3800', 3800],
+      ['3.800', 3800],
+      ['120.000', 120000],
+      ['$ 1.250.000', 1250000],
+    ] as const) {
+      triggerIonInput('');
+      triggerIonInput(entrada);
+      expect(host.valor()).toBe(esperado);
+      expect(fixture.debugElement.query(By.css('[data-testid="error-campo"]'))).toBeNull();
+      expect(getIonInput().attributes['aria-invalid']).toBeUndefined();
+    }
+
+    for (const invalido of ['3800.50', '3.80', '38.00', '3..800', '.800']) {
+      triggerIonInput('3800');
+      triggerIonInput(invalido);
+      expect(host.valor()).toBeNull();
+      const note = fixture.debugElement.query(By.css('[data-testid="error-campo"]'));
+      expect(note).toBeTruthy();
+      expect(note.nativeElement.textContent.trim()).toBe('Escribe el monto en pesos, sin decimales');
+      expect(getIonInput().attributes['aria-invalid']).toBe('true');
+    }
+  });
+
+  it('sets valor to null and shows oversized message without truncating when amount is not a safe integer (F2)', () => {
+    triggerIonInput('9999999999999999');
+
+    expect(host.valor()).toBeNull();
+    const note = fixture.debugElement.query(By.css('[data-testid="error-campo"]'));
+    expect(note).toBeTruthy();
+    expect(note.nativeElement.textContent.trim()).toBe('El monto es demasiado grande');
+    expect(getIonInput().attributes['aria-invalid']).toBe('true');
+    expect(getIonInput().nativeElement.value).toBe('9999999999999999');
+  });
+
+  it('preserves the exact invalid text typed by the user even after a prior valid value (F3)', () => {
+    triggerIonInput('3800');
+    expect(host.valor()).toBe(3800);
+    expect(getIonInput().nativeElement.value).toBe('$ 3.800');
+
+    triggerIonInput('3800,50');
+    expect(host.valor()).toBeNull();
+    expect(getIonInput().nativeElement.value).toBe('3800,50');
+
+    triggerIonInput('3800.50');
+    expect(host.valor()).toBeNull();
+    expect(getIonInput().nativeElement.value).toBe('3800.50');
+  });
+
+  it('clears format error and aria-invalid and formats new value when valor changes externally (F4)', () => {
+    triggerIonInput('3800');
+    triggerIonInput('3800,50');
+    expect(fixture.debugElement.query(By.css('[data-testid="error-campo"]'))).toBeTruthy();
+    expect(getIonInput().attributes['aria-invalid']).toBe('true');
+
+    host.valor.set(5000);
+    fixture.detectChanges();
+
+    expect(fixture.debugElement.query(By.css('[data-testid="error-campo"]'))).toBeNull();
+    expect(getIonInput().attributes['aria-invalid']).toBeUndefined();
+    expect(getIonInput().nativeElement.value).toBe('$ 5.000');
+
+    triggerIonInput('38a0');
+    expect(fixture.debugElement.query(By.css('[data-testid="error-campo"]'))).toBeTruthy();
+    host.valor.set(0);
+    fixture.detectChanges();
+    host.valor.set(null);
+    fixture.detectChanges();
+
+    expect(fixture.debugElement.query(By.css('[data-testid="error-campo"]'))).toBeNull();
+    expect(getIonInput().attributes['aria-invalid']).toBeUndefined();
+    expect(getIonInput().nativeElement.value).toBe('');
+  });
 });

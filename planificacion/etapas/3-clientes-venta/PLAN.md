@@ -44,7 +44,7 @@ Cada uno es una prueba. Los números siguen el ejemplo de Ana: lote **A** Carta 
 |----|-----------|--------------------|
 | E1 | Crear el cliente "Ana Pérez" con teléfono "3001234567". | queda en `clientes` con `es_mostrador = 0`; aparece en la lista de Clientes |
 | E2 | Crear un cliente con nombre vacío o de solo espacios. | **Guardar cliente** está deshabilitado y el campo muestra el error; el dominio lo rechaza (`NOMBRE_INVALIDO`) y no se escribe nada |
-| E3 | Crear un cliente con teléfono "300-ABC". | se rechaza (`TELEFONO_INVALIDO`) con el error junto al campo; sin teléfono, se guarda |
+| E3 | Crear un cliente con teléfono "300-ABC", "2001234567" (no empieza por 3) o "300123456" (9 dígitos). | se rechaza (`TELEFONO_INVALIDO`) con el error junto al campo; "3001234567" se guarda; sin teléfono, también se guarda |
 | E4 | Editar a "Ana Pérez" y cambiar su nombre a "Ana María Pérez". | se actualiza la misma fila (mismo `id_cliente`); la lista muestra el nombre nuevo |
 | E5 | Con "Ana María Pérez" y "Juan Gómez" (teléfono "3109876543"), buscar "ana", "ANA", "perez" y "3109". | "ana", "ANA" y "perez" devuelven a Ana María Pérez (sin distinguir mayúsculas ni tildes); "3109" devuelve a Juan Gómez |
 | E6 | Venta a Ana: 5 resmas del lote A a $15.000, de **Contado** en efectivo. | venta `PAGADA` con total $75.000, costo base $60.000 y saldo $0; el lote A queda con 15; un abono `PAGO_CONTADO` de $75.000 con detalle capital $60.000 y ganancia $15.000; movimiento `COBRO` con efectivo +$75.000, capital +$60.000 y ganancia +$15.000; la invariante se cumple |
@@ -60,7 +60,8 @@ Cada uno es una prueba. Los números siguen el ejemplo de Ana: lote **A** Carta 
 | E16 | Confirmar una venta sin líneas, o con el mismo lote en dos líneas. | se rechaza (`VENTA_SIN_LINEAS` o `LOTE_REPETIDO`); en la pantalla, un lote ya agregado no se puede volver a elegir |
 | E17 | Doble toque en **Confirmar venta** (dos ejecuciones concurrentes). | se registra **una sola** venta, un solo descuento de stock y un solo movimiento |
 | E18 | La carga de lotes o de clientes falla. | se ve el estado de error con **Reintentar**, no la lista vacía |
-| E19 | Venta de E6 completa desde la pestaña Vender, con Ana ya creada (RNF-05). | se completa en **4 toques**, sin contar lo que se escribe con el teclado: (1) elegir cliente, (2) tocar a Ana en los resultados, (3) tocar el lote A, (4) **Confirmar venta**; con Mostrador y contado en efectivo, en 2 toques |
+| E19 | Venta de E6 completa desde la pestaña Vender, con Ana ya creada (RNF-05). | se completa en **4 toques**, sin contar lo que se escribe con el teclado: (1) elegir cliente, (2) tocar a Ana en los resultados, (3) tocar el lote A, (4) **Confirmar venta**; con Mostrador y contado en efectivo, en 2 toques. La fecha viene puesta con la de ahora y no suma toques |
+| E20 | La venta de E6 con fecha de ayer a las 18:00. | la venta, el abono `PAGO_CONTADO` y el movimiento `COBRO` quedan con esa fecha; una fecha posterior a la del `CLOCK` se rechaza (`FECHA_FUTURA`) |
 
 ## Decisiones
 
@@ -71,8 +72,9 @@ Cada uno es una prueba. Los números siguen el ejemplo de Ana: lote **A** Carta 
 | D3 | **`AbonoRepository` en `src/app/cartera/infrastructure/`**: inserta en `abonos` y `abonos_detalle_facturas`. La venta lo usa para `PAGO_CONTADO` y `ABONO_INICIAL`. | Los abonos son de la cartera; la Etapa 4 lo reutiliza para la cascada, el abono individual y la liquidación. |
 | D4 | **La venta es una sola transacción**, en este orden: validar el cliente, leer cada lote y descontarlo con `LoteRepository.descontar`, insertar la venta y sus líneas, y, si entra dinero, insertar el abono con su detalle y registrar el `COBRO` con `LibroRepository.registrar`. Si algo falla, no queda nada escrito. | R-11 (RNF-03). Leer el stock dentro de la transacción evita vender dos veces la misma resma. `DatabaseProvider` ya serializa las transacciones. |
 | D5 | **Una línea por lote.** Para vender más resmas del mismo lote se cambia la cantidad de su línea. | Evita que dos líneas del mismo lote sumen más que su stock sin que ninguna lo supere sola. |
-| D6 | **La fecha de la venta y del abono es la del `CLOCK`**, sin campo para cambiarla. | Regla 11 de `CLAUDE.md`, y cada campo de más es un toque de más (RNF-05). |
-| D7 | **Mensajes nuevos en la misma tabla** (`shared/ui/mensajes-error.ts`): `NOMBRE_INVALIDO`, `TELEFONO_INVALIDO`, `PRECIO_INVALIDO`, `VENTA_SIN_LINEAS`, `LOTE_REPETIDO`, `ABONO_INICIAL_INVALIDO`, `MOSTRADOR_SOLO_CONTADO` y `CLIENTE_INEXISTENTE`. | Continúa la D5 de la Etapa 2. |
+| D6 | **La fecha de la venta viene puesta con la del `CLOCK` y se puede cambiar a una fecha pasada**, nunca a una futura (`FECHA_FUTURA`). El abono y el movimiento `COBRO` de esa venta llevan la misma fecha. | L3: hay que poder cargar una venta del día anterior. Si el cobro llevara la fecha de carga, la ganancia caería en el mes equivocado (A5). La regla 11 de `CLAUDE.md` se cumple: "ahora" sale del `CLOCK`. |
+| D7 | **Mensajes nuevos en la misma tabla** (`shared/ui/mensajes-error.ts`): `NOMBRE_INVALIDO`, `TELEFONO_INVALIDO`, `PRECIO_INVALIDO`, `VENTA_SIN_LINEAS`, `LOTE_REPETIDO`, `ABONO_INICIAL_INVALIDO`, `MOSTRADOR_SOLO_CONTADO`, `CLIENTE_INEXISTENTE` y `FECHA_FUTURA`. | Continúa la D5 de la Etapa 2. |
+| D9 | **El cliente se identifica por `id_cliente`** (la clave primaria). El teléfono es solo un dato: no es único ni identifica a nadie. | L3. Dos clientes con el mismo nombre son filas distintas; en la pantalla se distinguen por el teléfono, si lo tienen. |
 | D8 | **Lotes del selector en el orden de la Etapa 2** (más antiguo primero) y con el mismo caso de uso `ConsultarInventario`. | Una sola fuente para "lotes activos"; el agotado desaparece de los dos lados a la vez (S9). |
 
 ## Bloques
@@ -81,9 +83,9 @@ Cada uno es una prueba. Los números siguen el ejemplo de Ana: lote **A** Carta 
 |----|--------|-------|------|--------|-----|
 | B3.0 | Códigos de regla y mensajes nuevos | D7 | inline | coordinador | 0 |
 | B3.1 | Clientes: dominio, repositorio, casos de uso y pestaña Clientes | S1, S14; E1–E5, E18 | delegado | `agy` · `gemini-4-hydrogen-medium` | 1 |
-| B3.2 | Venta: dominio, repositorios y caso de uso | S2–S5, S8–S12; E6–E14, E16, E17 | delegado | `agy` · `gemini-4-hydrogen-medium` | 1 |
-| B3.3 | Pestaña Vender (punto de venta) | S2–S7, S11, S13; E14–E19 | delegado | `agy` · `gemini-4-hydrogen-medium` | 2 |
-| V3 | Verificación independiente | S1–S14, E1–E19 | delegado | `agy` · `gemini-4-hydrogen-high` | 3 |
+| B3.2 | Venta: dominio, repositorios y caso de uso | S2–S5, S8–S12; E6–E14, E16, E17, E20 | delegado | `agy` · `gemini-4-hydrogen-medium` | 1 |
+| B3.3 | Pestaña Vender (punto de venta) | S2–S7, S11, S13; E14–E20 | delegado | `agy` · `gemini-4-hydrogen-medium` | 2 |
+| V3 | Verificación independiente | S1–S14, E1–E20 | delegado | `agy` · `gemini-4-hydrogen-high` | 3 |
 
 Si Hydrogen se queda sin cuota: código con `gemini-3.8-flash-high` y verificación con `gemini-4-argon-medium`.
 
@@ -92,7 +94,7 @@ Si Hydrogen se queda sin cuota: código con `gemini-3.8-flash-high` y verificaci
 ### B3.0 — Códigos de regla y mensajes (coordinador)
 
 - **Rutas:** `src/app/shared/domain/regla-negocio.error.ts`, `src/app/shared/ui/mensajes-error.ts` y sus `.spec.ts`
-- Agrega los 8 códigos de D7 a `CodigoRegla` y su texto en español a la tabla, con una prueba del texto exacto de cada uno.
+- Agrega los 9 códigos de D7 a `CodigoRegla` y su texto en español a la tabla, con una prueba del texto exacto de cada uno.
 
 ### B3.1 — Clientes
 
@@ -100,7 +102,7 @@ Si Hydrogen se queda sin cuota: código con `gemini-3.8-flash-high` y verificaci
 - **Qué hacer:**
   1. **`clientes/domain/cliente.ts`**, como funciones puras:
      - `validarNombre(texto) → string` recortado; `NOMBRE_INVALIDO` si queda vacío o pasa de 80 caracteres (E2);
-     - `validarTelefono(texto | null) → string | null`: vacío es `null`; si no, solo dígitos, de 7 a 10 (E3, "Por aprobar" 1);
+     - `validarTelefono(texto | null) → string | null`: vacío es `null`; si no, debe ser un celular: exactamente 10 dígitos y empezar por 3 (E3, "Por aprobar" 1);
      - `normalizarBusqueda(texto)`: minúsculas y sin tildes, para comparar (E5).
   2. **`clientes/infrastructure/cliente.repository.ts`**: `insertar(db, datos, fecha) → idCliente`, `actualizar(db, id, datos)`, `porId(db, id)`, `mostrador(db)` y `todos(db)` sin el Mostrador, ordenados por nombre. `actualizar` rechaza el Mostrador (`CLIENTE_INEXISTENTE` si el id no existe o es el Mostrador).
   3. **`clientes/application/`**: `RegistrarCliente`, `EditarCliente` y `BuscarClientes.buscar(texto)`, que filtra con `normalizarBusqueda` sobre el nombre y el teléfono. Sin texto, devuelve todos. `buscar` acepta `{ incluirMostrador: true }` para el selector de Vender, con el Mostrador primero.
@@ -113,14 +115,15 @@ Si Hydrogen se queda sin cuota: código con `gemini-3.8-flash-high` y verificaci
 
 - **Rutas permitidas:** `src/app/ventas/**` (sin `ui/`), `src/app/cartera/infrastructure/**`, `src/app/cartera/index.ts`, `src/app/inventario/infrastructure/lote.repository.ts` (solo si hace falta leer un lote dentro de la transacción), y el `.spec.ts` de cada uno
 - **Qué hacer:**
-  1. **`ventas/domain/venta.ts`**: `armarVenta({ idCliente, esMostrador, lineas, pago }) → { totalVenta, costoTotalBase, montoPagado, saldoPendiente, estadoPago, lineas: (línea + evaluarLinea)[], cobro: { tipoAbono, monto, medio, capital, ganancia } | null }`.
+  1. **`ventas/domain/venta.ts`**: `armarVenta({ idCliente, esMostrador, fecha, ahora, lineas, pago }) → { totalVenta, costoTotalBase, montoPagado, saldoPendiente, estadoPago, lineas: (línea + evaluarLinea)[], cobro: { tipoAbono, monto, medio, capital, ganancia } | null }`.
      - `lineas`: `{ idLote, costoUnitario, disponibles, cantidad, precioUnitario }`; rechaza `VENTA_SIN_LINEAS`, `LOTE_REPETIDO`, `CANTIDAD_INVALIDA`, `PRECIO_INVALIDO` (no entero o ≤ 0) y `STOCK_INSUFICIENTE`.
      - `pago`: `{ modalidad: 'CONTADO', medio } | { modalidad: 'FIADO' } | { modalidad: 'ABONO_INICIAL', monto, medio }`. Contado cobra el total; abono inicial de 1 a total − 1 (`ABONO_INICIAL_INVALIDO`); Mostrador solo contado (`MOSTRADOR_SOLO_CONTADO`).
+     - `fecha` posterior a `ahora` se rechaza (`FECHA_FUTURA`, D6); `ahora` lo pasa el caso de uso desde el `CLOCK`.
      - El reparto del cobro sale de `repartirPago` sobre la factura recién creada (pagado 0). **No** reimplementes R-01.
   2. **`ventas/infrastructure/venta.repository.ts`**: `insertar(tx, venta, fecha) → idVenta`, con sus líneas en `detalle_ventas`.
   3. **`cartera/infrastructure/abono.repository.ts`**: `insertar(tx, { idCliente, fecha, monto, medio, tipo, aplicaciones: { idVenta, monto, capital, ganancia }[] }) → idAbono`. Exportado desde `cartera/index.ts`.
-  4. **`ventas/application/registrar-venta.ts`**: `registrar({ idCliente, lineas: { idLote, cantidad, precioUnitario }[], pago }) → { idVenta }` en una transacción, según D4. Lee el cliente y cada lote dentro de la transacción (`CLIENTE_INEXISTENTE` si el cliente no existe), descuenta con `LoteRepository.descontar` y registra el dinero con `cobro` + `LibroRepository.registrar`. **No** escribas en `movimientos_dinero` ni en `lotes_cajas` por tu cuenta.
-- **Pruebas:** E6 a E14, E16 y E17 tal cual, con `SqlJsDatabase` y la migración real. Además: E12 deja las 5 tablas exactamente como estaban; un fallo forzado después de descontar el primer lote de una venta multilote no deja nada escrito; después de E6, E7 y E9 la invariante (`verificarInvariante`) se cumple.
+  4. **`ventas/application/registrar-venta.ts`**: `registrar({ idCliente, fecha, lineas: { idLote, cantidad, precioUnitario }[], pago }) → { idVenta }` en una transacción, según D4. La venta, el abono y el `COBRO` usan esa `fecha` (D6). Lee el cliente y cada lote dentro de la transacción (`CLIENTE_INEXISTENTE` si el cliente no existe), descuenta con `LoteRepository.descontar` y registra el dinero con `cobro` + `LibroRepository.registrar`. **No** escribas en `movimientos_dinero` ni en `lotes_cajas` por tu cuenta.
+- **Pruebas:** E6 a E14, E16, E17 y E20 tal cual, con `SqlJsDatabase` y la migración real. Además: E12 deja las 5 tablas exactamente como estaban; un fallo forzado después de descontar el primer lote de una venta multilote no deja nada escrito; después de E6, E7 y E9 la invariante (`verificarInvariante`) se cumple.
 
 ### B3.3 — Pestaña Vender
 
@@ -130,6 +133,7 @@ Si Hydrogen se queda sin cuota: código con `gemini-3.8-flash-high` y verificaci
      - **Cliente** arriba: muestra el elegido (por defecto **Mostrador**). Tocarlo abre un selector con buscador (`BuscarClientes` con el Mostrador) y un botón **Nuevo cliente** que abre el modal de B3.1 y deja elegido al cliente creado.
      - **Lotes activos**: `ion-segment` Carta y Oficio y una fila por lote con "N resmas" y el costo por resma (S3, S9). Tocar un lote agrega su línea con cantidad 1; un lote ya agregado no se puede tocar otra vez (D5).
      - **Cada línea**: cantidad y precio unitario con teclado numérico, el costo por resma a la vista, el subtotal y el margen en vivo (`evaluarLinea`); con `bajoCosto`, un `ion-note` `warning` "Precio por debajo del costo: pierdes $X" (S7, E14). Un botón con ícono para quitar la línea, con `aria-label`.
+     - **Fecha**: muestra la de ahora (del `CLOCK`); tocarla abre un `ion-datetime` que no deja elegir una fecha futura (D6, E20).
      - **Cierre**: total, costo y margen de la venta; `ion-segment` **Contado**, **Fiado** y **Abono inicial** (con Mostrador, solo Contado, S11); medio **Efectivo** o **Transferencia** (por defecto Efectivo); el monto si es abono inicial.
      - **Confirmar venta**: deshabilitado si no hay líneas o algún campo es inválido, y mientras guarda (`guardando`, E17). Mientras guarda, la vista entera queda bloqueada con un indicador. Al terminar: `ion-toast` "Venta registrada", el formulario vuelve al estado inicial y los lotes se recargan (E13).
      - Estados cargando, con datos, sin lotes ("No hay lotes activos. Registra una compra en Inventario") y error con **Reintentar** (E18).
@@ -141,7 +145,7 @@ Si Hydrogen se queda sin cuota: código con `gemini-3.8-flash-high` y verificaci
 Lee este plan completo y `CLAUDE.md`, y prueba en una copia limpia (`mktemp -d`):
 
 - corre `lint`, `test:unit`, `build` y `test:e2e`;
-- reproduce E1 a E19 con pruebas propias que usan la API pública y, para E15 a E19, la interfaz;
+- reproduce E1 a E20 con pruebas propias que usan la API pública y, para E15 a E19, la interfaz;
 - da un veredicto por cada `S#` y `E#`;
 - revisa las reglas 1 a 12 de `CLAUDE.md` en cada formulario y vista nueva, y la calidad de las pruebas (regla 6 de `base.md`);
 - controla las rutas permitidas.
@@ -172,18 +176,20 @@ El reporte de la etapa va en Engram (`etapas/3-clientes-venta/reporte`).
 
 ## Por aprobar
 
-1. **Teléfono:** opcional, porque no siempre se tiene y el Mostrador no lo tiene. Si se escribe, solo dígitos y de 7 a 10 (fijo o celular de Colombia). Los nombres repetidos se permiten: el teléfono distingue a dos "Juan".
-2. **Búsqueda:** por nombre o teléfono, por coincidencia parcial, sin distinguir mayúsculas ni tildes.
+Estado tras L3: aprobados 1, 2, 4, 5, 7 (con el cambio de L3), 8, 9, 10 y 12. Faltan el 3 y el 6, que Miguel pidió que se le expliquen, y el 11, que se revisa con los cambios de L3.
+
+1. ✅ **Teléfono:** opcional. Si se escribe, debe ser un celular: exactamente 10 dígitos y empezar por 3 (L3). Los nombres repetidos se permiten. El cliente se identifica por `id_cliente` (D9); el teléfono solo ayuda a distinguir en pantalla a dos "Juan".
+2. ✅ **Búsqueda:** por nombre o teléfono, por coincidencia parcial, sin distinguir mayúsculas ni tildes.
 3. **Mostrador:** es el cliente por defecto en Vender, no se puede editar y no aparece en la lista de la pestaña Clientes.
-4. **Cómo se cuentan los toques (RNF-05):** no cuenta lo que se escribe con el teclado (cantidad, precio, búsqueda). Con eso, una venta a un cliente registrado se hace en 4 toques y una de Mostrador en 2 (E19). Para lograrlo, tocar un lote agrega la línea con cantidad 1, sin un botón **Agregar** aparte.
-5. **Una línea por lote** (D5).
+4. ✅ **Cómo se cuentan los toques (RNF-05):** no cuenta lo que se escribe con el teclado (cantidad, precio, búsqueda). Con eso, una venta a un cliente registrado se hace en 4 toques y una de Mostrador en 2 (E19). Para lograrlo, tocar un lote agrega la línea con cantidad 1, sin un botón **Agregar** aparte.
+5. ✅ **Una línea por lote** (D5).
 6. **Abono inicial** entre $1 y el total menos $1. Si el cliente paga todo, la venta es de Contado.
-7. **Fecha de la venta:** siempre la de ahora, sin campo para cambiarla (D6). La compra sí deja cambiar la fecha; si necesitas cargar ventas atrasadas, lo cambiamos.
-8. **Venta bajo costo** (A4): se permite, con el aviso en la línea. La pérdida acumulada se muestra en el dashboard (Etapa 5).
-9. **Crear un cliente desde Vender:** sí, con **Nuevo cliente** dentro del selector, para no salir de la venta.
-10. **Modelos de `agy`:** Hydrogen (`gemini-4-hydrogen-medium` para el código y `gemini-4-hydrogen-high` para la verificación), según el enrutamiento vigente, con Flash y Argon como respaldo si se agota la cuota. `planificacion/README.md` se actualiza en el mismo sentido.
-11. **D1 a D8** tal como están arriba.
-12. **Alcance:** no entran la deuda en la lista de clientes, el expediente ni los abonos posteriores (Etapa 4), el dashboard ni la pérdida acumulada (Etapa 5), ni anular o corregir una venta (Etapa 6, A7). Tampoco un comprobante para enviar al cliente, porque no lo pide ningún requisito.
+7. ✅ **Fecha de la venta:** viene puesta con la de ahora y se puede cambiar a una fecha pasada, para cargar una venta del día anterior (L3, D6, E20). No se aceptan fechas futuras: es una suposición del coordinador, porque L3 solo pide fechas pasadas.
+8. ✅ **Venta bajo costo** (A4): se permite, con el aviso en la línea. La pérdida acumulada se muestra en el dashboard (Etapa 5).
+9. ✅ **Crear un cliente desde Vender:** sí, con **Nuevo cliente** dentro del selector, para no salir de la venta.
+10. ✅ **Modelos de `agy`:** Hydrogen (`gemini-4-hydrogen-medium` para el código y `gemini-4-hydrogen-high` para la verificación), según el enrutamiento vigente, con Flash y Argon como respaldo si se agota la cuota. `planificacion/README.md` se actualiza en el mismo sentido.
+11. **D1 a D9** tal como están arriba. Con L3 cambiaron D6 (fecha editable hacia atrás) y D7 (código `FECHA_FUTURA`), y se agregó D9 (identificador del cliente). D1 a D5 y D8 no cambian.
+12. ✅ **Alcance:** no entran la deuda en la lista de clientes, el expediente ni los abonos posteriores (Etapa 4), el dashboard ni la pérdida acumulada (Etapa 5), ni anular o corregir una venta (Etapa 6, A7). Tampoco un comprobante para enviar al cliente, porque no lo pide ningún requisito.
 
 ## Log
 
@@ -191,3 +197,4 @@ Mensajes del usuario copiados textualmente; las notas del coordinador van entre 
 
 - **L1** (2026-11-15): "Recuerdo que yo tenia que hacer un test de la aplicación de forma manual, ese test lo hice y aprobé el funcionamiento, si puedes hacer el merge a la pr hazlo y limpia la rama local" [PR #13 integrado con rebase (`7a22a50`). La Etapa 2 queda cerrada.]
 - **L2** (2026-11-15): "Escribe el plan de la etapa 3 y dime como tienes configurado el trabajo con subagentes y agentes de agy" [Se escribe este plan. No se ejecuta nada hasta que Miguel lo apruebe.]
+- **L3** (2026-11-15): "Sobre el punto 1, el numero de telefono es opcional y si se recibe se debe validar que sea de telefono movil solamente que cuente con los 10 digitos y que comience con 3, sobre los nombres no es bueno que se use a el numero de telefono como identificador ya que para eso debe existir una primary key o no se si te refieres solo a que en vista de usuario se diferencia con el numero celular. Punto 2 aprobado. Punto 3 Explicame bien como va a funcionar esto. Punto 4 aprobado. Punto 5 Aprobado. Punto 6, Explicame bien. Punto 7, Las ventas debe permitir registrar fechas pasadas, porque puedo registrar en algun momento una venta que hice el dia anterior. Punto 8 aprobado. Punto 9 aprobado. Punto 10 aprobado. Punto 11 aprobado parcialmente porque mis decisiones anteriores pueden afectar D1 a D8. Punto 12 aprobado." [Teléfono: solo celular de 10 dígitos que empieza por 3 (E3, B3.1). El identificador siempre fue `id_cliente`; el teléfono solo distingue en pantalla (D9). Fecha de la venta editable hacia atrás (D6, D7, E20, B3.2, B3.3). Se explican los puntos 3 y 6.]

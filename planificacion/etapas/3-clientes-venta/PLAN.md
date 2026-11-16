@@ -6,7 +6,7 @@
 ## Qué hay hoy
 
 - **Etapa 2 integrada en `main` (`7a22a50`):** pestañas **Finanzas**, **Vender**, **Inventario** y **Clientes**; Vender y Clientes muestran "Disponible en la Etapa 3" (`src/app/shell/proximamente.page.ts`).
-- **El esquema ya tiene todo lo de esta etapa** (migración `001`): `clientes` (con `es_mostrador` y el cliente **Mostrador** ya insertado), `ventas` (con los CHECK de consistencia de saldo y estado), `detalle_ventas`, `abonos` (con `PAGO_CONTADO` y `ABONO_INICIAL`) y `abonos_detalle_facturas` (con `capital_aplicado` y `ganancia_aplicada`). **No hace falta migración.**
+- **El esquema ya tiene todo lo de esta etapa** (migración `001`): `clientes` (con `es_mostrador` y el cliente **Mostrador** ya insertado), `ventas` (con los CHECK de consistencia de saldo y estado), `detalle_ventas`, `abonos` (con `PAGO_CONTADO` y `ABONO_INICIAL`) y `abonos_detalle_facturas` (con `capital_aplicado` y `ganancia_aplicada`). Solo falta la migración `002`, con el índice único del teléfono (D9, L6).
 - **Reglas que ya existen y se reutilizan:**
   - `evaluarLinea(cantidad, costoUnitario, precioUnitario) → { subtotalVenta, subtotalCosto, margen, bajoCosto }` y `perdida(totalVenta, costoBase)` en `src/app/ventas/domain/margen.ts` (A4, Etapa 1);
   - `repartirPago(factura, monto) → { capital, ganancia }` en `src/app/cartera/domain/reparto-pago.ts` (R-01);
@@ -45,6 +45,7 @@ Cada uno es una prueba. Los números siguen el ejemplo de Ana: lote **A** Carta 
 | E1 | Crear el cliente "Ana Pérez" con teléfono "3001234567". | queda en `clientes` con `es_mostrador = 0`; aparece en la lista de Clientes |
 | E2 | Crear un cliente con nombre vacío o de solo espacios. | **Guardar cliente** está deshabilitado y el campo muestra el error; el dominio lo rechaza (`NOMBRE_INVALIDO`) y no se escribe nada |
 | E3 | Crear un cliente con teléfono "300-ABC", "2001234567" (no empieza por 3) o "300123456" (9 dígitos). | se rechaza (`TELEFONO_INVALIDO`) con el error junto al campo; "3001234567" se guarda; sin teléfono, también se guarda |
+| E3b | Con Ana guardada con "3001234567", crear a "Laura Ruiz" con "3001234567"; después, editar a Ana sin cambiar su número; y crear dos clientes sin teléfono. | Laura se rechaza (`TELEFONO_REPETIDO`) con el error junto al campo y no se escribe nada; la edición de Ana se guarda; los dos clientes sin teléfono se guardan. Un `INSERT` directo con un teléfono repetido lo rechaza la base (índice único) |
 | E4 | Editar a "Ana Pérez" y cambiar su nombre a "Ana María Pérez". | se actualiza la misma fila (mismo `id_cliente`); la lista muestra el nombre nuevo |
 | E5 | Con "Ana María Pérez" y "Juan Gómez" (teléfono "3109876543"), buscar "ana", "ANA", "perez" y "3109". | "ana", "ANA" y "perez" devuelven a Ana María Pérez (sin distinguir mayúsculas ni tildes); "3109" devuelve a Juan Gómez |
 | E6 | Venta a Ana: 5 resmas del lote A a $15.000, de **Contado** en efectivo. | venta `PAGADA` con total $75.000, costo base $60.000 y saldo $0; el lote A queda con 15; un abono `PAGO_CONTADO` de $75.000 con detalle capital $60.000 y ganancia $15.000; movimiento `COBRO` con efectivo +$75.000, capital +$60.000 y ganancia +$15.000; la invariante se cumple |
@@ -73,8 +74,8 @@ Cada uno es una prueba. Los números siguen el ejemplo de Ana: lote **A** Carta 
 | D4 | **La venta es una sola transacción**, en este orden: validar el cliente, leer cada lote y descontarlo con `LoteRepository.descontar`, insertar la venta y sus líneas, y, si entra dinero, insertar el abono con su detalle y registrar el `COBRO` con `LibroRepository.registrar`. Si algo falla, no queda nada escrito. | R-11 (RNF-03). Leer el stock dentro de la transacción evita vender dos veces la misma resma. `DatabaseProvider` ya serializa las transacciones. |
 | D5 | **Una línea por lote.** Para vender más resmas del mismo lote se cambia la cantidad de su línea. | Evita que dos líneas del mismo lote sumen más que su stock sin que ninguna lo supere sola. |
 | D6 | **La fecha de la venta viene puesta con la del `CLOCK` y se puede cambiar a una fecha pasada**, nunca a una futura (`FECHA_FUTURA`). El abono y el movimiento `COBRO` de esa venta llevan la misma fecha. | L3: hay que poder cargar una venta del día anterior. Si el cobro llevara la fecha de carga, la ganancia caería en el mes equivocado (A5). La regla 11 de `CLAUDE.md` se cumple: "ahora" sale del `CLOCK`. |
-| D7 | **Mensajes nuevos en la misma tabla** (`shared/ui/mensajes-error.ts`): `NOMBRE_INVALIDO`, `TELEFONO_INVALIDO`, `PRECIO_INVALIDO`, `VENTA_SIN_LINEAS`, `LOTE_REPETIDO`, `ABONO_INICIAL_INVALIDO`, `MOSTRADOR_SOLO_CONTADO`, `CLIENTE_INEXISTENTE` y `FECHA_FUTURA`. | Continúa la D5 de la Etapa 2. |
-| D9 | **El teléfono no es único:** dos clientes pueden tener el mismo celular, y no se agrega un índice `UNIQUE` sobre `telefono`. El cliente se identifica, como desde la Etapa 0, por `id_cliente`. | L3 y L4. Una pareja o un negocio y su dueño pueden compartir celular. En la pantalla, dos clientes con el mismo nombre se distinguen por el teléfono, si lo tienen. |
+| D7 | **Mensajes nuevos en la misma tabla** (`shared/ui/mensajes-error.ts`): `NOMBRE_INVALIDO`, `TELEFONO_INVALIDO`, `PRECIO_INVALIDO`, `VENTA_SIN_LINEAS`, `LOTE_REPETIDO`, `ABONO_INICIAL_INVALIDO`, `MOSTRADOR_SOLO_CONTADO`, `CLIENTE_INEXISTENTE`, `FECHA_FUTURA` y `TELEFONO_REPETIDO`. | Continúa la D5 de la Etapa 2. |
+| D9 | **El teléfono es único:** dos clientes no pueden tener el mismo celular; el teléfono vacío no cuenta. Se valida en la pantalla y en el caso de uso (`TELEFONO_REPETIDO`), y la base lo garantiza con un índice único parcial en la migración `002` (`CREATE UNIQUE INDEX ux_clientes_telefono ON clientes (telefono) WHERE telefono IS NOT NULL`). | L5 y L6: cada persona se registra con su propio celular. Que el teléfono sea único es una regla de negocio, independiente de la clave primaria `id_cliente`. La migración no falla en instalaciones existentes: hasta esta etapa el único cliente es el Mostrador, sin teléfono. |
 | D8 | **Lotes del selector en el orden de la Etapa 2** (más antiguo primero) y con el mismo caso de uso `ConsultarInventario`. | Una sola fuente para "lotes activos"; el agotado desaparece de los dos lados a la vez (S9). |
 
 ## Bloques
@@ -82,7 +83,7 @@ Cada uno es una prueba. Los números siguen el ejemplo de Ana: lote **A** Carta 
 | ID | Bloque | Specs | Ruta | Agente | Ola |
 |----|--------|-------|------|--------|-----|
 | B3.0 | Códigos de regla y mensajes nuevos | D7 | inline | coordinador | 0 |
-| B3.1 | Clientes: dominio, repositorio, casos de uso y pestaña Clientes | S1, S14; E1–E5, E18 | delegado | `agy` · `gemini-4-hydrogen-medium` | 1 |
+| B3.1 | Clientes: dominio, repositorio, casos de uso y pestaña Clientes | S1, S14; E1–E5, E3b, E18 | delegado | `agy` · `gemini-4-hydrogen-medium` | 1 |
 | B3.2 | Venta: dominio, repositorios y caso de uso | S2–S5, S8–S12; E6–E14, E16, E17, E20 | delegado | `agy` · `gemini-4-hydrogen-medium` | 1 |
 | B3.3 | Pestaña Vender (punto de venta) | S2–S7, S11, S13; E14–E20 | delegado | `agy` · `gemini-4-hydrogen-medium` | 2 |
 | V3 | Verificación independiente | S1–S14, E1–E20 | delegado | `agy` · `gemini-4-hydrogen-high` | 3 |
@@ -94,22 +95,23 @@ Si Hydrogen se queda sin cuota: código con `gemini-3.8-flash-high` y verificaci
 ### B3.0 — Códigos de regla y mensajes (coordinador)
 
 - **Rutas:** `src/app/shared/domain/regla-negocio.error.ts`, `src/app/shared/ui/mensajes-error.ts` y sus `.spec.ts`
-- Agrega los 9 códigos de D7 a `CodigoRegla` y su texto en español a la tabla, con una prueba del texto exacto de cada uno.
+- Agrega los 10 códigos de D7 a `CodigoRegla` y su texto en español a la tabla, con una prueba del texto exacto de cada uno.
 
 ### B3.1 — Clientes
 
-- **Rutas permitidas:** `src/app/clientes/**`, `src/app/shell/tabs.routes.ts` (solo la ruta de Clientes), `e2e/clientes.spec.ts`
+- **Rutas permitidas:** `src/app/clientes/**`, `src/app/shell/tabs.routes.ts` (solo la ruta de Clientes), `e2e/clientes.spec.ts`, `src/app/shared/infrastructure/sqlite/migrations/002-telefono-unico.ts`, `src/app/shared/infrastructure/sqlite/migrations/index.ts` (y sus `.spec.ts`)
 - **Qué hacer:**
+  0. **Migración `002`** (D9): crea `ux_clientes_telefono` y la registra en `migrations/index.ts`. Prueba: sobre una base con la `001` aplicada y el Mostrador, la `002` corre; después, un `INSERT` con un teléfono repetido falla y dos con `telefono` `NULL` funcionan.
   1. **`clientes/domain/cliente.ts`**, como funciones puras:
      - `validarNombre(texto) → string` recortado; `NOMBRE_INVALIDO` si queda vacío o pasa de 80 caracteres (E2);
      - `validarTelefono(texto | null) → string | null`: vacío es `null`; si no, debe ser un celular: exactamente 10 dígitos y empezar por 3 (E3, "Por aprobar" 1);
      - `normalizarBusqueda(texto)`: minúsculas y sin tildes, para comparar (E5).
   2. **`clientes/infrastructure/cliente.repository.ts`**: `insertar(db, datos, fecha) → idCliente`, `actualizar(db, id, datos)`, `porId(db, id)`, `mostrador(db)` y `todos(db)` sin el Mostrador, ordenados por nombre. `actualizar` rechaza el Mostrador (`CLIENTE_INEXISTENTE` si el id no existe o es el Mostrador).
-  3. **`clientes/application/`**: `RegistrarCliente`, `EditarCliente` y `BuscarClientes.buscar(texto)`, que filtra con `normalizarBusqueda` sobre el nombre y el teléfono. Sin texto, devuelve todos. `buscar` acepta `{ incluirMostrador: true }` para el selector de Vender, con el Mostrador primero.
+  3. **`clientes/application/`**: `RegistrarCliente` y `EditarCliente`, que en la misma transacción buscan otro cliente con ese teléfono (sin contar al que se edita) y rechazan con `TELEFONO_REPETIDO` (E3b); si aun así la base rechaza por el índice único, el repositorio lo traduce a `TELEFONO_REPETIDO`. Y `BuscarClientes.buscar(texto)`, que filtra con `normalizarBusqueda` sobre el nombre y el teléfono. Sin texto, devuelve todos. `buscar` acepta `{ incluirMostrador: true }` para el selector de Vender, con el Mostrador primero.
   4. **`clientes/ui/clientes.page`**: buscador (`ion-searchbar`), lista con nombre y teléfono, estados cargando, con datos, vacío ("Todavía no hay clientes") y error con **Reintentar**. Un `ion-fab` **Nuevo cliente**. Tocar un cliente abre el modal en modo edición.
   5. **`clientes/ui/cliente.modal`**: nombre completo y teléfono, con validación en vivo y el error junto al campo; **Guardar cliente** deshabilitado mientras haya un campo inválido o mientras guarda; no se cierra mientras guarda (`soloCierreExplicito`). Devuelve el cliente guardado a quien lo abrió (B3.3 lo usa).
   6. Reemplaza la página provisional de Clientes en `tabs.routes.ts`.
-- **Pruebas:** E1 a E5 con `SqlJsDatabase` y la migración real; el modal con cada campo vacío, inválido y válido, y el estado del botón; doble envío del guardado (una sola fila); botón habilitado otra vez tras un error; E18 para la lista. E2E: crear a Ana, buscarla y editarla; después de recargar, sigue ahí.
+- **Pruebas:** E1 a E5 y E3b con `SqlJsDatabase` y las migraciones reales; el modal con cada campo vacío, inválido y válido, y el estado del botón; doble envío del guardado (una sola fila); botón habilitado otra vez tras un error; E18 para la lista. E2E: crear a Ana, buscarla y editarla; después de recargar, sigue ahí.
 
 ### B3.2 — Venta
 
@@ -156,7 +158,7 @@ Mismas reglas de severidad que V1 y V2.
 
 1. Antes de cada ola, anotar `HEAD`; después, comprobar que no hubo commits de `agy` y revisar el diff contra las rutas permitidas.
 2. Después de la ola 1, correr `npm run build` una vez.
-3. Correr `gentle-ai review assess` por commit. B3.2 escribe dinero y stock: si la evaluación lo marca de riesgo alto, su commit se revisa solo.
+3. Correr `gentle-ai review assess` por commit. La migración `002` cambia el formato guardado (ítem 1 de alto riesgo): va en su propio commit y se revisa sola. B3.2 escribe dinero y stock: si la evaluación lo marca de riesgo alto, su commit también se revisa solo.
 4. Probar la app en el navegador (`npm start`): crear cliente, venta de contado, fiada, con abono inicial, multilote y bajo costo, y recarga.
 5. Generar la APK de debug (`npm run apk`) para la prueba manual de Miguel en Android.
 6. Abrir el PR con el checklist de la regla 12 y esperar el check `verify`.
@@ -166,11 +168,12 @@ Mismas reglas de severidad que V1 y V2.
 En el orden en que se aplican, según `commits-atomicos`:
 
 1. `feat: códigos de regla y mensajes de clientes y ventas`
-2. `feat: directorio de clientes con búsqueda`
-3. `feat: registro de ventas multilote con pago de contado, fiado o abono inicial`
-4. `feat: pestaña Vender con selección de lote y margen en vivo`
-5. `test: pruebas de aceptación de la verificación independiente`
-6. `docs: cierre de la Etapa 3`
+2. `feat: índice único del teléfono de clientes (migración 002)`
+3. `feat: directorio de clientes con búsqueda`
+4. `feat: registro de ventas multilote con pago de contado, fiado o abono inicial`
+5. `feat: pestaña Vender con selección de lote y margen en vivo`
+6. `test: pruebas de aceptación de la verificación independiente`
+7. `docs: cierre de la Etapa 3`
 
 El reporte de la etapa va en Engram (`etapas/3-clientes-venta/reporte`).
 
@@ -178,7 +181,7 @@ El reporte de la etapa va en Engram (`etapas/3-clientes-venta/reporte`).
 
 ✅ Los 12 puntos están aprobados: 1 y 7 con los cambios de L3, y 3, 6 y 11 después de explicarlos (L4).
 
-1. ✅ **Teléfono:** opcional. Si se escribe, debe ser un celular: exactamente 10 dígitos y empezar por 3 (L3). Los nombres repetidos se permiten. El cliente se identifica por `id_cliente` (D9); el teléfono solo ayuda a distinguir en pantalla a dos "Juan".
+1. ✅ **Teléfono:** opcional. Si se escribe, debe ser un celular: exactamente 10 dígitos y empezar por 3 (L3). Los nombres repetidos se permiten; el teléfono no se puede repetir (D9, L6).
 2. ✅ **Búsqueda:** por nombre o teléfono, por coincidencia parcial, sin distinguir mayúsculas ni tildes.
 3. ✅ **Mostrador:** es el cliente por defecto en Vender, no se puede editar y no aparece en la lista de la pestaña Clientes.
 4. ✅ **Cómo se cuentan los toques (RNF-05):** no cuenta lo que se escribe con el teclado (cantidad, precio, búsqueda). Con eso, una venta a un cliente registrado se hace en 4 toques y una de Mostrador en 2 (E19). Para lograrlo, tocar un lote agrega la línea con cantidad 1, sin un botón **Agregar** aparte.
@@ -199,3 +202,5 @@ Mensajes del usuario copiados textualmente; las notas del coordinador van entre 
 - **L2** (2026-11-15): "Escribe el plan de la etapa 3 y dime como tienes configurado el trabajo con subagentes y agentes de agy" [Se escribe este plan. No se ejecuta nada hasta que Miguel lo apruebe.]
 - **L3** (2026-11-15): "Sobre el punto 1, el numero de telefono es opcional y si se recibe se debe validar que sea de telefono movil solamente que cuente con los 10 digitos y que comience con 3, sobre los nombres no es bueno que se use a el numero de telefono como identificador ya que para eso debe existir una primary key o no se si te refieres solo a que en vista de usuario se diferencia con el numero celular. Punto 2 aprobado. Punto 3 Explicame bien como va a funcionar esto. Punto 4 aprobado. Punto 5 Aprobado. Punto 6, Explicame bien. Punto 7, Las ventas debe permitir registrar fechas pasadas, porque puedo registrar en algun momento una venta que hice el dia anterior. Punto 8 aprobado. Punto 9 aprobado. Punto 10 aprobado. Punto 11 aprobado parcialmente porque mis decisiones anteriores pueden afectar D1 a D8. Punto 12 aprobado." [Teléfono: solo celular de 10 dígitos que empieza por 3 (E3, B3.1). El identificador siempre fue `id_cliente`; el teléfono solo distingue en pantalla (D9). Fecha de la venta editable hacia atrás (D6, D7, E20, B3.2, B3.3). Se explican los puntos 3 y 6.]
 - **L4** (2026-11-15): "Apruebo los puntos 3, 6 y 11. Pero quiero saber si D9 no existía previamente, es decir, los clientes no estaban configurados en la DB con una primary key que los identificaras o por que es necesario aclarar eso como una decisión en D9" [`id_cliente` es la clave primaria desde la migración `001` (Etapa 0). D9 se reescribe con la decisión real: el teléfono no es único. Plan aprobado; se integra el PR del plan.]
+- **L5** (2026-11-15): "Como se te ocurre que el número de telefono no es único, el telefono debe ser único si la mujer de un cliente se registra como otra cliente pues se registra con el numero de ella no con el numero del esposo. No tiene nada que ver la primary key con que el telefono sea unico si tienes otra duda no supongas y pregunta primero" [D9 estaba mal: era una suposición del coordinador. Se propone teléfono único con validación en pantalla y caso de uso, más índice único en la migración `002`.]
+- **L6** (2026-11-15): "Sí apruebo" [D9, E3b, B3.1 (migración `002` y `TELEFONO_REPETIDO`), D7 y los commits se actualizan. Las otras dudas se preguntan antes de implementar, una por vez.]

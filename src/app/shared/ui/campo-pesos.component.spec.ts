@@ -15,6 +15,7 @@ import { CampoPesosComponent } from './campo-pesos.component';
       [disabled]="disabled()"
       [error]="error()"
       [errorTestId]="'error-campo'"
+      [generacion]="generacion()"
       [placeholder]="'Ej: 3800'"
     />
   `,
@@ -25,6 +26,7 @@ class TestHostComponent {
   readonly valor = signal<number | null>(null);
   readonly disabled = signal(false);
   readonly error = signal<string | null>(null);
+  readonly generacion = signal(0);
 }
 
 describe('CampoPesosComponent', () => {
@@ -225,5 +227,21 @@ describe('CampoPesosComponent', () => {
     expect(fixture.debugElement.query(By.css('[data-testid="error-campo"]'))).toBeNull();
     expect(getIonInput().attributes['aria-invalid']).toBeUndefined();
     expect(getIonInput().nativeElement.value).toBe('');
+  });
+
+  it('clears invalid text, format error and aria-invalid when parent resets with same null value (H3)', () => {
+    triggerIonInput('3800,50');
+    expect(host.valor()).toBeNull();
+    expect(getIonInput().nativeElement.value).toBe('3800,50');
+    expect(fixture.debugElement.query(By.css('[data-testid="error-campo"]'))).toBeTruthy();
+    expect(getIonInput().attributes['aria-invalid']).toBe('true');
+
+    host.valor.set(null);
+    host.generacion.update((g) => g + 1);
+    fixture.detectChanges();
+
+    expect(getIonInput().nativeElement.value).toBe('');
+    expect(fixture.debugElement.query(By.css('[data-testid="error-campo"]'))).toBeNull();
+    expect(getIonInput().attributes['aria-invalid']).not.toBe('true');
   });
 });

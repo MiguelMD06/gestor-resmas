@@ -121,6 +121,7 @@ export class ClienteModalComponent implements OnInit {
   readonly nombre = signal('');
   readonly telefono = signal('');
   readonly guardando = signal(false);
+  private readonly guardado = signal(false);
   readonly errorTelefonoServidor = signal<string | null>(null);
 
   readonly errorNombre = computed<string | null>(() => {
@@ -144,7 +145,7 @@ export class ClienteModalComponent implements OnInit {
   readonly errorTelefono = computed<string | null>(() => this.errorTelefonoDominio() ?? this.errorTelefonoServidor());
 
   readonly puedeGuardar = computed(
-    () => !this.guardando() && this.errorNombre() === null && this.errorTelefonoDominio() === null,
+    () => !this.guardando() && !this.guardado() && this.errorNombre() === null && this.errorTelefonoDominio() === null,
   );
 
   ngOnInit(): void {
@@ -182,11 +183,11 @@ export class ClienteModalComponent implements OnInit {
     this.guardando.set(true);
     this.errorTelefonoServidor.set(null);
 
+    let clienteGuardado: Cliente;
     try {
       const nombreLimpio = validarNombre(this.nombre());
       const telefonoLimpio = validarTelefono(this.telefono());
 
-      let clienteGuardado: Cliente;
       if (this.cliente) {
         await this.editarCliente.editar({
           idCliente: this.cliente.idCliente,
@@ -210,8 +211,7 @@ export class ClienteModalComponent implements OnInit {
           esMostrador: false,
         };
       }
-
-      await this.modalCtrl.dismiss(clienteGuardado, ROL_GUARDADO);
+      this.guardado.set(true);
     } catch (error: unknown) {
       if (
         error instanceof ReglaNegocioError &&
@@ -227,8 +227,15 @@ export class ClienteModalComponent implements OnInit {
         });
         await toast.present();
       }
+      return;
     } finally {
       this.guardando.set(false);
+    }
+
+    try {
+      await this.modalCtrl.dismiss(clienteGuardado, ROL_GUARDADO);
+    } catch {
+      // Write succeeded; guardado() stays true so Guardar remains disabled
     }
   }
 }

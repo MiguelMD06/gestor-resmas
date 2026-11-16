@@ -233,4 +233,31 @@ describe('ResumenVentaModalComponent', () => {
       'Abono inicial de $ 25.000 · Transferencia',
     );
   });
+
+  it('locks Aceptar and Volver a editar permanently, shows Venta registrada, notifies alGuardar and ignores second aceptar() if dismiss rejects after registrar resolves (H1)', async () => {
+    mockModalCtrl.dismiss.mockRejectedValueOnce(new Error('Dismiss failed'));
+    const alGuardar = vi.fn();
+    component.alGuardar = alGuardar;
+
+    await component.aceptar();
+    fixture.detectChanges();
+
+    expect(mockRegistrarVenta.registrar).toHaveBeenCalledTimes(1);
+    expect(alGuardar).toHaveBeenCalledTimes(1);
+    expect(
+      Boolean(fixture.debugElement.query(By.css('[data-testid="btn-aceptar-venta"]')).nativeElement.disabled),
+    ).toBe(true);
+    expect(
+      Boolean(fixture.debugElement.query(By.css('[data-testid="btn-volver-editar"]')).nativeElement.disabled),
+    ).toBe(true);
+    expect(
+      fixture.debugElement.query(By.css('[data-testid="mensaje-venta-registrada"]')).nativeElement.textContent.trim(),
+    ).toBe('Venta registrada');
+
+    await component.aceptar();
+    await component.volverAEditar();
+
+    expect(mockRegistrarVenta.registrar).toHaveBeenCalledTimes(1);
+    expect(mockModalCtrl.dismiss).toHaveBeenCalledTimes(1);
+  });
 });

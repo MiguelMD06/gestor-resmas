@@ -17,8 +17,7 @@ export const routes: Routes = [
   },
   {
     path: 'clientes',
-    loadComponent: () => import('./proximamente.page').then((m) => m.ProximamentePage),
-    data: { titulo: 'Clientes', etapa: 3 },
+    loadComponent: () => import('../clientes/ui/clientes.page').then((m) => m.ClientesPage),
   },
   {
     path: '',

@@ -208,4 +208,32 @@ describe('ClienteModalComponent', () => {
     await component.cancelar();
     expect(mockModalCtrl.dismiss).toHaveBeenCalledWith(null, ROL_CANCELAR);
   });
+
+  it('sets aria-disabled="true" on Nombre completo and Celular inputs while saving (V5)', async () => {
+    let resolver: (val: { idCliente: number }) => void = () => undefined;
+    mockRegistrar.registrar.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolver = resolve;
+      }),
+    );
+
+    component.nombre.set('Ana Pérez');
+    component.telefono.set('3001234567');
+    fixture.detectChanges();
+
+    const p = component.guardar();
+    fixture.detectChanges();
+
+    const inputNombre = fixture.debugElement.query(By.css('[data-testid="input-nombre"]'));
+    const inputTelefono = fixture.debugElement.query(By.css('[data-testid="input-telefono"]'));
+    expect(inputNombre.attributes['aria-disabled']).toBe('true');
+    expect(inputTelefono.attributes['aria-disabled']).toBe('true');
+
+    resolver({ idCliente: 9 });
+    await p;
+    fixture.detectChanges();
+
+    expect(inputNombre.attributes['aria-disabled']).toBeUndefined();
+    expect(inputTelefono.attributes['aria-disabled']).toBeUndefined();
+  });
 });

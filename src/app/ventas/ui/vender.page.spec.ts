@@ -281,6 +281,7 @@ describe('VenderPage', () => {
         textoPago: 'Contado · Efectivo',
         pago: { modalidad: 'CONTADO', medio: 'EFECTIVO' },
         fecha: ahoraFija,
+        alCambiarGuardando: expect.any(Function),
       },
       canDismiss: soloCierreExplicito,
     });
@@ -372,5 +373,178 @@ describe('VenderPage', () => {
     });
     expect(component.clienteSeleccionado()).toEqual(ana);
     expect(component.selectorClienteAbierto()).toBe(false);
+  });
+
+  it('prevents double tap on Confirmar venta and re-enables even if modalCtrl.create fails (V1)', async () => {
+    await component.ionViewWillEnter();
+    component.agregarLote(loteCartaA);
+    component.actualizarCantidad(loteCartaA.idLote, '2');
+    component.actualizarPrecio(loteCartaA.idLote, 15000);
+    fixture.detectChanges();
+
+    let resolverModal: (modal: {
+      present: ReturnType<typeof vi.fn>;
+      onDidDismiss: ReturnType<typeof vi.fn>;
+    }) => void = () => undefined;
+    mockModalCtrl.create.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolverModal = resolve;
+      }),
+    );
+
+    const p1 = component.abrirResumen();
+    const p2 = component.abrirResumen();
+    fixture.detectChanges();
+
+    expect(mockModalCtrl.create).toHaveBeenCalledTimes(1);
+    expect(estaDeshabilitado(botonConfirmar())).toBe(true);
+    expect(botonConfirmar().attributes['aria-disabled']).toBe('true');
+
+    resolverModal({
+      present: vi.fn().mockResolvedValue(undefined),
+      onDidDismiss: vi.fn().mockResolvedValue({ data: null, role: ROL_CANCELAR }),
+    });
+    await Promise.all([p1, p2]);
+    fixture.detectChanges();
+
+    expect(estaDeshabilitado(botonConfirmar())).toBe(false);
+
+    // If modalCtrl.create fails, Confirmar venta is re-enabled
+    mockModalCtrl.create.mockRejectedValueOnce(new Error('Modal create failed'));
+    await expect(component.abrirResumen()).rejects.toThrow('Modal create failed');
+    fixture.detectChanges();
+
+    expect(estaDeshabilitado(botonConfirmar())).toBe(false);
+  });
+
+  it('locks the page while summary modal is saving (V2)', async () => {
+    await component.ionViewWillEnter();
+    component.seleccionarCliente(ana);
+    component.agregarLote(loteCartaA);
+    component.actualizarCantidad(loteCartaA.idLote, '2');
+    component.actualizarPrecio(loteCartaA.idLote, 15000);
+    fixture.detectChanges();
+
+    let resolverDismiss: (res: { data: { guardado: boolean }; role: string }) => void = () => undefined;
+    mockModalCtrl.create.mockResolvedValueOnce({
+      present: vi.fn().mockResolvedValue(undefined),
+      onDidDismiss: vi.fn().mockReturnValue(
+        new Promise((resolve) => {
+          resolverDismiss = resolve;
+        }),
+      ),
+    });
+
+    const p = component.abrirResumen();
+    await Promise.resolve();
+
+    const createArg = mockModalCtrl.create.mock.calls[0]?.[0] as {
+      componentProps?: { alCambiarGuardando?: (estado: boolean) => void };
+    };
+    expect(createArg.componentProps?.alCambiarGuardando).toEqual(expect.any(Function));
+
+    createArg.componentProps?.alCambiarGuardando?.(true);
+    fixture.detectChanges();
+
+    expect(component.guardando()).toBe(true);
+    expect(fixture.debugElement.query(By.css('[data-testid="indicador-guardando"]'))).toBeTruthy();
+    expect(estaDeshabilitado(botonConfirmar())).toBe(true);
+    expect(Boolean(fixture.debugElement.query(By.css('[data-testid="btn-fecha-venta"]')).nativeElement.disabled)).toBe(
+      true,
+    );
+
+    createArg.componentProps?.alCambiarGuardando?.(false);
+    resolverDismiss({ data: { guardado: true }, role: ROL_GUARDADO });
+    await p;
+    fixture.detectChanges();
+
+    expect(component.guardando()).toBe(false);
+    expect(fixture.debugElement.query(By.css('[data-testid="indicador-guardando"]'))).toBeNull();
+  });
+
+  it('updates maxFechaIso with CLOCK each time the date picker is opened (V3)', async () => {
+    await component.ionViewWillEnter();
+    fixture.detectChanges();
+
+    mockClock.ahora.mockReturnValue('2026-11-15 15:00:00');
+    component.abrirSelectorFecha();
+    fixture.detectChanges();
+    expect(component.maxFechaIso()).toBe('2026-11-15T15:00:00');
+
+    component.cerrarSelectorFecha();
+    mockClock.ahora.mockReturnValue('2026-11-15 17:45:00');
+    component.abrirSelectorFecha();
+    fixture.detectChanges();
+    expect(component.maxFechaIso()).toBe('2026-11-15T17:45:00');
+  });
+
+  it('shows error with Reintentar when customer search fails, recovers on retry, and discards stale search responses (V4)', async () => {
+    await component.ionViewWillEnter();
+    fixture.detectChanges();
+
+    mockBuscarClientes.buscar.mockRejectedValueOnce(new Error('Search failed'));
+    component.abrirSelectorCliente();
+    await Promise.resolve();
+    await Promise.resolve();
+    fixture.detectChanges();
+
+    expect(component.errorBusquedaClientes()).toBe(MENSAJE_ERROR_GENERICO);
+    expect(component.buscandoClientes()).toBe(false);
+
+    // Retry succeeds
+    mockBuscarClientes.buscar.mockResolvedValueOnce([mostrador, ana]);
+    component.reintentarBusquedaClientes();
+    expect(component.buscandoClientes()).toBe(true);
+    await Promise.resolve();
+    await Promise.resolve();
+    fixture.detectChanges();
+
+    expect(component.errorBusquedaClientes()).toBeNull();
+    expect(component.buscandoClientes()).toBe(false);
+    expect(component.clientesSelector()).toEqual([mostrador, ana]);
+
+    // Stale response does not overwrite newer search
+    let resolveStale: (list: Cliente[]) => void = () => undefined;
+    let resolveFresh: (list: Cliente[]) => void = () => undefined;
+    mockBuscarClientes.buscar
+      .mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveStale = resolve;
+        }),
+      )
+      .mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveFresh = resolve;
+        }),
+      );
+
+    component.onBuscarClienteInput({ detail: { value: 'a' } } as CustomEvent);
+    component.onBuscarClienteInput({ detail: { value: 'ana' } } as CustomEvent);
+
+    resolveFresh([ana]);
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(component.clientesSelector()).toEqual([ana]);
+
+    resolveStale([mostrador]);
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(component.clientesSelector()).toEqual([ana]);
+  });
+
+  it('disables date button and modality/payment segments while cargando() is true (V5)', () => {
+    component.cargando.set(true);
+    fixture.detectChanges();
+
+    const btnFecha = fixture.debugElement.query(By.css('[data-testid="btn-fecha-venta"]'));
+    const segModalidad = fixture.debugElement.query(By.css('[data-testid="segment-modalidad"]'));
+    const segMedio = fixture.debugElement.query(By.css('[data-testid="segment-medio"]'));
+
+    expect(Boolean(btnFecha.nativeElement.disabled)).toBe(true);
+    expect(btnFecha.attributes['aria-disabled']).toBe('true');
+    expect(Boolean(segModalidad.nativeElement.disabled)).toBe(true);
+    expect(segModalidad.attributes['aria-disabled']).toBe('true');
+    expect(Boolean(segMedio.nativeElement.disabled)).toBe(true);
+    expect(segMedio.attributes['aria-disabled']).toBe('true');
   });
 });

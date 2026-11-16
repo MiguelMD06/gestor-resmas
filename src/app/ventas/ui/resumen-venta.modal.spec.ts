@@ -152,4 +152,26 @@ describe('ResumenVentaModalComponent', () => {
     expect(mockToastPresent).toHaveBeenCalled();
     expect(mockModalCtrl.dismiss).toHaveBeenCalledWith({ guardado: true }, ROL_GUARDADO);
   });
+
+  it('notifies alCambiarGuardando(true) before saving and alCambiarGuardando(false) in finally (V2)', async () => {
+    let resolver: (val: { idVenta: number }) => void = () => undefined;
+    mockRegistrarVenta.registrar.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolver = resolve;
+      }),
+    );
+
+    const alCambiarGuardando = vi.fn();
+    component.alCambiarGuardando = alCambiarGuardando;
+
+    const p = component.aceptar();
+    expect(alCambiarGuardando).toHaveBeenCalledTimes(1);
+    expect(alCambiarGuardando).toHaveBeenLastCalledWith(true);
+
+    resolver({ idVenta: 99 });
+    await p;
+
+    expect(alCambiarGuardando).toHaveBeenCalledTimes(2);
+    expect(alCambiarGuardando).toHaveBeenLastCalledWith(false);
+  });
 });

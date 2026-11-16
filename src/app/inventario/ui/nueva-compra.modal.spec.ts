@@ -554,4 +554,42 @@ describe('NuevaCompraModalComponent', () => {
     fixture.detectChanges();
     expect(btnAporte.nativeElement.disabled || btnAporte.attributes['disabled'] !== undefined).toBe(false);
   });
+
+  it('formats "120000" as "$ 120.000" in costoPorCaja field, saves 120000, and keeps Guardar compra disabled when empty (E21)', async () => {
+    const campoPesos = fixture.debugElement.query(By.css('app-campo-pesos[data-testid="input-costo-caja"]'));
+    expect(campoPesos).toBeTruthy();
+
+    const ionInput = campoPesos.query(By.css('ion-input'));
+    ionInput.nativeElement.value = '120000';
+    ionInput.triggerEventHandler('ionInput', {
+      detail: { value: '120000' },
+      target: ionInput.nativeElement,
+    });
+    fixture.detectChanges();
+
+    expect(ionInput.nativeElement.value).toBe('$ 120.000');
+    expect(component.costoPorCaja()).toBe(120000);
+
+    component.cajas.set(2);
+    await component.actualizarPrevisualizacion();
+    fixture.detectChanges();
+
+    await component.guardar();
+    expect(mockRegistrarCompra.registrar).toHaveBeenCalledWith(
+      expect.objectContaining({
+        costoPorCaja: 120000,
+      }),
+    );
+
+    ionInput.nativeElement.value = '';
+    ionInput.triggerEventHandler('ionInput', {
+      detail: { value: '' },
+      target: ionInput.nativeElement,
+    });
+    fixture.detectChanges();
+
+    expect(component.costoPorCaja()).toBeNull();
+    const botonGuardar = fixture.debugElement.query(By.css('[data-testid="btn-guardar-compra"]'));
+    expect(botonGuardar.nativeElement.disabled || botonGuardar.attributes['disabled'] !== undefined).toBe(true);
+  });
 });

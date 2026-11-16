@@ -30,6 +30,7 @@ import {
   type TipoPapel,
 } from '../../shared/domain';
 import { CLOCK } from '../../shared/infrastructure/clock/clock.token';
+import { CampoPesosComponent } from '../../shared/ui/campo-pesos.component';
 import { esVacio, soloCierreExplicito } from '../../shared/ui/formulario';
 import { mensajeDeError } from '../../shared/ui/mensajes-error';
 import { RegistrarCompra } from '../application/registrar-compra';
@@ -105,23 +106,16 @@ interface VistaPreviaCompra {
         </ion-note>
       }
 
-      <ion-item>
-        <ion-input
-          label="Costo por caja en pesos"
-          labelPlacement="stacked"
-          type="number"
-          [value]="costoPorCaja()"
-          [disabled]="guardando()"
-          (ionInput)="onCostoInput($event)"
-          placeholder="Ej: 120000"
-          data-testid="input-costo-caja"
-        ></ion-input>
-      </ion-item>
-      @if (errorCosto()) {
-        <ion-note color="danger" class="ion-padding-start" data-testid="error-costo-caja">
-          {{ errorCosto() }}
-        </ion-note>
-      }
+      <app-campo-pesos
+        label="Costo por caja en pesos"
+        [(valor)]="costoPorCaja"
+        (valorChange)="actualizarPrevisualizacion()"
+        [disabled]="guardando()"
+        [error]="errorCosto()"
+        errorTestId="error-costo-caja"
+        placeholder="Ej: 120000"
+        data-testid="input-costo-caja"
+      />
 
       <ion-item>
         <ion-select
@@ -198,6 +192,7 @@ interface VistaPreviaCompra {
   imports: [
     CommonModule,
     FormsModule,
+    CampoPesosComponent,
     IonHeader,
     IonToolbar,
     IonTitle,
@@ -273,14 +268,6 @@ export class NuevaCompraModalComponent implements OnInit {
     const raw = detail && 'value' in detail ? detail.value : (event.target as HTMLInputElement)?.value;
     const parsed = esVacio(raw) ? null : Number(raw);
     this.cajas.set(parsed);
-    void this.actualizarPrevisualizacion();
-  }
-
-  onCostoInput(event: CustomEvent | Event): void {
-    const detail = (event as CustomEvent).detail;
-    const raw = detail && 'value' in detail ? detail.value : (event.target as HTMLInputElement)?.value;
-    const parsed = esVacio(raw) ? null : Number(raw);
-    this.costoPorCaja.set(parsed);
     void this.actualizarPrevisualizacion();
   }
 

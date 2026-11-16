@@ -216,4 +216,38 @@ describe('AporteModalComponent', () => {
     await component.cancelar();
     expect(mockModalCtrl.dismiss).toHaveBeenCalledWith(null, 'cancel');
   });
+
+  it('formats "120000" as "$ 120.000" in monto field, saves 120000, and keeps Guardar aporte disabled when empty (E21)', async () => {
+    const campoPesos = fixture.debugElement.query(By.css('app-campo-pesos[data-testid="input-monto"]'));
+    expect(campoPesos).toBeTruthy();
+
+    const ionInput = campoPesos.query(By.css('ion-input'));
+    ionInput.nativeElement.value = '120000';
+    ionInput.triggerEventHandler('ionInput', {
+      detail: { value: '120000' },
+      target: ionInput.nativeElement,
+    });
+    fixture.detectChanges();
+
+    expect(ionInput.nativeElement.value).toBe('$ 120.000');
+    expect(component.monto()).toBe(120000);
+
+    await component.guardar();
+    expect(mockRegistrarAporte.registrar).toHaveBeenCalledWith(
+      expect.objectContaining({
+        monto: pesos(120000),
+      }),
+    );
+
+    ionInput.nativeElement.value = '';
+    ionInput.triggerEventHandler('ionInput', {
+      detail: { value: '' },
+      target: ionInput.nativeElement,
+    });
+    fixture.detectChanges();
+
+    expect(component.monto()).toBeNull();
+    const botonGuardar = fixture.debugElement.query(By.css('[data-testid="btn-guardar-aporte"]'));
+    expect(botonGuardar.nativeElement.disabled || botonGuardar.attributes['disabled'] !== undefined).toBe(true);
+  });
 });

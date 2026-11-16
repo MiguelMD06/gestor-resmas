@@ -1,7 +1,7 @@
 import type { ComponentFixture } from '@angular/core/testing';
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { ModalController } from '@ionic/angular';
+import { ModalController, ToastController } from '@ionic/angular';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { BuscarClientes } from '../../clientes/application/buscar-clientes';
@@ -14,7 +14,8 @@ import { CLOCK } from '../../shared/infrastructure/clock/clock.token';
 import { ROL_CANCELAR, ROL_GUARDADO, soloCierreExplicito } from '../../shared/ui/formulario';
 import { MENSAJES_ERROR, MENSAJE_ERROR_GENERICO } from '../../shared/ui/mensajes-error';
 
-import { ResumenVentaModalComponent } from './resumen-venta.modal';
+import { ResumenVentaModalComponent, ROL_ERROR } from './resumen-venta.modal';
+import { SelectorClienteContenidoComponent } from './selector-cliente-contenido.component';
 import { VenderPage } from './vender.page';
 
 describe('VenderPage', () => {
@@ -23,6 +24,8 @@ describe('VenderPage', () => {
   let mockConsultarInventario: { activos: ReturnType<typeof vi.fn> };
   let mockBuscarClientes: { buscar: ReturnType<typeof vi.fn> };
   let mockModalCtrl: { create: ReturnType<typeof vi.fn> };
+  let mockToastCtrl: { create: ReturnType<typeof vi.fn> };
+  let mockToastPresent: ReturnType<typeof vi.fn>;
   let mockClock: { ahora: ReturnType<typeof vi.fn> };
 
   const ahoraFija = fechaHora('2026-11-15 14:30:00');
@@ -83,6 +86,10 @@ describe('VenderPage', () => {
         onDidDismiss: vi.fn().mockResolvedValue({ data: ana, role: ROL_GUARDADO }),
       }),
     };
+    mockToastPresent = vi.fn().mockResolvedValue(undefined);
+    mockToastCtrl = {
+      create: vi.fn().mockResolvedValue({ present: mockToastPresent }),
+    };
     mockClock = {
       ahora: vi.fn().mockReturnValue(ahoraFija),
     };
@@ -93,6 +100,7 @@ describe('VenderPage', () => {
         { provide: ConsultarInventario, useValue: mockConsultarInventario },
         { provide: BuscarClientes, useValue: mockBuscarClientes },
         { provide: ModalController, useValue: mockModalCtrl },
+        { provide: ToastController, useValue: mockToastCtrl },
         { provide: CLOCK, useValue: mockClock },
       ],
     }).compileComponents();
@@ -278,7 +286,6 @@ describe('VenderPage', () => {
           },
         ],
         totalVenta: pesos(75000),
-        textoPago: 'Contado · Efectivo',
         pago: { modalidad: 'CONTADO', medio: 'EFECTIVO' },
         fecha: ahoraFija,
         alCambiarGuardando: expect.any(Function),
@@ -409,11 +416,18 @@ describe('VenderPage', () => {
 
     expect(estaDeshabilitado(botonConfirmar())).toBe(false);
 
-    // If modalCtrl.create fails, Confirmar venta is re-enabled
+    // If modalCtrl.create fails, shows error toast and re-enables Confirmar venta (F10)
     mockModalCtrl.create.mockRejectedValueOnce(new Error('Modal create failed'));
-    await expect(component.abrirResumen()).rejects.toThrow('Modal create failed');
+    await expect(component.abrirResumen()).resolves.toBeUndefined();
     fixture.detectChanges();
 
+    expect(mockToastCtrl.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: MENSAJE_ERROR_GENERICO,
+        color: 'danger',
+      }),
+    );
+    expect(mockToastPresent).toHaveBeenCalled();
     expect(estaDeshabilitado(botonConfirmar())).toBe(false);
   });
 
@@ -478,30 +492,57 @@ describe('VenderPage', () => {
     expect(component.maxFechaIso()).toBe('2026-11-15T17:45:00');
   });
 
-  it('shows error with Reintentar when customer search fails, recovers on retry, and discards stale search responses (V4)', async () => {
+  it('shows error with Reintentar when customer search fails, keeps Reintentar disabled while retrying, recovers on retry, and discards stale search responses (V4, F11)', async () => {
     await component.ionViewWillEnter();
     fixture.detectChanges();
+
+    const selectorFixture = TestBed.createComponent(SelectorClienteContenidoComponent);
+    const sincronizarSelector = () => {
+      selectorFixture.componentRef.setInput('busqueda', component.busquedaCliente());
+      selectorFixture.componentRef.setInput('clientes', component.clientesSelector());
+      selectorFixture.componentRef.setInput('buscando', component.buscandoClientes());
+      selectorFixture.componentRef.setInput('errorBusqueda', component.errorBusquedaClientes());
+      selectorFixture.detectChanges();
+    };
+    selectorFixture.componentInstance.reintentar.subscribe(() => component.reintentarBusquedaClientes());
 
     mockBuscarClientes.buscar.mockRejectedValueOnce(new Error('Search failed'));
     component.abrirSelectorCliente();
     await Promise.resolve();
     await Promise.resolve();
-    fixture.detectChanges();
+    sincronizarSelector();
 
-    expect(component.errorBusquedaClientes()).toBe(MENSAJE_ERROR_GENERICO);
-    expect(component.buscandoClientes()).toBe(false);
+    const bloqueError = selectorFixture.debugElement.query(By.css('[data-testid="estado-error-clientes"]'));
+    expect(bloqueError).toBeTruthy();
+    expect(
+      selectorFixture.debugElement.query(By.css('[data-testid="mensaje-error-clientes"]')).nativeElement.textContent,
+    ).toContain(MENSAJE_ERROR_GENERICO);
+    const btnReintentar = selectorFixture.debugElement.query(By.css('[data-testid="btn-reintentar-clientes"]'));
+    expect(btnReintentar).toBeTruthy();
+    expect(Boolean(btnReintentar.nativeElement.disabled)).toBe(false);
 
-    // Retry succeeds
-    mockBuscarClientes.buscar.mockResolvedValueOnce([mostrador, ana]);
-    component.reintentarBusquedaClientes();
-    expect(component.buscandoClientes()).toBe(true);
+    // Retry keeps error block visible with Reintentar disabled until result arrives
+    let resolverReintento: (list: Cliente[]) => void = () => undefined;
+    mockBuscarClientes.buscar.mockReturnValueOnce(
+      new Promise<Cliente[]>((resolve) => {
+        resolverReintento = resolve;
+      }),
+    );
+    btnReintentar.triggerEventHandler('click', null);
+    sincronizarSelector();
+
+    expect(selectorFixture.debugElement.query(By.css('[data-testid="estado-error-clientes"]'))).toBeTruthy();
+    const btnDurante = selectorFixture.debugElement.query(By.css('[data-testid="btn-reintentar-clientes"]'));
+    expect(Boolean(btnDurante.nativeElement.disabled)).toBe(true);
+    expect(btnDurante.attributes['aria-disabled']).toBe('true');
+
+    resolverReintento([mostrador, ana]);
     await Promise.resolve();
     await Promise.resolve();
-    fixture.detectChanges();
+    sincronizarSelector();
 
-    expect(component.errorBusquedaClientes()).toBeNull();
-    expect(component.buscandoClientes()).toBe(false);
-    expect(component.clientesSelector()).toEqual([mostrador, ana]);
+    expect(selectorFixture.debugElement.query(By.css('[data-testid="estado-error-clientes"]'))).toBeNull();
+    expect(selectorFixture.debugElement.queryAll(By.css('[data-testid="item-cliente-vender"]'))).toHaveLength(2);
 
     // Stale response does not overwrite newer search
     let resolveStale: (list: Cliente[]) => void = () => undefined;
@@ -546,5 +587,128 @@ describe('VenderPage', () => {
     expect(segModalidad.attributes['aria-disabled']).toBe('true');
     expect(Boolean(segMedio.nativeElement.disabled)).toBe(true);
     expect(segMedio.attributes['aria-disabled']).toBe('true');
+  });
+
+  it('reloads lots and preserves draft when summary modal closes with ROL_ERROR (F6)', async () => {
+    mockModalCtrl.create.mockResolvedValueOnce({
+      present: vi.fn().mockResolvedValue(undefined),
+      onDidDismiss: vi.fn().mockResolvedValue({ data: { error: true }, role: ROL_ERROR }),
+    });
+
+    await component.ionViewWillEnter();
+    component.seleccionarCliente(ana);
+    component.agregarLote(loteCartaA);
+    component.actualizarCantidad(loteCartaA.idLote, '5');
+    component.actualizarPrecio(loteCartaA.idLote, 15000);
+    fixture.detectChanges();
+
+    const loteActualizado: Lote = { ...loteCartaA, resmasDisponibles: resmas(3) };
+    mockConsultarInventario.activos.mockResolvedValueOnce({
+      CARTA: [loteActualizado],
+      OFICIO: [loteOficioC],
+    });
+
+    await component.abrirResumen();
+    fixture.detectChanges();
+
+    expect(component.lotes()).toEqual([loteActualizado, loteOficioC]);
+    expect(component.clienteSeleccionado()).toEqual(ana);
+    expect(component.lineas()).toHaveLength(1);
+    expect(component.lineas()[0].cantidadTexto).toBe('5');
+    expect(component.lineas()[0].precioUnitario).toBe(15000);
+  });
+
+  it('calculates totals only from valid lines and does not open summary when values are missing (F8)', async () => {
+    await component.ionViewWillEnter();
+    component.seleccionarCliente(ana);
+    component.agregarLote(loteCartaA);
+    component.actualizarCantidad(loteCartaA.idLote, '2');
+    component.actualizarPrecio(loteCartaA.idLote, 15000);
+    component.agregarLote(loteOficioC); // price is null -> invalid line
+    fixture.detectChanges();
+
+    expect(component.totalVenta()).toBe(pesos(30000));
+    expect(component.costoTotal()).toBe(pesos(24000));
+    expect(component.margenTotal()).toBe(pesos(6000));
+
+    await component.abrirResumen();
+    expect(mockModalCtrl.create).not.toHaveBeenCalled();
+  });
+
+  it('uses current CLOCK on ionViewWillEnter and abrirResumen unless user edited date manually, and resets after save (F9)', async () => {
+    // CLOCK advances between construction and ionViewWillEnter
+    mockClock.ahora.mockReturnValue('2026-11-15 16:00:00');
+    await component.ionViewWillEnter();
+    expect(component.fechaSeleccionada()).toBe('2026-11-15 16:00:00');
+
+    // CLOCK advances before abrirResumen
+    component.agregarLote(loteCartaA);
+    component.actualizarCantidad(loteCartaA.idLote, '1');
+    component.actualizarPrecio(loteCartaA.idLote, 15000);
+    mockClock.ahora.mockReturnValue('2026-11-15 16:45:00');
+    mockModalCtrl.create.mockResolvedValueOnce({
+      present: vi.fn().mockResolvedValue(undefined),
+      onDidDismiss: vi.fn().mockResolvedValue({ data: null, role: ROL_CANCELAR }),
+    });
+    await component.abrirResumen();
+    expect(mockModalCtrl.create).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        componentProps: expect.objectContaining({ fecha: '2026-11-15 16:45:00' }),
+      }),
+    );
+
+    // User edits date manually -> respected even if CLOCK advances and on ionViewWillEnter
+    component.onFechaSeleccionada('2026-11-14T10:30:00');
+    mockClock.ahora.mockReturnValue('2026-11-15 18:00:00');
+    await component.ionViewWillEnter();
+    expect(component.fechaSeleccionada()).toBe('2026-11-14 10:30:00');
+
+    // Saving resets manual flag so date returns to CLOCK.ahora()
+    mockModalCtrl.create.mockResolvedValueOnce({
+      present: vi.fn().mockResolvedValue(undefined),
+      onDidDismiss: vi.fn().mockResolvedValue({ data: { guardado: true }, role: ROL_GUARDADO }),
+    });
+    await component.abrirResumen();
+    expect(component.fechaSeleccionada()).toBe('2026-11-15 18:00:00');
+  });
+
+  it('shows error toast and releases guard when modal.present rejects in abrirResumen (F10)', async () => {
+    await component.ionViewWillEnter();
+    component.agregarLote(loteCartaA);
+    component.actualizarCantidad(loteCartaA.idLote, '1');
+    component.actualizarPrecio(loteCartaA.idLote, 15000);
+    fixture.detectChanges();
+
+    mockModalCtrl.create.mockResolvedValueOnce({
+      present: vi.fn().mockRejectedValueOnce(new Error('Present failed')),
+      onDidDismiss: vi.fn(),
+    });
+
+    await expect(component.abrirResumen()).resolves.toBeUndefined();
+    fixture.detectChanges();
+
+    expect(mockToastCtrl.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: MENSAJE_ERROR_GENERICO,
+        color: 'danger',
+      }),
+    );
+    expect(mockToastPresent).toHaveBeenCalled();
+    expect(component.abriendoResumen()).toBe(false);
+    expect(estaDeshabilitado(botonConfirmar())).toBe(false);
+  });
+
+  it('shows error state with Reintentar and never displays Mostrador when Mostrador is missing on load (F12)', async () => {
+    mockBuscarClientes.buscar.mockResolvedValueOnce([ana]);
+
+    await component.ionViewWillEnter();
+    fixture.detectChanges();
+
+    expect(fixture.debugElement.query(By.css('[data-testid="estado-error"]'))).toBeTruthy();
+    expect(fixture.debugElement.query(By.css('[data-testid="btn-reintentar"]'))).toBeTruthy();
+    expect(
+      fixture.debugElement.query(By.css('[data-testid="selector-cliente"]')).nativeElement.textContent,
+    ).not.toContain('Mostrador');
+    expect(component.clienteSeleccionado()).toBeNull();
   });
 });

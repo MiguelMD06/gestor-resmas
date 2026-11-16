@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { SqlJsDatabase } from '../../../../testing/sqljs-sql-database.adapter';
 
 import { DatabaseProvider } from './database.provider';
+import { MIGRACIONES } from './migrations';
 
 describe('DatabaseProvider', () => {
   it('throws an error if db getter is accessed before init() is called', () => {
@@ -22,9 +23,10 @@ describe('DatabaseProvider', () => {
     await Promise.all([provider.init(createDatabase), provider.init(createDatabase)]);
 
     expect(createDatabase).toHaveBeenCalledTimes(1);
-    expect(transactionSpy).toHaveBeenCalledTimes(1);
+    // One transaction per migration: a second concurrent init() must not migrate again.
+    expect(transactionSpy).toHaveBeenCalledTimes(MIGRACIONES.length);
     const rows = await provider.db.query<{ user_version: number }>('PRAGMA user_version;');
-    expect(rows[0]?.user_version).toBe(1);
+    expect(rows[0]?.user_version).toBe(MIGRACIONES[MIGRACIONES.length - 1]?.version);
   });
 
   it('discards the failed promise and succeeds on a subsequent init() retry', async () => {

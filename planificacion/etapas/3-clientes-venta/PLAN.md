@@ -61,7 +61,8 @@ Cada uno es una prueba. Los números siguen el ejemplo de Ana: lote **A** Carta 
 | E16 | Confirmar una venta sin líneas, o con el mismo lote en dos líneas. | se rechaza (`VENTA_SIN_LINEAS` o `LOTE_REPETIDO`); en la pantalla, un lote ya agregado no se puede volver a elegir |
 | E17 | Doble toque en **Confirmar venta** (dos ejecuciones concurrentes). | se registra **una sola** venta, un solo descuento de stock y un solo movimiento |
 | E18 | La carga de lotes o de clientes falla. | se ve el estado de error con **Reintentar**, no la lista vacía |
-| E19 | Venta de E6 completa desde la pestaña Vender, con Ana ya creada (RNF-05). | se completa en **4 toques**, sin contar lo que se escribe con el teclado: (1) elegir cliente, (2) tocar a Ana en los resultados, (3) tocar el lote A, (4) **Confirmar venta**; con Mostrador y contado en efectivo, en 2 toques. La fecha viene puesta con la de ahora y no suma toques |
+| E19 | Venta de E6 completa desde la pestaña Vender, con Ana ya creada (RNF-05 con la excepción de D15). | se completa en **5 toques**, sin contar lo que se escribe con el teclado: (1) elegir cliente, (2) tocar a Ana en los resultados, (3) tocar el lote A, (4) **Confirmar venta**, (5) **Aceptar** en el resumen; con Mostrador y contado en efectivo, en 3 toques. La fecha viene puesta con la de ahora y no suma toques. El resumen muestra "Ana María Pérez", "5 × Carta a $15.000 = $75.000", "Total: $75.000" y "Contado · Efectivo"; **Volver a editar** cierra el resumen sin guardar nada y deja la venta como estaba |
+| E21 | Escribir "3800" en un campo de dinero (precio de Vender, abono inicial, costo por caja de la compra, monto del aporte). | el campo muestra "$3.800" y el valor es el entero 3800; al borrarlo todo, el valor es `null` y el botón de guardar queda deshabilitado; pegar "3.800" da 3800 |
 | E20 | La venta de E6 con fecha de ayer a las 18:00. | la venta, el abono `PAGO_CONTADO` y el movimiento `COBRO` quedan con esa fecha; una fecha posterior a la del `CLOCK` se rechaza (`FECHA_FUTURA`) |
 
 ## Decisiones
@@ -75,13 +76,15 @@ Cada uno es una prueba. Los números siguen el ejemplo de Ana: lote **A** Carta 
 | D5 | **Una línea por lote.** Para vender más resmas del mismo lote se cambia la cantidad de su línea. | Evita que dos líneas del mismo lote sumen más que su stock sin que ninguna lo supere sola. |
 | D6 | **La fecha de la venta viene puesta con la del `CLOCK` y se puede cambiar a una fecha pasada**, nunca a una futura (`FECHA_FUTURA`). El abono y el movimiento `COBRO` de esa venta llevan la misma fecha. | L3: hay que poder cargar una venta del día anterior. Si el cobro llevara la fecha de carga, la ganancia caería en el mes equivocado (A5). La regla 11 de `CLAUDE.md` se cumple: "ahora" sale del `CLOCK`. |
 | D7 | **Mensajes nuevos en la misma tabla** (`shared/ui/mensajes-error.ts`): `NOMBRE_INVALIDO`, `TELEFONO_INVALIDO`, `PRECIO_INVALIDO`, `VENTA_SIN_LINEAS`, `LOTE_REPETIDO`, `ABONO_INICIAL_INVALIDO`, `MOSTRADOR_SOLO_CONTADO`, `CLIENTE_INEXISTENTE`, `FECHA_FUTURA`, `TELEFONO_REPETIDO` y `CANTIDAD_RESMAS_INVALIDA` ("La cantidad de resmas debe ser un número entero mayor a cero"). | Continúa la D5 de la Etapa 2. `CANTIDAD_INVALIDA` habla de cajas y sigue siendo de la compra; la venta usa su propio código para no cambiar un texto que ya está en uso (L7). |
+| D8 | **Lotes del selector en el orden de la Etapa 2** (más antiguo primero) y con el mismo caso de uso `ConsultarInventario`. | Una sola fuente para "lotes activos"; el agotado desaparece de los dos lados a la vez (S9). |
 | D9 | **El teléfono es único:** dos clientes no pueden tener el mismo celular; el teléfono vacío no cuenta. Se valida en la pantalla y en el caso de uso (`TELEFONO_REPETIDO`), y la base lo garantiza con un índice único parcial en la migración `002` (`CREATE UNIQUE INDEX ux_clientes_telefono ON clientes (telefono) WHERE telefono IS NOT NULL`). | L5 y L6: cada persona se registra con su propio celular. Que el teléfono sea único es una regla de negocio, independiente de la clave primaria `id_cliente`. La migración no falla en instalaciones existentes: hasta esta etapa el único cliente es el Mostrador, sin teléfono. |
 | D10 | **Celular:** al guardar se quitan los espacios ("300 123 4567" → "3001234567"); cualquier otro carácter se rechaza. Al editar, el teléfono se puede dejar vacío. La lista de Clientes va en orden alfabético por nombre. | L10 (puntos 1 a 3). Los números copiados de WhatsApp suelen venir con espacios. |
 | D11 | **Lotes de Vender en una sola lista**, cada uno marcado Carta u Oficio, ordenada por tipo y después del más antiguo al más nuevo. | L10 (punto 4). Con pestañas, un lote de Oficio sumaría un toque (RNF-05). |
 | D12 | **Valores por defecto de Vender:** medio Efectivo en Contado y en Abono inicial; después de confirmar, el cliente vuelve a Mostrador. | L10 (puntos 5 y 6). Así la venta siguiente no queda a nombre del cliente anterior por error. |
 | D13 | **La fecha pasada se elige con día y hora**, con la hora actual por defecto. | L10 (punto 8). La hora ordena las facturas del mismo día en la cascada de la Etapa 4 (R-02). |
 | D14 | **Precio libre y fiado sin cupo:** cualquier precio entero mayor a $0, sin redondeo ni máximo; se puede fiar a cualquier cliente registrado sin tope de deuda. | L10 (puntos 9 y 10). RF-08 dice "digitar libremente" y ningún requisito pide un cupo. |
-| D8 | **Lotes del selector en el orden de la Etapa 2** (más antiguo primero) y con el mismo caso de uso `ConsultarInventario`. | Una sola fuente para "lotes activos"; el agotado desaparece de los dos lados a la vez (S9). |
+| D15 | **Confirmación con resumen antes de guardar la venta**, con **Aceptar** y **Volver a editar**. Muestra cliente, cada línea (tipo de papel, cantidad, precio y subtotal), total, modalidad y medio de pago, el abono inicial si lo hay, y la fecha. **Excepción a RNF-05:** una venta a un cliente registrado lleva 5 toques y una de Mostrador, 3. | L10 y L11: Miguel prefiere revisar lo que escribió antes de guardar, aunque cueste un toque más que el máximo de RNF-05. |
+| D16 | **Campo de pesos único en `shared/ui`** para todo monto que se escribe: mientras se escribe "3800" se ve "$3.800", y el valor que entrega es el entero `3800`. Vacío entrega `null`, nunca 0 (regla 1 de `CLAUDE.md`). Se usa en Vender (precio unitario y abono inicial) y reemplaza los campos de costo por caja de la compra y de monto del aporte. | L10 y L11: el mismo formato en toda la app. |
 
 ## Bloques
 
@@ -90,12 +93,13 @@ Cada uno es una prueba. Los números siguen el ejemplo de Ana: lote **A** Carta 
 | B3.0 | Códigos de regla y mensajes nuevos | D7 | inline | coordinador | 0 |
 | B3.1 | Clientes: dominio, repositorio, casos de uso y pestaña Clientes | S1, S14; E1–E5, E3b, E18 | delegado | `agy` · `gemini-4-hydrogen-medium` | 1 |
 | B3.2 | Venta: dominio, repositorios y caso de uso | S2–S5, S8–S12; E6–E14, E16, E17, E20 | delegado | `agy` · `gemini-4-hydrogen-medium` | 1 |
-| B3.3 | Pestaña Vender (punto de venta) | S2–S7, S11, S13; E14–E20 | delegado | `agy` · `gemini-4-hydrogen-medium` | 2 |
-| V3 | Verificación independiente | S1–S14, E1–E20 | delegado | `agy` · `gemini-4-hydrogen-high` | 3 |
+| B3.4 | Campo de pesos y su uso en compra y aporte | D16; E21 | delegado | `agy` · `gemini-4-hydrogen-medium` | 1 |
+| B3.3 | Pestaña Vender (punto de venta) | S2–S7, S11, S13; E14–E21 | delegado | `agy` · `gemini-4-hydrogen-medium` | 2 |
+| V3 | Verificación independiente | S1–S14, E1–E21 | delegado | `agy` · `gemini-4-hydrogen-high` | 3 |
 
 Si Hydrogen se queda sin cuota: código con `gemini-3.8-flash-high` y verificación con `gemini-4-argon-medium`.
 
-**Por qué en olas:** B3.0 lo hace el coordinador antes de la ola 1 porque los dos bloques de la ola 1 necesitan los códigos y escribirían el mismo archivo. B3.1 y B3.2 no comparten archivos y corren en paralelo; ninguno de los dos corre `npm run build`, que lo corre el coordinador. B3.3 necesita `BuscarClientes` y el modal de cliente de B3.1, y `RegistrarVenta` de B3.2. `tabs.routes.ts` lo toca cada bloque solo para su pestaña: B3.1 en la ola 1 y B3.3 en la ola 2.
+**Por qué en olas:** B3.0 lo hace el coordinador antes de la ola 1 porque los dos bloques de la ola 1 necesitan los códigos y escribirían el mismo archivo. B3.1, B3.2 y B3.4 no comparten archivos y corren en paralelo; ninguno corre `npm run build`, que lo corre el coordinador. B3.3 necesita `BuscarClientes` y el modal de cliente de B3.1, `RegistrarVenta` de B3.2 y el campo de pesos de B3.4. `tabs.routes.ts` lo toca cada bloque solo para su pestaña: B3.1 en la ola 1 y B3.3 en la ola 2.
 
 ### B3.0 — Códigos de regla y mensajes (coordinador)
 
@@ -142,17 +146,27 @@ Si Hydrogen se queda sin cuota: código con `gemini-3.8-flash-high` y verificaci
      - **Cada línea**: cantidad y precio unitario con teclado numérico, el costo por resma a la vista, el subtotal y el margen en vivo (`evaluarLinea`); con `bajoCosto`, un `ion-note` `warning` "Precio por debajo del costo: pierdes $X" (S7, E14). Un botón con ícono para quitar la línea, con `aria-label`.
      - **Fecha**: muestra la de ahora (del `CLOCK`); tocarla abre un `ion-datetime` de día y hora, con la hora actual por defecto, que no deja elegir una fecha futura (D6, D13, E20).
      - **Cierre**: total, costo y margen de la venta; `ion-segment` **Contado**, **Fiado** y **Abono inicial** (con Mostrador, solo Contado, S11); medio **Efectivo** o **Transferencia** (por defecto Efectivo, en Contado y en Abono inicial; D12); el monto si es abono inicial.
-     - **Confirmar venta**: deshabilitado si no hay líneas o algún campo es inválido, y mientras guarda (`guardando`, E17). Mientras guarda, la vista entera queda bloqueada con un indicador. Al terminar: `ion-toast` "Venta registrada", el formulario vuelve al estado inicial, con el cliente otra vez en **Mostrador** (D12), y los lotes se recargan (E13).
+     - Precio unitario y abono inicial usan el **campo de pesos** de B3.4 (D16); todo monto que se muestra usa `formatearPesos`.
+     - **Confirmar venta**: deshabilitado si no hay líneas o algún campo es inválido. Abre el **resumen** de D15 (E19) en un modal. **Volver a editar** lo cierra sin guardar. **Aceptar** guarda; desde ese toque y hasta que la petición termina rige la guarda `guardando` (E17): **Aceptar** y **Volver a editar** quedan deshabilitados, el modal no se cierra y la vista entera queda bloqueada con un indicador. Si falla, el resumen se cierra, se muestra el mensaje exacto y la venta queda como estaba para reintentar. Al terminar bien: `ion-toast` "Venta registrada", el formulario vuelve al estado inicial, con el cliente otra vez en **Mostrador** (D12), y los lotes se recargan (E13).
      - Estados cargando, con datos, sin lotes ("No hay lotes activos. Registra una compra en Inventario") y error con **Reintentar** (E18).
   2. Reemplaza la página provisional de Vender en `tabs.routes.ts`.
-- **Pruebas:** de componente, con los casos de uso simulados: validación de cantidad y precio (vacío, inválido, válido) y el estado del botón; el aviso de E14 con su texto exacto; Mostrador solo ofrece Contado; doble envío (una sola llamada a `registrar`); botón habilitado otra vez tras un error, con el mensaje exacto; E18. E2E (`e2e/vender.spec.ts`): E6 de punta a punta contando los toques de E19, E7 multilote y E13 (el lote agotado desaparece de Vender y de Inventario); después de recargar, el stock sigue descontado.
+- **Pruebas:** de componente, con los casos de uso simulados: validación de cantidad y precio (vacío, inválido, válido) y el estado del botón; el aviso de E14 con su texto exacto; Mostrador solo ofrece Contado; el resumen con sus textos exactos y **Volver a editar** sin ninguna llamada a `registrar`; doble toque en **Aceptar** (una sola llamada a `registrar`); botones habilitados otra vez tras un error, con el mensaje exacto; E18. E2E (`e2e/vender.spec.ts`): E6 de punta a punta contando los 5 toques de E19, E7 multilote y E13 (el lote agotado desaparece de Vender y de Inventario); después de recargar, el stock sigue descontado.
+
+### B3.4 — Campo de pesos
+
+- **Rutas permitidas:** `src/app/shared/ui/campo-pesos.component.ts` (y su `.spec.ts`), `src/app/inventario/ui/nueva-compra.modal.ts`, `src/app/finanzas/ui/aporte.modal.ts` (y sus `.spec.ts`), `e2e/inventario.spec.ts`, `e2e/inventario.acceptance.spec.ts`
+- **Qué hacer:**
+  1. **`shared/ui/campo-pesos.component`** (D16, E21): un `ion-input` con teclado numérico (`inputmode="numeric"`) que, mientras se escribe, muestra el valor con `formatearPesos` ("3800" → "$3.800") y entrega un `number` entero o `null` si está vacío. Ignora los puntos y el signo `$` al pegar. Tiene etiqueta visible, admite `disabled` (también para lectores de pantalla) y muestra un error junto al campo.
+  2. Reemplaza el campo de costo por caja de `nueva-compra.modal` y el de monto de `aporte.modal` por el campo de pesos, sin cambiar ninguna otra conducta de esas pantallas: la vista previa, la validación, la guarda `guardando` y los mensajes siguen iguales.
+  3. Ajusta los e2e de inventario solo en lo que el formato cambia (por ejemplo, lo que se lee del campo). Las pruebas de la Etapa 2 que no tienen que ver con el formato no cambian.
+- **Pruebas:** E21 con el componente; escribir, borrar y pegar; `disabled`; en la compra y el aporte, que "120000" se vea "$120.000" y que se guarde 120000; las pruebas existentes de los dos modales siguen pasando sin cambios en lo que verifican.
 
 ### V3 — Verificación independiente
 
 Lee este plan completo y `CLAUDE.md`, y prueba en una copia limpia (`mktemp -d`):
 
 - corre `lint`, `test:unit`, `build` y `test:e2e`;
-- reproduce E1 a E20 con pruebas propias que usan la API pública y, para E15 a E19, la interfaz;
+- reproduce E1 a E21 con pruebas propias que usan la API pública y, para E15 a E19 y E21, la interfaz;
 - da un veredicto por cada `S#` y `E#`;
 - revisa las reglas 1 a 12 de `CLAUDE.md` en cada formulario y vista nueva, y la calidad de las pruebas (regla 6 de `base.md`);
 - controla las rutas permitidas.
@@ -176,9 +190,10 @@ En el orden en que se aplican, según `commits-atomicos`:
 2. `feat: índice único del teléfono de clientes (migración 002)`
 3. `feat: directorio de clientes con búsqueda`
 4. `feat: registro de ventas multilote con pago de contado, fiado o abono inicial`
-5. `feat: pestaña Vender con selección de lote y margen en vivo`
-6. `test: pruebas de aceptación de la verificación independiente`
-7. `docs: cierre de la Etapa 3`
+5. `feat: campo de pesos con formato en compra y aporte`
+6. `feat: pestaña Vender con selección de lote, margen en vivo y resumen`
+7. `test: pruebas de aceptación de la verificación independiente`
+8. `docs: cierre de la Etapa 3`
 
 El reporte de la etapa va en Engram (`etapas/3-clientes-venta/reporte`).
 
@@ -189,7 +204,7 @@ El reporte de la etapa va en Engram (`etapas/3-clientes-venta/reporte`).
 1. ✅ **Teléfono:** opcional. Si se escribe, debe ser un celular: exactamente 10 dígitos y empezar por 3 (L3). Los nombres repetidos se permiten; el teléfono no se puede repetir (D9, L6).
 2. ✅ **Búsqueda:** por nombre o teléfono, por coincidencia parcial, sin distinguir mayúsculas ni tildes.
 3. ✅ **Mostrador:** es el cliente por defecto en Vender, no se puede editar y no aparece en la lista de la pestaña Clientes.
-4. ✅ **Cómo se cuentan los toques (RNF-05):** no cuenta lo que se escribe con el teclado (cantidad, precio, búsqueda). Con eso, una venta a un cliente registrado se hace en 4 toques y una de Mostrador en 2 (E19). Para lograrlo, tocar un lote agrega la línea con cantidad 1, sin un botón **Agregar** aparte.
+4. ✅ **Cómo se cuentan los toques (RNF-05):** no cuenta lo que se escribe con el teclado (cantidad, precio, búsqueda). Tocar un lote agrega la línea con cantidad 1, sin un botón **Agregar** aparte. Con la confirmación que pidió Miguel (D15, L11), una venta a un cliente registrado lleva 5 toques y una de Mostrador 3 (E19): es una excepción aprobada a RNF-05.
 5. ✅ **Una línea por lote** (D5).
 6. ✅ **Abono inicial** entre $1 y el total menos $1. Si el cliente paga todo, la venta es de Contado.
 7. ✅ **Fecha de la venta:** viene puesta con la de ahora y se puede cambiar a una fecha pasada, para cargar una venta del día anterior (L3, D6, E20). No se aceptan fechas futuras: las ventas se registran cuando se hacen (L8).
@@ -213,3 +228,4 @@ Mensajes del usuario copiados textualmente; las notas del coordinador van entre 
 - **L8** (2026-11-15): "Concuerdo con tu suposición ventas futuras no son necesarias, en el momento en que se hagan se registran" [Se confirma `FECHA_FUTURA` (D6, E20); deja de ser una suposición.]
 - **L9** (2026-11-15): "Me parece bien, si tienes más dudas envialas de una vez" [Se aprueba el máximo de 80 caracteres del nombre. Las dudas que quedan se envían juntas.]
 - **L10** (2026-11-15): "Todo me parece correcto, a excepcion del punto 7 ya que si me interesa una confirmación que de un resumen pequeño de la venta a realizar para asegurar que no se haya digitado algo mal por error, y quiero que para los precios se visualicen formateados, por lo menos si yo escribo 3800, se vea en la app $3.800 ese detalle suma mucho. Todo lo demás estoy de acuerdo al 100%" [Puntos 1 a 6 y 8 a 10 aprobados como se recomendaron (D10 a D14). La confirmación con resumen y el formato de precios quedan pendientes de dos preguntas: el conteo de toques de RNF-05 y dónde se aplica el formato.]
+- **L11** (2026-11-15): "Acepto los 5 toques, asi que registralo como una excepción, para lo segundo sobre el formato de precios la mejor me parece la b para mantener una homogeneidad en toda la app" [D15 (resumen y excepción a RNF-05), D16 (campo de pesos en toda la app), E19 con 5 toques, E21 y el bloque B3.4 en la ola 1.]

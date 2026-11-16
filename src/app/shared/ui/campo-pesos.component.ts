@@ -1,12 +1,11 @@
-import { Component, computed, input, model, signal } from '@angular/core';
+import { Component, computed, effect, input, model, signal } from '@angular/core';
 import { IonInput, IonItem, IonNote } from '@ionic/angular';
 
 import { formatearPesos, pesos } from '../domain/pesos';
 
-import { MENSAJE_MONTO_SIN_DECIMALES } from './mensajes-error';
+import { MENSAJE_MONTO_DEMASIADO_GRANDE, MENSAJE_MONTO_SIN_DECIMALES } from './mensajes-error';
 
-const MAX_DIGITOS_SEGUROS = 15;
-const CARACTERES_PERMITIDOS = /^[\d.$ ]*$/;
+const FORMATO_PESOS = /^(?:\d+|\d{1,3}(?:\.\d{3})+)$/;
 
 /**
  * Reusable currency input for Colombian pesos (COP).
@@ -50,15 +49,33 @@ export class CampoPesosComponent {
   readonly errorTestId = input<string | null>(null);
 
   private readonly errorFormato = signal<string | null>(null);
+  private readonly textoInvalido = signal<string | null>(null);
+  private cambioInterno = false;
   readonly errorMostrado = computed(() => this.errorFormato() ?? this.error());
 
   readonly textoMostrado = computed(() => {
+    const invalido = this.textoInvalido();
+    if (invalido !== null) {
+      return invalido;
+    }
     const v = this.valor();
     if (v === null || v === undefined || !Number.isSafeInteger(v)) {
       return '';
     }
     return formatearPesos(pesos(v));
   });
+
+  constructor() {
+    effect(() => {
+      this.valor();
+      if (this.cambioInterno) {
+        this.cambioInterno = false;
+        return;
+      }
+      this.errorFormato.set(null);
+      this.textoInvalido.set(null);
+    });
+  }
 
   onInput(event: CustomEvent | Event): void {
     const detail = (event as CustomEvent).detail;
@@ -68,24 +85,43 @@ export class CampoPesosComponent {
         : (event.target as HTMLInputElement | null)?.value;
 
     const texto = typeof raw === 'string' ? raw : raw == null ? '' : String(raw);
-    if (!CARACTERES_PERMITIDOS.test(texto)) {
+    const limpio = texto.replace(/[$ ]/g, '');
+
+    if (limpio === '') {
+      this.errorFormato.set(null);
+      this.textoInvalido.set(null);
+      this.actualizarValorInterno(null);
+      this.sincronizarElemento(event.target as HTMLElement | null, '');
+      return;
+    }
+
+    if (!FORMATO_PESOS.test(limpio)) {
       this.errorFormato.set(MENSAJE_MONTO_SIN_DECIMALES);
-      this.valor.set(null);
+      this.textoInvalido.set(texto);
+      this.actualizarValorInterno(null);
+      return;
+    }
+
+    const digitos = limpio.replace(/\./g, '');
+    const num = Number(digitos);
+    if (!Number.isSafeInteger(num)) {
+      this.errorFormato.set(MENSAJE_MONTO_DEMASIADO_GRANDE);
+      this.textoInvalido.set(texto);
+      this.actualizarValorInterno(null);
       return;
     }
 
     this.errorFormato.set(null);
-    const digitos = texto.replace(/\D/g, '');
+    this.textoInvalido.set(null);
+    this.actualizarValorInterno(num);
+    this.sincronizarElemento(event.target as HTMLElement | null, formatearPesos(pesos(num)));
+  }
 
-    let parsed: number | null = null;
-    if (digitos.length > 0) {
-      const num = Number(digitos);
-      parsed = Number.isSafeInteger(num) ? num : Number(digitos.slice(0, MAX_DIGITOS_SEGUROS));
+  private actualizarValorInterno(nuevoValor: number | null): void {
+    if (!Object.is(this.valor(), nuevoValor)) {
+      this.cambioInterno = true;
+      this.valor.set(nuevoValor);
     }
-
-    const formateado = parsed === null ? '' : formatearPesos(pesos(parsed));
-    this.valor.set(parsed);
-    this.sincronizarElemento(event.target as HTMLElement | null, formateado);
   }
 
   private sincronizarElemento(target: HTMLElement | null, formateado: string): void {

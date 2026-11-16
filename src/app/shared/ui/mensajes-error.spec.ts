@@ -2,7 +2,13 @@ import { describe, expect, it } from 'vitest';
 
 import { ReglaNegocioError, type CodigoRegla } from '../domain/regla-negocio.error';
 
-import { MENSAJE_ERROR_GENERICO, MENSAJE_MONTO_SIN_DECIMALES, MENSAJES_ERROR, mensajeDeError } from './mensajes-error';
+import {
+  MENSAJE_ERROR_GENERICO,
+  MENSAJE_MONTO_DEMASIADO_GRANDE,
+  MENSAJE_MONTO_SIN_DECIMALES,
+  MENSAJES_ERROR,
+  mensajeDeError,
+} from './mensajes-error';
 
 describe('mensajes-error', () => {
   it('translates SALDO_INSUFICIENTE to the expected Spanish message', () => {
@@ -69,5 +75,9 @@ describe('mensajes-error', () => {
 
   it('exports the exact validation message for currency input without decimals (R1)', () => {
     expect(MENSAJE_MONTO_SIN_DECIMALES).toBe('Escribe el monto en pesos, sin decimales');
+  });
+
+  it('exports the exact validation message for oversized currency amounts (F2)', () => {
+    expect(MENSAJE_MONTO_DEMASIADO_GRANDE).toBe('El monto es demasiado grande');
   });
 });

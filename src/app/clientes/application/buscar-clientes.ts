@@ -19,11 +19,12 @@ export class BuscarClientes {
     if (termino === '') {
       return lista;
     }
+    const terminoTelefono = termino.replace(/\s+/g, '');
 
     return lista.filter(
       (cliente) =>
         normalizarBusqueda(cliente.nombre).includes(termino) ||
-        (cliente.telefono !== null && normalizarBusqueda(cliente.telefono).includes(termino)),
+        (cliente.telefono !== null && normalizarBusqueda(cliente.telefono).includes(terminoTelefono)),
     );
   }
 }

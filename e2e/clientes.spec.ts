@@ -19,7 +19,7 @@ test.describe('Customers flow: create, search, edit and persistence', () => {
     await expect(clientesPage.locator('ion-title', { hasText: 'Clientes' })).toBeVisible();
     await expect(clientesPage.locator('[data-testid="mensaje-vacio"]')).toContainText('Todavía no hay clientes');
 
-    // 2. Create "Ana Pérez" with "3001234567"
+    // 2. Create "Ana Pérez" with "3001234567" and "Juan Gómez" with "3109876543"
     await clientesPage.locator('[data-testid="fab-nuevo-cliente"]').click();
     const modal = page.locator('app-cliente-modal');
     await expect(modal.locator('ion-title', { hasText: 'Nuevo cliente' })).toBeVisible();
@@ -34,12 +34,20 @@ test.describe('Customers flow: create, search, edit and persistence', () => {
 
     await expect(modal).toHaveCount(0);
 
-    const items = clientesPage.locator('[data-testid="item-cliente"]');
-    await expect(items).toHaveCount(1);
-    await expect(items.first()).toContainText('Ana Pérez');
-    await expect(items.first()).toContainText('3001234567');
+    await clientesPage.locator('[data-testid="fab-nuevo-cliente"]').click();
+    await expect(modal.locator('ion-title', { hasText: 'Nuevo cliente' })).toBeVisible();
+    await modal.locator('[data-testid="input-nombre"] input').fill('Juan Gómez');
+    await modal.locator('[data-testid="input-telefono"] input').fill('3109876543');
+    await btnGuardar.click();
+    await expect(modal).toHaveCount(0);
 
-    // 3. Search for "ana"
+    const items = clientesPage.locator('[data-testid="item-cliente"]');
+    await expect(items).toHaveCount(2);
+    await expect(items.nth(0)).toContainText('Ana Pérez');
+    await expect(items.nth(0)).toContainText('3001234567');
+    await expect(items.nth(1)).toContainText('Juan Gómez');
+
+    // 3. Search for "ana" -> returns only Ana
     const searchInput = clientesPage.locator('[data-testid="searchbar-clientes"] input');
     await searchInput.fill('ana');
     await expect(items).toHaveCount(1);
@@ -47,7 +55,7 @@ test.describe('Customers flow: create, search, edit and persistence', () => {
 
     // Clear search
     await searchInput.fill('');
-    await expect(items).toHaveCount(1);
+    await expect(items).toHaveCount(2);
 
     // 4. Tap Ana Pérez to edit to "Ana María Pérez"
     await items.first().click();
@@ -64,7 +72,7 @@ test.describe('Customers flow: create, search, edit and persistence', () => {
     await expect(page).toHaveURL(/\/clientes$/);
 
     const itemsDespues = clientesPage.locator('[data-testid="item-cliente"]');
-    await expect(itemsDespues).toHaveCount(1);
+    await expect(itemsDespues).toHaveCount(2);
     await expect(itemsDespues.first()).toContainText('Ana María Pérez');
     await expect(itemsDespues.first()).toContainText('3001234567');
 

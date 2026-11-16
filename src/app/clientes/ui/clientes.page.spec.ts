@@ -136,4 +136,25 @@ describe('ClientesPage', () => {
 
     expect(component.clientes()).toEqual([juan]);
   });
+
+  it('filters the customer list when typing in the searchbar (F16)', async () => {
+    const juan: Cliente = { idCliente: 2, nombre: 'Juan Gómez', telefono: '3109876543', esMostrador: false };
+    mockBuscarClientes.buscar.mockResolvedValueOnce([ana, juan]);
+
+    await component.cargarClientes();
+    fixture.detectChanges();
+    expect(fixture.debugElement.queryAll(By.css('[data-testid="item-cliente"]'))).toHaveLength(2);
+
+    mockBuscarClientes.buscar.mockResolvedValueOnce([ana]);
+    const searchbar = fixture.debugElement.query(By.css('[data-testid="searchbar-clientes"]'));
+    searchbar.nativeElement.value = 'ana';
+    searchbar.triggerEventHandler('ionInput', { detail: { value: 'ana' }, target: searchbar.nativeElement });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    fixture.detectChanges();
+
+    expect(mockBuscarClientes.buscar).toHaveBeenLastCalledWith('ana');
+    const items = fixture.debugElement.queryAll(By.css('[data-testid="item-cliente"]'));
+    expect(items).toHaveLength(1);
+    expect(items[0].nativeElement.textContent).toContain('Ana Pérez');
+  });
 });

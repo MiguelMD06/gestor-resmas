@@ -236,4 +236,34 @@ describe('ClienteModalComponent', () => {
     expect(inputNombre.attributes['aria-disabled']).toBeUndefined();
     expect(inputTelefono.attributes['aria-disabled']).toBeUndefined();
   });
+
+  it('does not show save error or re-enable Guardar cliente if dismiss fails after registrar or editar resolves (F14)', async () => {
+    mockModalCtrl.dismiss.mockRejectedValueOnce(new Error('Dismiss failed'));
+    component.nombre.set('Ana Pérez');
+    component.telefono.set('3001234567');
+    fixture.detectChanges();
+
+    await expect(component.guardar()).resolves.toBeUndefined();
+    fixture.detectChanges();
+
+    expect(mockRegistrar.registrar).toHaveBeenCalledTimes(1);
+    expect(mockToastCtrl.create).not.toHaveBeenCalled();
+    expect(estaDeshabilitado(botonGuardar())).toBe(true);
+
+    // Same for editar
+    const editFixture = TestBed.createComponent(ClienteModalComponent);
+    const editComp = editFixture.componentInstance;
+    editComp.cliente = { idCliente: 5, nombre: 'Ana Pérez', telefono: '3001234567', esMostrador: false };
+    editFixture.detectChanges();
+    mockModalCtrl.dismiss.mockRejectedValueOnce(new Error('Dismiss failed'));
+
+    await expect(editComp.guardar()).resolves.toBeUndefined();
+    editFixture.detectChanges();
+
+    expect(mockEditar.editar).toHaveBeenCalledTimes(1);
+    expect(mockToastCtrl.create).not.toHaveBeenCalled();
+    expect(
+      Boolean(editFixture.debugElement.query(By.css('[data-testid="btn-guardar-cliente"]')).nativeElement.disabled),
+    ).toBe(true);
+  });
 });

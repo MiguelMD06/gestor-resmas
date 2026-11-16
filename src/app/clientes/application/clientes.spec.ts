@@ -241,4 +241,12 @@ describe('Clientes use cases and repository', () => {
     const todos = await repo.todos(db);
     expect(todos.map((c) => c.idCliente)).toEqual([primero.idCliente, segundo.idCliente]);
   });
+
+  it('matches phone numbers even when the search query contains spaces (F15)', async () => {
+    await registrarCliente.registrar({ nombre: 'Ana María Pérez', telefono: '3001234567' });
+    await registrarCliente.registrar({ nombre: 'Juan Gómez', telefono: '3109876543' });
+
+    const resultado = await buscarClientes.buscar('300 123');
+    expect(resultado.map((c) => c.nombre)).toEqual(['Ana María Pérez']);
+  });
 });

@@ -106,6 +106,7 @@ export class ResumenVentaModalComponent {
   @Input({ required: true }) textoPago!: string;
   @Input({ required: true }) pago!: PagoVenta;
   @Input({ required: true }) fecha!: FechaHora;
+  @Input() alCambiarGuardando?: (guardando: boolean) => void;
 
   readonly guardando = signal(false);
   readonly formatearPesos = formatearPesos;
@@ -127,6 +128,7 @@ export class ResumenVentaModalComponent {
     }
 
     this.guardando.set(true);
+    this.alCambiarGuardando?.(true);
 
     try {
       await this.registrarVenta.registrar({
@@ -161,6 +163,7 @@ export class ResumenVentaModalComponent {
       await this.modalCtrl.dismiss({ error: true }, ROL_CANCELAR);
     } finally {
       this.guardando.set(false);
+      this.alCambiarGuardando?.(false);
     }
   }
 }

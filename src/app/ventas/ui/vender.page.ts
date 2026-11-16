@@ -230,8 +230,8 @@ interface LineaEvaluadaUI extends LineaBorrador {
         <ion-item
           button
           detail="true"
-          [disabled]="guardando()"
-          [attr.aria-disabled]="guardando() ? 'true' : null"
+          [disabled]="guardando() || cargando()"
+          [attr.aria-disabled]="guardando() || cargando() ? 'true' : null"
           (click)="abrirSelectorFecha()"
           data-testid="btn-fecha-venta"
         >
@@ -264,7 +264,8 @@ interface LineaEvaluadaUI extends LineaBorrador {
 
             <ion-segment
               [value]="modalidad()"
-              [disabled]="guardando()"
+              [disabled]="guardando() || cargando()"
+              [attr.aria-disabled]="guardando() || cargando() ? 'true' : null"
               (ionChange)="onModalidadChange($event)"
               class="ion-margin-top"
               data-testid="segment-modalidad"
@@ -285,7 +286,8 @@ interface LineaEvaluadaUI extends LineaBorrador {
             @if (modalidad() === 'CONTADO' || modalidad() === 'ABONO_INICIAL') {
               <ion-segment
                 [value]="medio()"
-                [disabled]="guardando()"
+                [disabled]="guardando() || cargando()"
+                [attr.aria-disabled]="guardando() || cargando() ? 'true' : null"
                 (ionChange)="onMedioChange($event)"
                 class="ion-margin-top"
                 data-testid="segment-medio"
@@ -366,18 +368,32 @@ interface LineaEvaluadaUI extends LineaBorrador {
             Nuevo cliente
           </ion-button>
 
-          <ion-list>
-            @for (c of clientesSelector(); track c.idCliente) {
-              <ion-item button (click)="seleccionarCliente(c)" data-testid="item-cliente-vender">
-                <ion-label>
-                  <h2>{{ c.nombre }}</h2>
-                  @if (c.telefono) {
-                    <p>{{ c.telefono }}</p>
-                  }
-                </ion-label>
-              </ion-item>
-            }
-          </ion-list>
+          @if (errorBusquedaClientes(); as errorClientes) {
+            <div class="estado-error ion-text-center ion-padding" data-testid="estado-error-clientes">
+              <p data-testid="mensaje-error-clientes">{{ errorClientes }}</p>
+              <ion-button
+                (click)="reintentarBusquedaClientes()"
+                [disabled]="buscandoClientes()"
+                [attr.aria-disabled]="buscandoClientes() ? 'true' : null"
+                data-testid="btn-reintentar-clientes"
+              >
+                Reintentar
+              </ion-button>
+            </div>
+          } @else {
+            <ion-list>
+              @for (c of clientesSelector(); track c.idCliente) {
+                <ion-item button (click)="seleccionarCliente(c)" data-testid="item-cliente-vender">
+                  <ion-label>
+                    <h2>{{ c.nombre }}</h2>
+                    @if (c.telefono) {
+                      <p>{{ c.telefono }}</p>
+                    }
+                  </ion-label>
+                </ion-item>
+              }
+            </ion-list>
+          }
         </ion-content>
       </ng-template>
     </ion-modal>
@@ -482,6 +498,9 @@ export class VenderPage {
   readonly cargando = signal(false);
   readonly errorCarga = signal<string | null>(null);
   readonly guardando = signal(false);
+  readonly abriendoResumen = signal(false);
+  readonly buscandoClientes = signal(false);
+  readonly errorBusquedaClientes = signal<string | null>(null);
 
   readonly lotes = signal<Lote[]>([]);
   readonly clientesSelector = signal<Cliente[]>([]);
@@ -499,7 +518,7 @@ export class VenderPage {
 
   readonly formatearPesos = formatearPesos;
   readonly esMostrador = computed(() => this.clienteSeleccionado()?.esMostrador ?? true);
-  readonly maxFechaIso = computed(() => this.clock.ahora().replace(' ', 'T'));
+  readonly maxFechaIso = signal(this.clock.ahora().replace(' ', 'T'));
   readonly fechaIsoSeleccionada = computed(() => this.fechaSeleccionada().replace(' ', 'T'));
 
   readonly lineasEvaluadas = computed<LineaEvaluadaUI[]>(() => {
@@ -579,7 +598,7 @@ export class VenderPage {
   });
 
   readonly puedeConfirmar = computed(() => {
-    if (this.guardando() || this.cargando() || this.errorCarga() !== null) {
+    if (this.abriendoResumen() || this.guardando() || this.cargando() || this.errorCarga() !== null) {
       return false;
     }
     if (!this.clienteSeleccionado()) {
@@ -723,15 +742,30 @@ export class VenderPage {
     void this.buscarClientesSelector('');
   }
 
+  reintentarBusquedaClientes(): void {
+    void this.buscarClientesSelector(this.busquedaCliente());
+  }
+
   private async buscarClientesSelector(texto: string): Promise<void> {
     const idPeticion = ++this.peticionClientes;
+    this.buscandoClientes.set(true);
+    this.errorBusquedaClientes.set(null);
     try {
       const lista = await this.buscarClientes.buscar(texto, { incluirMostrador: true });
-      if (idPeticion === this.peticionClientes) {
-        this.clientesSelector.set(lista);
+      if (idPeticion !== this.peticionClientes) {
+        return;
       }
-    } catch {
-      // Keep existing list if incremental search fails
+      this.clientesSelector.set(lista);
+      this.errorBusquedaClientes.set(null);
+    } catch (error: unknown) {
+      if (idPeticion !== this.peticionClientes) {
+        return;
+      }
+      this.errorBusquedaClientes.set(mensajeDeError(error));
+    } finally {
+      if (idPeticion === this.peticionClientes) {
+        this.buscandoClientes.set(false);
+      }
     }
   }
 
@@ -756,9 +790,10 @@ export class VenderPage {
   }
 
   abrirSelectorFecha(): void {
-    if (this.guardando()) {
+    if (this.guardando() || this.cargando()) {
       return;
     }
+    this.maxFechaIso.set(this.clock.ahora().replace(' ', 'T'));
     this.selectorFechaAbierto.set(true);
   }
 
@@ -805,30 +840,37 @@ export class VenderPage {
       return;
     }
 
-    const modal = await this.modalCtrl.create({
-      component: ResumenVentaModalComponent,
-      componentProps: {
-        cliente,
-        lineas: this.lineasEvaluadas().map((l) => ({
-          idLote: l.idLote,
-          tipoPapel: l.tipoPapel,
-          cantidad: l.cantidadNum ?? 0,
-          precioUnitario: pesos(l.precioUnitario ?? 0),
-          subtotalVenta: l.subtotalVenta ?? pesos(0),
-        })),
-        totalVenta: this.totalVenta(),
-        textoPago: this.textoResumenPago(),
-        pago: this.construirPago(),
-        fecha: this.fechaSeleccionada(),
-      },
-      canDismiss: soloCierreExplicito,
-    });
+    this.abriendoResumen.set(true);
+    try {
+      const modal = await this.modalCtrl.create({
+        component: ResumenVentaModalComponent,
+        componentProps: {
+          cliente,
+          lineas: this.lineasEvaluadas().map((l) => ({
+            idLote: l.idLote,
+            tipoPapel: l.tipoPapel,
+            cantidad: l.cantidadNum ?? 0,
+            precioUnitario: pesos(l.precioUnitario ?? 0),
+            subtotalVenta: l.subtotalVenta ?? pesos(0),
+          })),
+          totalVenta: this.totalVenta(),
+          textoPago: this.textoResumenPago(),
+          pago: this.construirPago(),
+          fecha: this.fechaSeleccionada(),
+          alCambiarGuardando: (estado: boolean) => this.guardando.set(estado),
+        },
+        canDismiss: soloCierreExplicito,
+      });
 
-    await modal.present();
-    const { role } = await modal.onDidDismiss();
-    if (role === ROL_GUARDADO) {
-      this.reiniciarFormulario();
-      await this.cargarDatos();
+      await modal.present();
+      const { role } = await modal.onDidDismiss();
+      if (role === ROL_GUARDADO) {
+        this.reiniciarFormulario();
+        await this.cargarDatos();
+      }
+    } finally {
+      this.guardando.set(false);
+      this.abriendoResumen.set(false);
     }
   }
 

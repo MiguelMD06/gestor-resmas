@@ -45,6 +45,7 @@ describe('mensajes-error', () => {
     ],
     ['MOSTRADOR_SOLO_CONTADO', 'Las ventas a Mostrador solo pueden ser de contado'],
     ['FECHA_FUTURA', 'La fecha de la venta no puede ser futura'],
+    ['VENTA_ANTERIOR_A_COMPRA', 'La venta no puede ser anterior a la compra del lote'],
   ])('translates %s to its exact Spanish message', (codigo, texto) => {
     expect(mensajeDeError(new ReglaNegocioError(codigo, 'detail'))).toBe(texto);
   });

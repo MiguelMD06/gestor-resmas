@@ -51,7 +51,7 @@ import { CampoPesosComponent } from '../../shared/ui/campo-pesos.component';
 import { ROL_GUARDADO, soloCierreExplicito } from '../../shared/ui/formulario';
 import { MENSAJES_ERROR, MENSAJE_ERROR_GENERICO, mensajeDeError } from '../../shared/ui/mensajes-error';
 import { evaluarLinea, perdida } from '../domain/margen';
-import type { PagoVenta } from '../domain/venta';
+import { ultimaFechaCompra, type PagoVenta } from '../domain/venta';
 
 import { type LineaResumenVenta, ROL_ERROR, ResumenVentaModalComponent } from './resumen-venta.modal';
 import { SelectorClienteContenidoComponent } from './selector-cliente-contenido.component';
@@ -62,6 +62,7 @@ export type ModalidadVenta = 'CONTADO' | 'FIADO' | 'ABONO_INICIAL';
 interface LineaBorrador {
   readonly idLote: number;
   readonly tipoPapel: TipoPapel;
+  readonly fechaCompra: FechaHora;
   readonly costoUnitario: Pesos;
   readonly disponibles: number;
   readonly cantidadTexto: string;
@@ -547,9 +548,18 @@ export class VenderPage {
 
   readonly margenTotal = computed<Pesos>(() => restarPesos(this.totalVenta(), this.costoTotal()));
 
-  readonly errorFecha = computed<string | null>(() =>
-    this.fechaSeleccionada() > this.clock.ahora() ? MENSAJES_ERROR.FECHA_FUTURA : null,
-  );
+  readonly errorFecha = computed<string | null>(() => {
+    const fecha = this.fechaSeleccionada();
+    if (fecha > this.clock.ahora()) {
+      return MENSAJES_ERROR.FECHA_FUTURA;
+    }
+    const ultimaCompra = ultimaFechaCompra(this.lineas());
+    if (ultimaCompra !== null && fecha < ultimaCompra) {
+      const [anio, mes, dia] = ultimaCompra.slice(0, 10).split('-');
+      return `${MENSAJES_ERROR.VENTA_ANTERIOR_A_COMPRA} (${dia}/${mes}/${anio})`;
+    }
+    return null;
+  });
 
   readonly errorAbonoInicial = computed<string | null>(() => {
     if (this.modalidad() !== 'ABONO_INICIAL') {
@@ -643,6 +653,7 @@ export class VenderPage {
       {
         idLote: lote.idLote,
         tipoPapel: lote.tipoPapel,
+        fechaCompra: lote.fechaCompra,
         costoUnitario: lote.costoUnitarioResma,
         disponibles: lote.resmasDisponibles,
         cantidadTexto: '1',

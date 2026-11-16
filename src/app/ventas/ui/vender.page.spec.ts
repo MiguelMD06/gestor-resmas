@@ -366,6 +366,63 @@ describe('VenderPage', () => {
     );
   });
 
+  it('shows exact error next to date and disables Confirmar venta when sale date precedes latest lot purchase, then recovers (G4, E22)', async () => {
+    const loteB: Lote = {
+      idLote: 12,
+      tipoPapel: 'CARTA',
+      fechaCompra: fechaHora('2026-11-14 10:00:00'),
+      cantidadCajas: cajas(1),
+      costoPorCaja: pesos(120000),
+      costoUnitarioResma: pesos(12000),
+      resmasIniciales: resmas(10),
+      resmasDisponibles: resmas(10),
+      medioPagoCompra: 'EFECTIVO',
+      estado: 'ACTIVO',
+    };
+    mockConsultarInventario.activos.mockResolvedValue({
+      CARTA: [loteCartaA, loteB],
+      OFICIO: [],
+    });
+
+    await component.ionViewWillEnter();
+    component.agregarLote(loteCartaA);
+    component.actualizarCantidad(loteCartaA.idLote, '1');
+    component.actualizarPrecio(loteCartaA.idLote, 15000);
+    component.agregarLote(loteB);
+    component.actualizarCantidad(loteB.idLote, '1');
+    component.actualizarPrecio(loteB.idLote, 15000);
+
+    // Date valid for loteCartaA (Nov 10) but before loteB (Nov 14 10:00)
+    component.onFechaSeleccionada('2026-11-14T09:59:59');
+    fixture.detectChanges();
+
+    const errorEl = fixture.debugElement.query(By.css('[data-testid="error-fecha"]'));
+    expect(errorEl).not.toBeNull();
+    expect(errorEl.nativeElement.textContent.trim()).toBe(
+      'La venta no puede ser anterior a la compra del lote (14/11/2026)',
+    );
+    expect(estaDeshabilitado(botonConfirmar())).toBe(true);
+
+    // Removing loteB clears the error and enables Confirmar venta
+    component.quitarLinea(loteB.idLote);
+    fixture.detectChanges();
+    expect(fixture.debugElement.query(By.css('[data-testid="error-fecha"]'))).toBeNull();
+    expect(estaDeshabilitado(botonConfirmar())).toBe(false);
+
+    // Adding loteB back brings the error back; fixing date to equal purchase clears it and enables button
+    component.agregarLote(loteB);
+    component.actualizarCantidad(loteB.idLote, '1');
+    component.actualizarPrecio(loteB.idLote, 15000);
+    fixture.detectChanges();
+    expect(fixture.debugElement.query(By.css('[data-testid="error-fecha"]'))).not.toBeNull();
+    expect(estaDeshabilitado(botonConfirmar())).toBe(true);
+
+    component.onFechaSeleccionada('2026-11-14T10:00:00');
+    fixture.detectChanges();
+    expect(fixture.debugElement.query(By.css('[data-testid="error-fecha"]'))).toBeNull();
+    expect(estaDeshabilitado(botonConfirmar())).toBe(false);
+  });
+
   it('opens ClienteModalComponent from selector Nuevo cliente and selects the created customer', async () => {
     await component.ionViewWillEnter();
     component.abrirSelectorCliente();

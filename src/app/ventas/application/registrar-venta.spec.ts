@@ -573,4 +573,68 @@ describe('RegistrarVenta', () => {
 
     expect(await snapshotTablas()).toEqual(antes);
   });
+
+  it('rejects a sale dated before the latest lot purchase without modifying any table and accepts exact purchase date (G3, E22)', async () => {
+    const registrarAporte = TestBed.inject(RegistrarAporte);
+    const registrarCompra = TestBed.inject(RegistrarCompra);
+    const fechaCompraLoteC = fechaHora('2026-11-14 10:00:00');
+    await registrarAporte.registrar({
+      fecha: fechaCompraLoteC,
+      medio: 'EFECTIVO',
+      monto: pesos(120000),
+    });
+    const compraC = await registrarCompra.registrar({
+      tipoPapel: 'CARTA',
+      cajas: 1,
+      costoPorCaja: 120000,
+      fecha: fechaCompraLoteC,
+      medio: 'EFECTIVO',
+    });
+    const idLoteC = compraC.idLote;
+
+    const antes = await snapshotTablas();
+
+    await expect(
+      registrarVenta.registrar({
+        idCliente: idAna,
+        fecha: fechaHora('2026-11-10 18:00:00'),
+        lineas: [{ idLote: idLoteC, cantidad: 1, precioUnitario: 15000 }],
+        pago: { modalidad: 'CONTADO', medio: 'EFECTIVO' },
+      }),
+    ).rejects.toThrow(expect.objectContaining({ codigo: 'VENTA_ANTERIOR_A_COMPRA' }));
+
+    await expect(
+      registrarVenta.registrar({
+        idCliente: idAna,
+        fecha: fechaHora('2026-11-14 09:59:59'),
+        lineas: [{ idLote: idLoteC, cantidad: 1, precioUnitario: 15000 }],
+        pago: { modalidad: 'CONTADO', medio: 'EFECTIVO' },
+      }),
+    ).rejects.toThrow(expect.objectContaining({ codigo: 'VENTA_ANTERIOR_A_COMPRA' }));
+
+    await expect(
+      registrarVenta.registrar({
+        idCliente: idAna,
+        fecha: fechaHora('2026-11-14 09:59:59'),
+        lineas: [
+          { idLote: idLoteA, cantidad: 1, precioUnitario: 15000 },
+          { idLote: idLoteC, cantidad: 1, precioUnitario: 15000 },
+        ],
+        pago: { modalidad: 'CONTADO', medio: 'EFECTIVO' },
+      }),
+    ).rejects.toThrow(expect.objectContaining({ codigo: 'VENTA_ANTERIOR_A_COMPRA' }));
+
+    expect(await snapshotTablas()).toEqual(antes);
+
+    const { idVenta } = await registrarVenta.registrar({
+      idCliente: idAna,
+      fecha: fechaCompraLoteC,
+      lineas: [
+        { idLote: idLoteA, cantidad: 1, precioUnitario: 15000 },
+        { idLote: idLoteC, cantidad: 1, precioUnitario: 15000 },
+      ],
+      pago: { modalidad: 'CONTADO', medio: 'EFECTIVO' },
+    });
+    expect(idVenta).toBeGreaterThan(0);
+  });
 });

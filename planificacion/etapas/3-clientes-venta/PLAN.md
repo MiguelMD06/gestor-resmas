@@ -1,6 +1,6 @@
 # Etapa 3 — Clientes y punto de venta
 
-**Estado:** plan aprobado (L4) · **Rama del plan:** `docs/plan-etapa-3` · **Rama de implementación:** `feat/etapa-3-clientes-venta` (sale del `main` actual) · **Entrega:** un PR a `main` · **Pruebas:** Vitest (`ng test`) + Playwright (`e2e/`)
+**Estado:** ✅ implementada, en revisión de PR · **Rama del plan:** `docs/plan-etapa-3` · **Rama de implementación:** `feat/etapa-3-clientes-venta` (sale del `main` actual) · **Entrega:** un PR a `main` · **Pruebas:** Vitest (`ng test`) + Playwright (`e2e/`)
 **Objetivo:** el usuario puede registrar a sus clientes y vender: elige el cliente, toma resmas de uno o varios lotes activos con el precio que quiera, ve en vivo el costo y el margen, y cierra la venta de contado, fiada o con un abono inicial. La venta descuenta el stock, agota los lotes que llegan a 0 y, si entra dinero, lo registra en el libro con su reparto entre capital y ganancia.
 
 ## Qué hay hoy
@@ -217,6 +217,24 @@ El reporte de la etapa va en Engram (`etapas/3-clientes-venta/reporte`).
 11. ✅ **D1 a D9** tal como están arriba. Con L3 cambiaron D6 (fecha editable hacia atrás) y D7 (código `FECHA_FUTURA`), y se agregó D9 (identificador del cliente). D1 a D5 y D8 no cambian.
 12. ✅ **Alcance:** no entran la deuda en la lista de clientes, el expediente ni los abonos posteriores (Etapa 4), el dashboard ni la pérdida acumulada (Etapa 5), ni anular o corregir una venta (Etapa 6, A7). Tampoco un comprobante para enviar al cliente, porque no lo pide ningún requisito.
 
+## Resultado
+
+- **Verificación independiente (V3, `agy` · `gemini-4-hydrogen-high`):** 0 bloqueantes. `S1`–`S14`, `E1`–`E21` (con `E3b`) y `D1`–`D16` cumplen. Sus pruebas quedaron como regresión en `src/app/etapa-3.acceptance.spec.ts` y `e2e/etapa-3.acceptance.spec.ts`. El primer intento se cortó por falta de memoria del equipo; el segundo terminó.
+- **Checks finales (después de B3.H):** `lint` limpio, 397 pruebas unitarias (53 archivos), `build` correcto y 15 pruebas e2e.
+- **Revisiones nativas de gentle-ai:** la rama completa supera el presupuesto del revisor (`lens_context_budget_exceeded`), así que se revisó en tramos encadenados, todos aprobados y registrados: B3.0; la migración `002` sola (alto, ítem 1); clientes; venta; campo de pesos y correcciones; Vender; correcciones de V3 y pruebas; correcciones finales y L14; B3.H.
+- **Bloques de corrección:** B3.1-C (orden alfabético con tildes y selectores del e2e), B3.R (decimales en el campo de pesos y teléfonos vacíos antes del índice único), B3.V (observaciones de V3), B3.F (advertencias de la revisión), B3.G (L14) y B3.H (traba de guardado del resumen, stock del borrador y reinicio del campo de pesos).
+- **Decisiones de Miguel durante la ejecución:** teléfono único (L5, L6), código propio para la cantidad de resmas (L7), sin fechas futuras (L8), nombre de hasta 80 caracteres (L9), D10 a D14 (L10), resumen con excepción a RNF-05 y campo de pesos en toda la app (L11), montos con espacio (L12), decimales rechazados y revisiones medias o altas aprobadas de antemano (L13), venta no anterior a la compra de sus lotes (L14).
+
+### Observaciones para la Etapa 4
+
+- `src/app/clientes/` no tiene `index.ts`: se agrega cuando la Etapa 4 lo use (regla 9).
+- Si el resumen de la venta no logra cerrarse después de guardar (`dismiss` falla), queda en pantalla sin botón para cerrarlo; la venta no se duplica, pero hay que recargar la app. Agregar un cierre de recuperación.
+- Cuando un lote no existe y además la cantidad es 0, el caso de uso informa `STOCK_INSUFICIENTE` antes que `CANTIDAD_RESMAS_INVALIDA`; la pantalla nunca envía esa combinación.
+- El e2e cuenta los toques con un contador manual y la prueba de "mañana" se omite a fin de mes: conviene hacerlas deterministas.
+- El aporte con monto 0 habilita el botón y lo rechaza el dominio (conducta anterior a la etapa).
+
+**Base para etapas futuras (regla 9):** `AbonoRepository` ya se usa en la venta y la Etapa 4 lo reutiliza para la cascada, el abono individual y la liquidación.
+
 ## Log
 
 Mensajes del usuario copiados textualmente; las notas del coordinador van entre corchetes.
@@ -235,3 +253,4 @@ Mensajes del usuario copiados textualmente; las notas del coordinador van entre 
 - **L12** (2026-11-15): "A" [Formato de los montos: "$ 3.800", con espacio, igual que `formatearPesos` desde la Etapa 0 y que el resto de la app. No cambia código; se ajustan los textos de ejemplo del plan (E14, E19, E21, D16, B3.4).]
 - **L13** (2026-11-15): "1 y A aprobados, aprueba todas las revisiones de gentle ai que tengan nivel medio, alto  o superior" [Revisión de la migración `002` aprobada (dos advertencias: teléfonos repetidos o vacíos ya guardados antes de la migración; hoy no pueden existir, pero se blinda). El campo de pesos acepta dígitos, puntos de miles, "$" y espacios; coma o letras dejan el campo inválido con aviso (E21). Desde ahora el coordinador acepta sin preguntar las revisiones de riesgo medio o alto. Correcciones en el bloque B3.R.]
 - **L14** (2026-11-16): "Mi respuesta es A" [Advertencia de la revisión final: una venta podía tener fecha anterior a la compra de su lote. Se rechaza (D17, E22, `VENTA_ANTERIOR_A_COMPRA`), en el bloque B3.G después de B3.F.]
+- **L15** (2026-11-16): "retoma la etapa 3 con B3.H" [B3.H aplicado y revisado. Se cierra la etapa: plan, README, reporte en Engram, PR y APK de debug para la prueba manual.]

@@ -250,4 +250,22 @@ describe('AporteModalComponent', () => {
     const botonGuardar = fixture.debugElement.query(By.css('[data-testid="btn-guardar-aporte"]'));
     expect(botonGuardar.nativeElement.disabled || botonGuardar.attributes['disabled'] !== undefined).toBe(true);
   });
+
+  it('disables Guardar aporte and does not call registrar when monto has "3800,50" (R1)', async () => {
+    const campoPesos = fixture.debugElement.query(By.css('app-campo-pesos[data-testid="input-monto"]'));
+    const ionInput = campoPesos.query(By.css('ion-input'));
+    ionInput.nativeElement.value = '3800,50';
+    ionInput.triggerEventHandler('ionInput', {
+      detail: { value: '3800,50' },
+      target: ionInput.nativeElement,
+    });
+    fixture.detectChanges();
+
+    expect(component.monto()).toBeNull();
+    const botonGuardar = fixture.debugElement.query(By.css('[data-testid="btn-guardar-aporte"]'));
+    expect(botonGuardar.nativeElement.disabled || botonGuardar.attributes['disabled'] !== undefined).toBe(true);
+
+    await component.guardar();
+    expect(mockRegistrarAporte.registrar).not.toHaveBeenCalled();
+  });
 });

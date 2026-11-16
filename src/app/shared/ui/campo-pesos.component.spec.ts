@@ -78,25 +78,32 @@ describe('CampoPesosComponent', () => {
     expect(getIonInput().nativeElement.value).toBe('');
   });
 
-  it('parses pasted "3.800" and "$3.800" as 3800 and formats as "$ 3.800" (E21)', () => {
-    triggerIonInput('3.800');
-    expect(host.valor()).toBe(3800);
-    expect(getIonInput().nativeElement.value).toBe('$ 3.800');
-
-    triggerIonInput('');
-    triggerIonInput('$3.800');
-    expect(host.valor()).toBe(3800);
-    expect(getIonInput().nativeElement.value).toBe('$ 3.800');
+  it('parses "3800", "3.800", "$3.800" and "$ 3.800" as 3800 without error (E21, R1)', () => {
+    for (const entrada of ['3800', '3.800', '$3.800', '$ 3.800']) {
+      triggerIonInput('');
+      triggerIonInput(entrada);
+      expect(host.valor()).toBe(3800);
+      expect(getIonInput().nativeElement.value).toBe('$ 3.800');
+      expect(fixture.debugElement.query(By.css('[data-testid="error-campo"]'))).toBeNull();
+      expect(getIonInput().attributes['aria-invalid']).toBeUndefined();
+    }
   });
 
-  it('ignores non-digit characters like letters (E21)', () => {
-    triggerIonInput('abc');
-    expect(host.valor()).toBeNull();
-    expect(getIonInput().nativeElement.value).toBe('');
+  it('sets valor to null, shows decimal error, and marks aria-invalid for disallowed characters, then clears on valid input (E21, R1)', () => {
+    for (const invalido of ['3800,50', '3.800,5', '38a0', '-3800']) {
+      triggerIonInput(invalido);
+      expect(host.valor()).toBeNull();
+      const note = fixture.debugElement.query(By.css('[data-testid="error-campo"]'));
+      expect(note).toBeTruthy();
+      expect(note.nativeElement.textContent).toContain('Escribe el monto en pesos, sin decimales');
+      expect(getIonInput().attributes['aria-invalid']).toBe('true');
 
-    triggerIonInput('38abc00');
-    expect(host.valor()).toBe(3800);
-    expect(getIonInput().nativeElement.value).toBe('$ 3.800');
+      triggerIonInput('3800');
+      expect(host.valor()).toBe(3800);
+      expect(getIonInput().nativeElement.value).toBe('$ 3.800');
+      expect(fixture.debugElement.query(By.css('[data-testid="error-campo"]'))).toBeNull();
+      expect(getIonInput().attributes['aria-invalid']).toBeUndefined();
+    }
   });
 
   it('disables ion-input and reflects disabled state for screen readers', () => {

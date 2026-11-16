@@ -10,7 +10,7 @@ import { ROL_CANCELAR, ROL_GUARDADO } from '../../shared/ui/formulario';
 import { MENSAJES_ERROR } from '../../shared/ui/mensajes-error';
 import { RegistrarVenta } from '../application/registrar-venta';
 
-import { ResumenVentaModalComponent } from './resumen-venta.modal';
+import { ResumenVentaModalComponent, ROL_ERROR } from './resumen-venta.modal';
 
 describe('ResumenVentaModalComponent', () => {
   let fixture: ComponentFixture<ResumenVentaModalComponent>;
@@ -61,7 +61,6 @@ describe('ResumenVentaModalComponent', () => {
       },
     ];
     component.totalVenta = pesos(75000);
-    component.textoPago = 'Contado · Efectivo';
     component.pago = { modalidad: 'CONTADO', medio: 'EFECTIVO' };
     component.fecha = fechaHora('2026-11-15 14:30:00');
     fixture.detectChanges();
@@ -128,7 +127,8 @@ describe('ResumenVentaModalComponent', () => {
       }),
     );
     expect(mockToastPresent).toHaveBeenCalled();
-    expect(mockModalCtrl.dismiss).toHaveBeenCalledWith({ error: true }, ROL_CANCELAR);
+    expect(mockModalCtrl.dismiss).toHaveBeenCalledWith({ error: true }, ROL_ERROR);
+    expect(ROL_ERROR).not.toBe(ROL_CANCELAR);
     expect(
       Boolean(fixture.debugElement.query(By.css('[data-testid="btn-aceptar-venta"]')).nativeElement.disabled),
     ).toBe(false);
@@ -173,5 +173,64 @@ describe('ResumenVentaModalComponent', () => {
 
     expect(alCambiarGuardando).toHaveBeenCalledTimes(2);
     expect(alCambiarGuardando).toHaveBeenLastCalledWith(false);
+  });
+
+  it('dismisses with ROL_GUARDADO and never shows save error if toast.present fails after registrar resolves (F5)', async () => {
+    mockToastPresent.mockRejectedValueOnce(new Error('Toast failed'));
+
+    await expect(component.aceptar()).resolves.toBeUndefined();
+
+    expect(mockRegistrarVenta.registrar).toHaveBeenCalledTimes(1);
+    expect(mockToastCtrl.create).toHaveBeenCalledTimes(1);
+    expect(mockToastCtrl.create).toHaveBeenCalledWith(expect.objectContaining({ color: 'success' }));
+    expect(mockModalCtrl.dismiss).toHaveBeenCalledWith({ guardado: true }, ROL_GUARDADO);
+    expect(component.guardando()).toBe(false);
+  });
+
+  it('releases guardando without unhandled rejection if dismiss fails after registrar resolves (F5)', async () => {
+    mockModalCtrl.dismiss.mockRejectedValueOnce(new Error('Dismiss failed'));
+
+    await expect(component.aceptar()).resolves.toBeUndefined();
+
+    expect(mockRegistrarVenta.registrar).toHaveBeenCalledTimes(1);
+    expect(mockToastCtrl.create).toHaveBeenCalledTimes(1);
+    expect(mockModalCtrl.dismiss).toHaveBeenCalledWith({ guardado: true }, ROL_GUARDADO);
+    expect(component.guardando()).toBe(false);
+  });
+
+  it('still dismisses with ROL_ERROR if error toast fails when registrar rejects (F5)', async () => {
+    mockRegistrarVenta.registrar.mockRejectedValueOnce(new ReglaNegocioError('STOCK_INSUFICIENTE', 'No stock'));
+    mockToastPresent.mockRejectedValueOnce(new Error('Toast failed'));
+
+    await expect(component.aceptar()).resolves.toBeUndefined();
+
+    expect(mockModalCtrl.dismiss).toHaveBeenCalledWith({ error: true }, ROL_ERROR);
+    expect(component.guardando()).toBe(false);
+  });
+
+  it('derives payment summary text directly from pago for Contado, Fiado and Abono inicial (F7)', () => {
+    const f1 = TestBed.createComponent(ResumenVentaModalComponent);
+    const c1 = f1.componentInstance;
+    c1.cliente = ana;
+    c1.lineas = component.lineas;
+    c1.totalVenta = pesos(75000);
+    c1.pago = { modalidad: 'FIADO' };
+    c1.fecha = fechaHora('2026-11-15 14:30:00');
+    f1.detectChanges();
+    expect(f1.debugElement.query(By.css('[data-testid="resumen-pago"]')).nativeElement.textContent.trim()).toBe(
+      'Fiado',
+    );
+
+    const f2 = TestBed.createComponent(ResumenVentaModalComponent);
+    const c2 = f2.componentInstance;
+    c2.cliente = ana;
+    c2.lineas = component.lineas;
+    c2.totalVenta = pesos(75000);
+    c2.pago = { modalidad: 'ABONO_INICIAL', monto: 25000, medio: 'TRANSFERENCIA' };
+    c2.fecha = fechaHora('2026-11-15 14:30:00');
+    f2.detectChanges();
+    expect(f2.debugElement.query(By.css('[data-testid="resumen-pago"]')).nativeElement.textContent.trim()).toBe(
+      'Abono inicial de $ 25.000 · Transferencia',
+    );
   });
 });

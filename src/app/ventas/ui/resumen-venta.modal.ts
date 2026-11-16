@@ -14,11 +14,15 @@ import {
 } from '@ionic/angular';
 
 import type { Cliente } from '../../clientes/domain/cliente';
-import { formatearPesos, type FechaHora, type Pesos, type TipoPapel } from '../../shared/domain';
+import { formatearPesos, pesos, type FechaHora, type MedioPago, type Pesos, type TipoPapel } from '../../shared/domain';
 import { ROL_CANCELAR, ROL_GUARDADO } from '../../shared/ui/formulario';
 import { mensajeDeError } from '../../shared/ui/mensajes-error';
 import { RegistrarVenta } from '../application/registrar-venta';
 import type { PagoVenta } from '../domain/venta';
+
+import { etiquetaPapel } from './venta-ui.helpers';
+
+export const ROL_ERROR = 'error';
 
 export interface LineaResumenVenta {
   readonly idLote: number;
@@ -55,7 +59,7 @@ export interface LineaResumenVenta {
       </ion-list>
 
       <p class="resumen-total" data-testid="resumen-total">Total: {{ formatearPesos(totalVenta) }}</p>
-      <p data-testid="resumen-pago">{{ textoPago }}</p>
+      <p data-testid="resumen-pago">{{ textoPago() }}</p>
       <p data-testid="resumen-fecha">Fecha: {{ fecha }}</p>
 
       <div class="resumen-acciones ion-padding-top">
@@ -103,16 +107,24 @@ export class ResumenVentaModalComponent {
   @Input({ required: true }) cliente!: Cliente;
   @Input({ required: true }) lineas!: readonly LineaResumenVenta[];
   @Input({ required: true }) totalVenta!: Pesos;
-  @Input({ required: true }) textoPago!: string;
   @Input({ required: true }) pago!: PagoVenta;
   @Input({ required: true }) fecha!: FechaHora;
   @Input() alCambiarGuardando?: (guardando: boolean) => void;
 
   readonly guardando = signal(false);
   readonly formatearPesos = formatearPesos;
+  readonly etiquetaPapel = etiquetaPapel;
 
-  etiquetaPapel(tipo: TipoPapel): string {
-    return tipo === 'CARTA' ? 'Carta' : 'Oficio';
+  textoPago(): string {
+    const formatearMedio = (medio: MedioPago): string => (medio === 'EFECTIVO' ? 'Efectivo' : 'Transferencia');
+    switch (this.pago.modalidad) {
+      case 'CONTADO':
+        return `Contado · ${formatearMedio(this.pago.medio)}`;
+      case 'FIADO':
+        return 'Fiado';
+      case 'ABONO_INICIAL':
+        return `Abono inicial de ${formatearPesos(pesos(this.pago.monto))} · ${formatearMedio(this.pago.medio)}`;
+    }
   }
 
   async volverAEditar(): Promise<void> {
@@ -141,26 +153,44 @@ export class ResumenVentaModalComponent {
         })),
         pago: this.pago,
       });
-
-      const toast = await this.toastCtrl.create({
-        message: 'Venta registrada',
-        duration: 2500,
-        color: 'success',
-        position: 'bottom',
-      });
-      await toast.present();
-
-      await this.modalCtrl.dismiss({ guardado: true }, ROL_GUARDADO);
     } catch (error: unknown) {
-      const toast = await this.toastCtrl.create({
-        message: mensajeDeError(error),
-        duration: 3000,
-        color: 'danger',
-        position: 'bottom',
-      });
-      await toast.present();
+      try {
+        const toast = await this.toastCtrl.create({
+          message: mensajeDeError(error),
+          duration: 3000,
+          color: 'danger',
+          position: 'bottom',
+        });
+        await toast.present();
+      } catch {
+        // Ignore toast errors so the modal still closes cleanly
+      }
+      try {
+        await this.modalCtrl.dismiss({ error: true }, ROL_ERROR);
+      } catch {
+        // Ignore dismiss errors
+      } finally {
+        this.guardando.set(false);
+        this.alCambiarGuardando?.(false);
+      }
+      return;
+    }
 
-      await this.modalCtrl.dismiss({ error: true }, ROL_CANCELAR);
+    try {
+      try {
+        const toast = await this.toastCtrl.create({
+          message: 'Venta registrada',
+          duration: 2500,
+          color: 'success',
+          position: 'bottom',
+        });
+        await toast.present();
+      } catch {
+        // Sale already persisted; never report as failed if toast fails
+      }
+      await this.modalCtrl.dismiss({ guardado: true }, ROL_GUARDADO);
+    } catch {
+      // Ignore dismiss errors
     } finally {
       this.guardando.set(false);
       this.alCambiarGuardando?.(false);

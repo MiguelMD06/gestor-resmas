@@ -18,12 +18,12 @@ import {
   IonModal,
   IonNote,
   IonProgressBar,
-  IonSearchbar,
   IonSegment,
   IonSegmentButton,
   IonTitle,
   IonToolbar,
   ModalController,
+  ToastController,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { add, calendarOutline, closeOutline, personOutline, trashOutline } from 'ionicons/icons';
@@ -49,11 +49,13 @@ import {
 import { CLOCK } from '../../shared/infrastructure/clock/clock.token';
 import { CampoPesosComponent } from '../../shared/ui/campo-pesos.component';
 import { ROL_GUARDADO, soloCierreExplicito } from '../../shared/ui/formulario';
-import { MENSAJES_ERROR, mensajeDeError } from '../../shared/ui/mensajes-error';
+import { MENSAJES_ERROR, MENSAJE_ERROR_GENERICO, mensajeDeError } from '../../shared/ui/mensajes-error';
 import { evaluarLinea, perdida } from '../domain/margen';
 import type { PagoVenta } from '../domain/venta';
 
-import { ResumenVentaModalComponent } from './resumen-venta.modal';
+import { type LineaResumenVenta, ROL_ERROR, ResumenVentaModalComponent } from './resumen-venta.modal';
+import { SelectorClienteContenidoComponent } from './selector-cliente-contenido.component';
+import { etiquetaPapel, leerValorEvento } from './venta-ui.helpers';
 
 export type ModalidadVenta = 'CONTADO' | 'FIADO' | 'ABONO_INICIAL';
 
@@ -105,7 +107,7 @@ interface LineaEvaluadaUI extends LineaBorrador {
         <ion-icon name="person-outline" slot="start"></ion-icon>
         <ion-label>
           <p>Cliente</p>
-          <h2>{{ clienteSeleccionado()?.nombre ?? 'Mostrador' }}</h2>
+          <h2>{{ clienteSeleccionado()?.nombre ?? '' }}</h2>
         </ion-label>
       </ion-item>
 
@@ -338,63 +340,18 @@ interface LineaEvaluadaUI extends LineaBorrador {
       data-testid="modal-selector-cliente"
     >
       <ng-template>
-        <ion-header>
-          <ion-toolbar>
-            <ion-title>Elegir cliente</ion-title>
-            <ion-buttons slot="end">
-              <ion-button (click)="cerrarSelectorCliente()" data-testid="btn-cerrar-selector-cliente">
-                Cerrar
-              </ion-button>
-            </ion-buttons>
-          </ion-toolbar>
-          <ion-toolbar>
-            <ion-searchbar
-              placeholder="Buscar por nombre o celular"
-              [value]="busquedaCliente()"
-              [debounce]="0"
-              (ionInput)="onBuscarClienteInput($event)"
-              (ionClear)="onBuscarClienteClear()"
-              data-testid="searchbar-clientes-vender"
-            ></ion-searchbar>
-          </ion-toolbar>
-        </ion-header>
-        <ion-content class="ion-padding">
-          <ion-button
-            expand="block"
-            fill="outline"
-            (click)="crearNuevoCliente()"
-            data-testid="btn-nuevo-cliente-vender"
-          >
-            Nuevo cliente
-          </ion-button>
-
-          @if (errorBusquedaClientes(); as errorClientes) {
-            <div class="estado-error ion-text-center ion-padding" data-testid="estado-error-clientes">
-              <p data-testid="mensaje-error-clientes">{{ errorClientes }}</p>
-              <ion-button
-                (click)="reintentarBusquedaClientes()"
-                [disabled]="buscandoClientes()"
-                [attr.aria-disabled]="buscandoClientes() ? 'true' : null"
-                data-testid="btn-reintentar-clientes"
-              >
-                Reintentar
-              </ion-button>
-            </div>
-          } @else {
-            <ion-list>
-              @for (c of clientesSelector(); track c.idCliente) {
-                <ion-item button (click)="seleccionarCliente(c)" data-testid="item-cliente-vender">
-                  <ion-label>
-                    <h2>{{ c.nombre }}</h2>
-                    @if (c.telefono) {
-                      <p>{{ c.telefono }}</p>
-                    }
-                  </ion-label>
-                </ion-item>
-              }
-            </ion-list>
-          }
-        </ion-content>
+        <app-selector-cliente-contenido
+          [busqueda]="busquedaCliente()"
+          [clientes]="clientesSelector()"
+          [buscando]="buscandoClientes()"
+          [errorBusqueda]="errorBusquedaClientes()"
+          (cerrar)="cerrarSelectorCliente()"
+          (buscar)="onBuscarClienteTexto($event)"
+          (limpiarBusqueda)="onBuscarClienteClear()"
+          (nuevoCliente)="crearNuevoCliente()"
+          (reintentar)="reintentarBusquedaClientes()"
+          (seleccionar)="seleccionarCliente($event)"
+        />
       </ng-template>
     </ion-modal>
 
@@ -478,22 +435,24 @@ interface LineaEvaluadaUI extends LineaBorrador {
     IonSegment,
     IonSegmentButton,
     IonModal,
-    IonSearchbar,
     IonDatetime,
     IonCard,
     IonCardHeader,
     IonCardTitle,
     IonCardContent,
+    SelectorClienteContenidoComponent,
   ],
 })
 export class VenderPage {
   private readonly consultarInventario = inject(ConsultarInventario);
   private readonly buscarClientes = inject(BuscarClientes);
   private readonly modalCtrl = inject(ModalController);
+  private readonly toastCtrl = inject(ToastController);
   private readonly clock = inject(CLOCK);
 
   private peticionActual = 0;
   private peticionClientes = 0;
+  private fechaEditadaManualmente = false;
 
   readonly cargando = signal(false);
   readonly errorCarga = signal<string | null>(null);
@@ -517,6 +476,7 @@ export class VenderPage {
   readonly selectorFechaAbierto = signal(false);
 
   readonly formatearPesos = formatearPesos;
+  readonly etiquetaPapel = etiquetaPapel;
   readonly esMostrador = computed(() => this.clienteSeleccionado()?.esMostrador ?? true);
   readonly maxFechaIso = signal(this.clock.ahora().replace(' ', 'T'));
   readonly fechaIsoSeleccionada = computed(() => this.fechaSeleccionada().replace(' ', 'T'));
@@ -572,11 +532,17 @@ export class VenderPage {
   });
 
   readonly totalVenta = computed<Pesos>(() =>
-    this.lineasEvaluadas().reduce((acc, l) => sumarPesos(acc, l.subtotalVenta ?? pesos(0)), pesos(0)),
+    this.lineasEvaluadas().reduce(
+      (acc, l) => (l.subtotalVenta !== null ? sumarPesos(acc, l.subtotalVenta) : acc),
+      pesos(0),
+    ),
   );
 
   readonly costoTotal = computed<Pesos>(() =>
-    this.lineasEvaluadas().reduce((acc, l) => sumarPesos(acc, l.subtotalCosto ?? pesos(0)), pesos(0)),
+    this.lineasEvaluadas().reduce(
+      (acc, l) => (l.subtotalCosto !== null ? sumarPesos(acc, l.subtotalCosto) : acc),
+      pesos(0),
+    ),
   );
 
   readonly margenTotal = computed<Pesos>(() => restarPesos(this.totalVenta(), this.costoTotal()));
@@ -617,23 +583,14 @@ export class VenderPage {
     return true;
   });
 
-  readonly textoResumenPago = computed(() => {
-    const medioTexto = this.medio() === 'EFECTIVO' ? 'Efectivo' : 'Transferencia';
-    switch (this.modalidad()) {
-      case 'CONTADO':
-        return `Contado · ${medioTexto}`;
-      case 'FIADO':
-        return 'Fiado';
-      case 'ABONO_INICIAL':
-        return `Abono inicial de ${formatearPesos(pesos(this.montoAbonoInicial() ?? 0))} · ${medioTexto}`;
-    }
-  });
-
   constructor() {
     addIcons({ personOutline, calendarOutline, trashOutline, add, closeOutline });
   }
 
   async ionViewWillEnter(): Promise<void> {
+    if (!this.fechaEditadaManualmente) {
+      this.fechaSeleccionada.set(this.clock.ahora());
+    }
     await this.cargarDatos();
   }
 
@@ -653,7 +610,11 @@ export class VenderPage {
       this.lotes.set([...inventario.CARTA, ...inventario.OFICIO]);
       this.clientesSelector.set(clientes);
       if (this.clienteSeleccionado() === null) {
-        const mostrador = clientes.find((c) => c.esMostrador) ?? clientes[0] ?? null;
+        const mostrador = clientes.find((c) => c.esMostrador) ?? null;
+        if (!mostrador) {
+          this.errorCarga.set(MENSAJE_ERROR_GENERICO);
+          return;
+        }
         this.clienteSeleccionado.set(mostrador);
       }
       this.errorCarga.set(null);
@@ -667,10 +628,6 @@ export class VenderPage {
         this.cargando.set(false);
       }
     }
-  }
-
-  etiquetaPapel(tipo: TipoPapel): string {
-    return tipo === 'CARTA' ? 'Carta' : 'Oficio';
   }
 
   loteYaAgregado(idLote: number): boolean {
@@ -702,10 +659,7 @@ export class VenderPage {
   }
 
   onCantidadInput(idLote: number, event: CustomEvent | Event): void {
-    const detail = (event as CustomEvent).detail;
-    const raw = detail && 'value' in detail ? detail.value : (event.target as HTMLInputElement | null)?.value;
-    const texto = typeof raw === 'string' ? raw : raw == null ? '' : String(raw);
-    this.actualizarCantidad(idLote, texto);
+    this.actualizarCantidad(idLote, leerValorEvento(event));
   }
 
   actualizarCantidad(idLote: number, cantidadTexto: string): void {
@@ -730,9 +684,10 @@ export class VenderPage {
   }
 
   onBuscarClienteInput(event: CustomEvent | Event): void {
-    const detail = (event as CustomEvent).detail;
-    const raw = detail && 'value' in detail ? detail.value : (event.target as HTMLInputElement | null)?.value;
-    const texto = typeof raw === 'string' ? raw : '';
+    this.onBuscarClienteTexto(leerValorEvento(event));
+  }
+
+  onBuscarClienteTexto(texto: string): void {
     this.busquedaCliente.set(texto);
     void this.buscarClientesSelector(texto);
   }
@@ -749,7 +704,6 @@ export class VenderPage {
   private async buscarClientesSelector(texto: string): Promise<void> {
     const idPeticion = ++this.peticionClientes;
     this.buscandoClientes.set(true);
-    this.errorBusquedaClientes.set(null);
     try {
       const lista = await this.buscarClientes.buscar(texto, { incluirMostrador: true });
       if (idPeticion !== this.peticionClientes) {
@@ -814,6 +768,7 @@ export class VenderPage {
       return;
     }
     const [, datePart, hmPart, secPart] = match;
+    this.fechaEditadaManualmente = true;
     this.fechaSeleccionada.set(fechaHora(`${datePart} ${hmPart}:${secPart ?? '00'}`));
   }
 
@@ -840,22 +795,38 @@ export class VenderPage {
       return;
     }
 
+    const lineasResumen: LineaResumenVenta[] = [];
+    for (const l of this.lineasEvaluadas()) {
+      if (l.cantidadNum === null || l.precioUnitario === null || l.subtotalVenta === null) {
+        return;
+      }
+      lineasResumen.push({
+        idLote: l.idLote,
+        tipoPapel: l.tipoPapel,
+        cantidad: l.cantidadNum,
+        precioUnitario: pesos(l.precioUnitario),
+        subtotalVenta: l.subtotalVenta,
+      });
+    }
+
+    const pago = this.construirPago();
+    if (!pago) {
+      return;
+    }
+
+    if (!this.fechaEditadaManualmente) {
+      this.fechaSeleccionada.set(this.clock.ahora());
+    }
+
     this.abriendoResumen.set(true);
     try {
       const modal = await this.modalCtrl.create({
         component: ResumenVentaModalComponent,
         componentProps: {
           cliente,
-          lineas: this.lineasEvaluadas().map((l) => ({
-            idLote: l.idLote,
-            tipoPapel: l.tipoPapel,
-            cantidad: l.cantidadNum ?? 0,
-            precioUnitario: pesos(l.precioUnitario ?? 0),
-            subtotalVenta: l.subtotalVenta ?? pesos(0),
-          })),
+          lineas: lineasResumen,
           totalVenta: this.totalVenta(),
-          textoPago: this.textoResumenPago(),
-          pago: this.construirPago(),
+          pago,
           fecha: this.fechaSeleccionada(),
           alCambiarGuardando: (estado: boolean) => this.guardando.set(estado),
         },
@@ -867,6 +838,20 @@ export class VenderPage {
       if (role === ROL_GUARDADO) {
         this.reiniciarFormulario();
         await this.cargarDatos();
+      } else if (role === ROL_ERROR) {
+        await this.cargarDatos();
+      }
+    } catch (error: unknown) {
+      try {
+        const toast = await this.toastCtrl.create({
+          message: mensajeDeError(error),
+          duration: 3000,
+          color: 'danger',
+          position: 'bottom',
+        });
+        await toast.present();
+      } catch {
+        // Avoid unhandled rejection if toast fails
       }
     } finally {
       this.guardando.set(false);
@@ -874,18 +859,23 @@ export class VenderPage {
     }
   }
 
-  private construirPago(): PagoVenta {
+  private construirPago(): PagoVenta | null {
     switch (this.modalidad()) {
       case 'CONTADO':
         return { modalidad: 'CONTADO', medio: this.medio() };
       case 'FIADO':
         return { modalidad: 'FIADO' };
-      case 'ABONO_INICIAL':
+      case 'ABONO_INICIAL': {
+        const monto = this.montoAbonoInicial();
+        if (monto === null) {
+          return null;
+        }
         return {
           modalidad: 'ABONO_INICIAL',
-          monto: this.montoAbonoInicial() ?? 0,
+          monto,
           medio: this.medio(),
         };
+      }
     }
   }
 
@@ -896,6 +886,7 @@ export class VenderPage {
     this.modalidad.set('CONTADO');
     this.medio.set('EFECTIVO');
     this.montoAbonoInicial.set(null);
+    this.fechaEditadaManualmente = false;
     this.fechaSeleccionada.set(this.clock.ahora());
   }
 }

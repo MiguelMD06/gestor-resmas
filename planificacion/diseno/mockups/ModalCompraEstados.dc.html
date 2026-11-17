@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Nueva compra · estados</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#000}
+a{color:#5EC8F2}a:hover{color:#8FDBF7}
+.campo{position:relative}
+.campo input,.campo .selector{box-sizing:border-box;width:100%;height:56px;padding:0 16px;border:1px solid #3A3D44;border-radius:12px;background:transparent;color:#F5F5F5;font:500 16px Inter,sans-serif;outline:none}
+.campo .selector{display:flex;align-items:center;gap:12px;text-align:left}
+.campo label{position:absolute;top:-9px;left:12px;padding:0 6px;font:500 12px Inter,sans-serif;line-height:16px;color:#A1A1AA;background:#0F1012}
+.campo.error input,.campo.error .selector{border-color:#FF6B6B}.campo.error label{color:#FF6B6B}
+.ayuda{margin:6px 4px 0;font-size:12px;line-height:16px;color:#A1A1AA;display:flex;gap:6px;align-items:flex-start}
+.ayuda.error{color:#FF6B6B}.ayuda.aviso{color:#F5B544}.ayuda svg{flex-shrink:0;margin-top:1px}
+.btn-p{height:52px;border:0;border-radius:14px;background:#CBFF3D;color:#0A0A0A;font:600 15px Inter,sans-serif}
+.btn-s{height:48px;border:1px solid #5EC8F2;border-radius:14px;background:transparent;color:#5EC8F2;font:600 14px Inter,sans-serif}
+.btn-off{height:52px;border:0;border-radius:14px;background:#1F2125;color:#8A8E96;font:600 15px Inter,sans-serif}
+.etiqueta-estado{margin:0 0 12px;font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#8A8E96}
+.nota{margin:10px 4px 0;font-size:12px;line-height:17px;color:#A1A1AA}
+.tarjeta{background:#0F1012;border:1px solid #1F2125;border-radius:20px;padding:20px 16px 16px;display:flex;flex-direction:column;gap:14px}
+.previa{background:#17181B;border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.fila{display:flex;justify-content:space-between;font-size:14px}
+.fila span:first-child{color:#A1A1AA}
+.fila span:last-child{font-weight:600}
+.b{height:10px;border-radius:999px;background:#2A2C31}
+.toast{min-height:52px;padding:12px 16px;border-radius:14px;background:#17181B;border:1px solid #2A2C31;display:flex;align-items:center;gap:12px;font-size:14px;font-weight:500}
+</style>
+</helmet>
+<div style="width: 390px; height: 1360px; box-sizing: border-box; background: #000000; color: #F5F5F5; font-family: Inter, system-ui, sans-serif; padding: 28px 20px 32px; display: flex; flex-direction: column; gap: 28px">
+  <header style="display: flex; flex-direction: column; gap: 4px">
+    <h1 style="margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.02em">Nueva compra · estados</h1>
+    <p style="margin: 0; font-size: 13px; color: #A1A1AA">Guardar se habilita solo con todo válido y la vista previa al día.</p>
+  </header>
+
+  <div>
+    <p class="etiqueta-estado">Errores de campo</p>
+    <div class="tarjeta">
+      <div class="campo error"><label for="f1">Fecha</label><button id="f1" type="button" class="selector" aria-invalid="true" aria-describedby="m1"><span style="flex-grow: 1; color: #8A8E96">Sin fecha</span></button></div>
+      <p class="ayuda error" id="m1" style="margin-top: -8px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FF6B6B" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v6M12 16.5v.5"></path></svg>Elige una fecha</p>
+      <div class="campo error" style="margin-top: 4px"><label for="f2">Cantidad de cajas</label><input id="f2" type="text" inputmode="numeric" value="0" aria-invalid="true" aria-describedby="m2"></div>
+      <p class="ayuda error" id="m2" style="margin-top: -8px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FF6B6B" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v6M12 16.5v.5"></path></svg>La cantidad de cajas debe ser un número entero mayor a cero</p>
+      <div class="campo error" style="margin-top: 4px"><label for="f3">Costo por caja</label><input id="f3" type="text" inputmode="numeric" value="$ 180.005" aria-invalid="true" aria-describedby="m3"></div>
+      <p class="ayuda error" id="m3" style="margin-top: -8px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FF6B6B" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v6M12 16.5v.5"></path></svg>El costo por caja debe ser un número entero divisible entre 10</p>
+    </div>
+  </div>
+
+  <div>
+    <p class="etiqueta-estado">Calculando la vista previa</p>
+    <div class="previa" aria-busy="true" aria-label="Calculando vista previa">
+      <div style="display: flex; justify-content: space-between"><div class="b" style="width: 40%"></div><div class="b" style="width: 25%; height: 16px"></div></div>
+      <div class="b" style="width: 100%"></div>
+      <div class="b" style="width: 80%"></div>
+    </div>
+    <button type="button" class="btn-off" disabled aria-disabled="true" style="width: 100%; margin-top: 12px">Guardar compra</button>
+    <p class="nota">Si el usuario cambia un dato, la respuesta vieja se descarta y se espera la nueva (regla 3).</p>
+  </div>
+
+  <div>
+    <p class="etiqueta-estado">El saldo no alcanza (bloquea)</p>
+    <div class="previa">
+      <div class="fila"><span>Costo total</span><span>$ 720.000</span></div>
+      <div class="fila"><span>Saldo disponible en Transferencia</span><span style="color: #FF6B6B">$ 512.000</span></div>
+      <p class="ayuda error" style="margin: 4px 0 0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FF6B6B" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v6M12 16.5v.5"></path></svg>El saldo del bolsillo no alcanza para esta compra.</p>
+      <button type="button" class="btn-s" style="margin-top: 4px">Aportar capital</button>
+    </div>
+    <p class="nota">Aportar capital abre el modal de aporte encima; al guardarlo, la vista previa se recalcula.</p>
+  </div>
+
+  <div>
+    <p class="etiqueta-estado">Reinversión de ganancia (solo avisa)</p>
+    <div class="previa">
+      <div class="fila"><span>Costo total</span><span>$ 720.000</span></div>
+      <div class="fila"><span>Capital en caja</span><span>$ 640.000</span></div>
+      <p class="ayuda aviso" style="margin: 4px 0 0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F5B544" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l10 18H2L12 3z"></path><path d="M12 10v5M12 18v.5"></path></svg>Se reinvierten $ 80.000 de la ganancia libre</p>
+    </div>
+  </div>
+
+  <div>
+    <p class="etiqueta-estado">Guardando</p>
+    <button type="button" class="btn-p" disabled aria-disabled="true" aria-busy="true" style="width: 100%; opacity: 0.6; display: flex; align-items: center; justify-content: center; gap: 10px">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0A0A0A" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M21 12a9 9 0 11-6.2-8.6"></path></svg>
+      Guardando compra…
+    </button>
+  </div>
+
+  <div>
+    <p class="etiqueta-estado">Compra registrada (texto propuesto)</p>
+    <div class="toast" role="status">
+      <span aria-hidden="true" style="width: 28px; height: 28px; border-radius: 999px; background: rgba(52,211,153,0.15); display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#34D399" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"></path></svg></span>
+      Compra registrada · Lote #14
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1360}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

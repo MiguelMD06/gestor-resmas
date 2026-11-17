@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Inventario · estados</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#000}
+a{color:#5EC8F2}a:hover{color:#8FDBF7}
+.etiqueta-estado{margin:0 0 12px;font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#8A8E96}
+.nota{margin:10px 4px 0;font-size:12px;line-height:17px;color:#A1A1AA}
+.tarjeta{background:#0F1012;border:1px solid #1F2125;border-radius:20px;padding:18px;display:flex;flex-direction:column;gap:14px}
+.b{height:10px;border-radius:999px;background:#1F2125}
+.btn-p{height:48px;border:0;border-radius:14px;background:#CBFF3D;color:#0A0A0A;font:600 14px Inter,sans-serif}
+.meta{font-size:12px;color:#A1A1AA}
+</style>
+</helmet>
+<div style="width: 390px; height: 1060px; box-sizing: border-box; background: #000000; color: #F5F5F5; font-family: Inter, system-ui, sans-serif; padding: 28px 20px 32px; display: flex; flex-direction: column; gap: 28px">
+  <header style="display: flex; flex-direction: column; gap: 4px">
+    <h1 style="margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.02em">Inventario · estados</h1>
+    <p style="margin: 0; font-size: 13px; color: #A1A1AA">Cargando, vacío, error y un lote casi agotado.</p>
+  </header>
+
+  <div>
+    <p class="etiqueta-estado">Cargando</p>
+    <div class="tarjeta" aria-busy="true" aria-label="Cargando lotes">
+      <div style="display: flex; justify-content: space-between"><div class="b" style="width: 40%"></div><div class="b" style="width: 22%"></div></div>
+      <div class="b" style="width: 30%; height: 22px; border-radius: 8px"></div>
+      <div class="b" style="width: 100%; height: 8px"></div>
+    </div>
+  </div>
+
+  <div>
+    <p class="etiqueta-estado">Sin lotes activos</p>
+    <div class="tarjeta" style="align-items: center; text-align: center; padding: 28px 20px">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#A1A1AA" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8l-9-5-9 5 9 5 9-5z"></path><path d="M3 8v8l9 5 9-5V8"></path></svg>
+      <p style="margin: 0; font-size: 14px; font-weight: 600">No hay lotes activos de papel Oficio.</p>
+      <p style="margin: -6px 0 0; font-size: 13px; line-height: 19px; color: #A1A1AA">Registra tu primera compra usando el botón de acciones (+).</p>
+    </div>
+  </div>
+
+  <div>
+    <p class="etiqueta-estado">Error de carga</p>
+    <div class="tarjeta" role="alert" style="align-items: stretch">
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; padding-top: 6px">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#FF6B6B" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v6M12 16.5v.5"></path></svg>
+        <p style="margin: 0; font-size: 14px; font-weight: 600">Ocurrió un error inesperado</p>
+      </div>
+      <button type="button" class="btn-p">Reintentar</button>
+    </div>
+    <p class="nota">Un error nunca se muestra como «sin lotes» (regla 4).</p>
+  </div>
+
+  <div>
+    <p class="etiqueta-estado">Lote casi agotado</p>
+    <article class="tarjeta" aria-label="Lote 9">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start">
+        <div style="display: flex; flex-direction: column; gap: 2px">
+          <span style="font-size: 15px; font-weight: 600">Lote #9</span>
+          <span class="meta">Ingreso 28 oct 2026 · 3 cajas</span>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px">
+          <span style="font-size: 15px; font-weight: 600">$ 21.000</span>
+          <span class="meta">por resma</span>
+        </div>
+      </div>
+      <div style="display: flex; align-items: baseline; gap: 6px">
+        <span style="font-size: 28px; font-weight: 700; letter-spacing: -0.02em">3</span>
+        <span style="font-size: 14px; color: #A1A1AA">de 30 resmas</span>
+      </div>
+      <div role="progressbar" aria-label="Resmas disponibles del lote 9" aria-valuemin="0" aria-valuemax="30" aria-valuenow="3" style="height: 8px; border-radius: 999px; background: #232529; overflow: hidden">
+        <div style="width: 10%; height: 8px; border-radius: 999px; background: #5EC8F2"></div>
+      </div>
+      <div style="display: flex; justify-content: space-between">
+        <span class="meta">10 % disponible</span>
+        <span class="meta">Valor en stock <strong style="color: #F5F5F5; font-weight: 600">$ 63.000</strong></span>
+      </div>
+    </article>
+    <p class="nota">Misma tarjeta: la barra corta ya lo dice. Al llegar a 0 el lote pasa a Agotado y sale de la lista (RF-04).</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1060}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Estados de los campos</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#000}
+a{color:#5EC8F2}a:hover{color:#8FDBF7}
+.campo{position:relative}
+.campo input{box-sizing:border-box;width:100%;height:56px;padding:0 16px;border:1px solid #3A3D44;border-radius:12px;background:transparent;color:#F5F5F5;font:500 16px Inter,sans-serif;outline:none}
+.campo input::placeholder{color:#8A8E96}
+.campo label{position:absolute;top:-9px;left:12px;padding:0 6px;font:500 12px Inter,sans-serif;line-height:16px;color:#A1A1AA;background:#000}
+.campo.foco input{border:2px solid #5EC8F2;padding:0 15px}
+.campo.foco label{color:#5EC8F2}
+.campo.error input{border-color:#FF6B6B}
+.campo.error label{color:#FF6B6B}
+.campo.aviso input{border-color:#F5B544}
+.campo.aviso label{color:#F5B544}
+.campo.inactivo{opacity:0.45}
+.ayuda{margin:6px 4px 0;font-size:12px;line-height:16px;color:#A1A1AA;display:flex;gap:6px;align-items:flex-start}
+.ayuda.error{color:#FF6B6B}
+.ayuda.aviso{color:#F5B544}
+.ayuda svg{flex-shrink:0;margin-top:1px}
+.etiqueta-estado{margin:0 0 14px;font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#8A8E96}
+</style>
+</helmet>
+<div style="width: 390px; height: 1300px; box-sizing: border-box; background: #000000; color: #F5F5F5; font-family: Inter, system-ui, sans-serif; padding: 28px 20px 32px; display: flex; flex-direction: column; gap: 26px">
+
+  <header style="display: flex; flex-direction: column; gap: 4px">
+    <h1 style="margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.02em">Estados de los campos</h1>
+    <p style="margin: 0; font-size: 13px; color: #A1A1AA">Los mismos estilos para todos los formularios de la app.</p>
+  </header>
+
+  <div>
+    <p class="etiqueta-estado">Vacío</p>
+    <div class="campo"><label for="e1">Cantidad (resmas)</label><input id="e1" type="text" inputmode="numeric" placeholder="Ej: 5"></div>
+    <p class="ayuda">Máximo 34</p>
+  </div>
+
+  <div>
+    <p class="etiqueta-estado">Con foco</p>
+    <div class="campo foco"><label for="e2">Precio por resma</label><input id="e2" type="text" inputmode="numeric" value="$ 22.0"></div>
+    <p class="ayuda">Costo $ 18.000</p>
+  </div>
+
+  <div>
+    <p class="etiqueta-estado">Error · campo obligatorio</p>
+    <div class="campo error"><label for="e3">Precio por resma</label><input id="e3" type="text" inputmode="numeric" value="" aria-invalid="true" aria-describedby="m3"></div>
+    <p class="ayuda error" id="m3"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FF6B6B" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v6M12 16.5v.5"></path></svg>El precio debe ser un número entero mayor a cero</p>
+  </div>
+
+  <div>
+    <p class="etiqueta-estado">Error · sin stock suficiente</p>
+    <div class="campo error"><label for="e4">Cantidad (resmas)</label><input id="e4" type="text" inputmode="numeric" value="40" aria-invalid="true" aria-describedby="m4"></div>
+    <p class="ayuda error" id="m4"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FF6B6B" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v6M12 16.5v.5"></path></svg>No hay suficientes resmas disponibles en el lote</p>
+  </div>
+
+  <div>
+    <p class="etiqueta-estado">Error · formato</p>
+    <div class="campo error"><label for="e5">Precio por resma</label><input id="e5" type="text" inputmode="numeric" value="22.500,50" aria-invalid="true" aria-describedby="m5"></div>
+    <p class="ayuda error" id="m5"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FF6B6B" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v6M12 16.5v.5"></path></svg>Escribe el monto en pesos, sin decimales</p>
+  </div>
+
+  <div>
+    <p class="etiqueta-estado">Error · abono inicial</p>
+    <div class="campo error"><label for="e6">Abono inicial</label><input id="e6" type="text" inputmode="numeric" value="$ 110.000" aria-invalid="true" aria-describedby="m6"></div>
+    <p class="ayuda error" id="m6"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FF6B6B" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v6M12 16.5v.5"></path></svg>El abono inicial debe ser mayor a cero y menor que el total. Si paga todo, elige Contado</p>
+  </div>
+
+  <div>
+    <p class="etiqueta-estado">Aviso · venta bajo costo (no bloquea)</p>
+    <div class="campo aviso"><label for="e7">Precio por resma</label><input id="e7" type="text" inputmode="numeric" value="$ 15.000" aria-describedby="m7"></div>
+    <p class="ayuda aviso" id="m7"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F5B544" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l10 18H2L12 3z"></path><path d="M12 10v5M12 18v.5"></path></svg>Precio por debajo del costo: pierdes $ 15.000</p>
+  </div>
+
+  <div>
+    <p class="etiqueta-estado">Deshabilitado · guardando</p>
+    <div class="campo inactivo"><label for="e8">Cantidad (resmas)</label><input id="e8" type="text" inputmode="numeric" value="5" disabled aria-disabled="true"></div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 12px">
+    <p class="etiqueta-estado" style="margin: 0 0 2px">Botón de acción</p>
+    <button type="button" style="height: 52px; border: 0; border-radius: 14px; background: {{lime}}; color: #0A0A0A; font: 600 15px Inter, sans-serif">Confirmar venta · $ 110.000</button>
+    <div>
+      <button type="button" disabled aria-disabled="true" aria-describedby="m9" style="width: 100%; height: 52px; border: 0; border-radius: 14px; background: #1F2125; color: #8A8E96; font: 600 15px Inter, sans-serif">Confirmar venta</button>
+      <p class="ayuda" id="m9" style="justify-content: center">Corrige los campos marcados para continuar</p>
+    </div>
+    <button type="button" disabled aria-disabled="true" aria-busy="true" style="height: 52px; border: 0; border-radius: 14px; background: {{lime}}; opacity: 0.6; color: #0A0A0A; font: 600 15px Inter, sans-serif; display: flex; align-items: center; justify-content: center; gap: 10px">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0A0A0A" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M21 12a9 9 0 11-6.2-8.6"></path></svg>
+      Guardando venta…
+    </button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"lime":{"editor":"color","default":"#CBFF3D","options":["#CBFF3D","#B8F400","#D9FF66"],"section":"Paleta"},"$preview":{"width":390,"height":1300}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { lime: this.props.lime ?? '#CBFF3D' };
+  }
+}
+</script>
+</body>
+</html>

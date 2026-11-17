@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Elegir cliente · estados</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#000}
+a{color:#5EC8F2}a:hover{color:#8FDBF7}
+.etiqueta-estado{margin:0 0 12px;font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#8A8E96}
+.hoja{background:#0F1012;border:1px solid #1F2125;border-radius:20px;padding:18px 16px;display:flex;flex-direction:column;gap:14px}
+.campo{position:relative}
+.campo input{box-sizing:border-box;width:100%;height:56px;padding:0 16px 0 46px;border:1px solid #3A3D44;border-radius:12px;background:transparent;color:#F5F5F5;font:500 16px Inter,sans-serif;outline:none}
+.campo label{position:absolute;top:-9px;left:12px;padding:0 6px;font:500 12px Inter,sans-serif;line-height:16px;color:#A1A1AA;background:#0F1012}
+.esqueleto{display:flex;align-items:center;gap:12px;padding:8px 4px}
+.esqueleto .c{width:40px;height:40px;border-radius:999px;background:#1F2125}
+.esqueleto .b{height:10px;border-radius:999px;background:#1F2125}
+</style>
+</helmet>
+<div style="width: 390px; height: 1000px; box-sizing: border-box; background: #000000; color: #F5F5F5; font-family: Inter, system-ui, sans-serif; padding: 28px 20px 32px; display: flex; flex-direction: column; gap: 28px">
+  <header style="display: flex; flex-direction: column; gap: 4px">
+    <h1 style="margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.02em">Elegir cliente · estados</h1>
+    <p style="margin: 0; font-size: 13px; color: #A1A1AA">Una lista nunca muestra un error como si estuviera vacía.</p>
+  </header>
+
+  <div>
+    <p class="etiqueta-estado">Cargando</p>
+    <div class="hoja" aria-busy="true" aria-label="Cargando clientes">
+      <div class="esqueleto"><div class="c"></div><div style="flex-grow: 1; display: flex; flex-direction: column; gap: 8px"><div class="b" style="width: 60%"></div><div class="b" style="width: 35%"></div></div></div>
+      <div class="esqueleto"><div class="c"></div><div style="flex-grow: 1; display: flex; flex-direction: column; gap: 8px"><div class="b" style="width: 48%"></div><div class="b" style="width: 30%"></div></div></div>
+      <div class="esqueleto"><div class="c"></div><div style="flex-grow: 1; display: flex; flex-direction: column; gap: 8px"><div class="b" style="width: 55%"></div><div class="b" style="width: 38%"></div></div></div>
+    </div>
+  </div>
+
+  <div>
+    <p class="etiqueta-estado">Sin resultados</p>
+    <div class="hoja">
+      <div class="campo" style="margin-top: 6px">
+        <label for="b2">Buscar cliente</label>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A1A1AA" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="position: absolute; left: 16px; top: 19px"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>
+        <input id="b2" type="search" value="Pedro">
+      </div>
+      <div style="padding: 18px 8px 6px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#A1A1AA" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4M8.5 11h5"></path></svg>
+        <p style="margin: 0; font-size: 14px; font-weight: 600">Ningún cliente coincide con «Pedro»</p>
+        <p style="margin: 0; font-size: 13px; color: #A1A1AA">Revisa el nombre o el celular, o créalo como cliente nuevo.</p>
+      </div>
+      <button type="button" style="height: 48px; border: 1px solid #5EC8F2; border-radius: 14px; background: transparent; color: #5EC8F2; font: 600 14px Inter, sans-serif">Nuevo cliente</button>
+    </div>
+  </div>
+
+  <div>
+    <p class="etiqueta-estado">Error de carga</p>
+    <div class="hoja" role="alert">
+      <div style="padding: 10px 8px 4px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#FF6B6B" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v6M12 16.5v.5"></path></svg>
+        <p style="margin: 0; font-size: 14px; font-weight: 600">Ocurrió un error inesperado</p>
+        <p style="margin: 0; font-size: 13px; color: #A1A1AA">No pudimos cargar los clientes.</p>
+      </div>
+      <button type="button" style="height: 48px; border: 0; border-radius: 14px; background: #CBFF3D; color: #0A0A0A; font: 600 14px Inter, sans-serif">Reintentar</button>
+      <button type="button" style="height: 44px; border: 0; background: transparent; color: #5EC8F2; font: 600 14px Inter, sans-serif">Cerrar</button>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

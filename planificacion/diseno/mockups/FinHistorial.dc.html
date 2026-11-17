@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Historial de retiros</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#000}
+a{color:#5EC8F2}a:hover{color:#8FDBF7}
+.campo{position:relative}
+.campo .selector{box-sizing:border-box;width:100%;height:56px;padding:0 16px;border:1px solid #3A3D44;border-radius:12px;background:transparent;color:#F5F5F5;font:500 16px Inter,sans-serif;display:flex;align-items:center;gap:12px;text-align:left}
+.campo label{position:absolute;top:-9px;left:12px;padding:0 6px;font:500 12px Inter,sans-serif;line-height:16px;color:#A1A1AA;background:#0F1012}
+.btn-t{height:44px;padding:0 8px;margin-right:-8px;border:0;background:transparent;color:#5EC8F2;font:600 15px Inter,sans-serif}
+.asa{align-self:center;width:36px;height:4px;border-radius:999px;background:#3A3D44}
+.hoja{position:absolute;left:0;right:0;bottom:0;background:#0F1012;border-radius:24px 24px 0 0;padding:10px 20px 28px;display:flex;flex-direction:column;gap:20px}
+.cab{display:flex;justify-content:space-between;align-items:center;margin-top:-8px}
+.cab h2{margin:0;font-size:18px;font-weight:600}
+.retiro{min-height:68px;padding:12px 0;border-bottom:1px solid #1F2125;display:flex;align-items:center;gap:12px}
+.icono{width:40px;height:40px;border-radius:999px;background:#17181B;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+</style>
+</helmet>
+<div style="position: relative; width: 390px; height: 844px; overflow: hidden; background: #000000; color: #F5F5F5; font-family: Inter, system-ui, sans-serif">
+  <div aria-hidden="true" style="padding: 28px 20px; opacity: 0.35"><div style="font-size: 28px; font-weight: 700">Finanzas</div></div>
+  <div aria-hidden="true" style="position: absolute; inset: 0; background: rgba(0,0,0,0.6)"></div>
+
+  <section class="hoja" role="dialog" aria-modal="true" aria-labelledby="titulo" style="top: 52px">
+    <div class="asa" aria-hidden="true"></div>
+    <div class="cab"><h2 id="titulo">Historial de retiros</h2><button type="button" class="btn-t">Cerrar</button></div>
+
+    <div class="campo">
+      <label for="mes">Mes</label>
+      <button id="mes" type="button" class="selector">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5EC8F2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg>
+        <span style="flex-grow: 1">noviembre de 2026</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A1A1AA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+      </button>
+    </div>
+
+    <div style="background: #17181B; border-radius: 14px; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center">
+      <span style="display: flex; flex-direction: column; gap: 2px">
+        <span style="font-size: 13px; color: #A1A1AA">Retirado en noviembre</span>
+        <span style="font-size: 12px; color: #A1A1AA">2 retiros</span>
+      </span>
+      <span style="font-size: 20px; font-weight: 700">$ 150.000</span>
+    </div>
+
+    <div role="list" aria-label="Retiros de noviembre" style="display: flex; flex-direction: column; margin-top: -6px">
+      <div role="listitem" class="retiro">
+        <span class="icono" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5EC8F2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"></rect><circle cx="12" cy="12" r="2.5"></circle></svg></span>
+        <span style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px">
+          <span style="font-size: 15px; font-weight: 600">Pago del arriendo</span>
+          <span style="font-size: 12px; color: #A1A1AA">14 nov · 4:10 p. m. · Efectivo</span>
+        </span>
+        <span style="font-size: 15px; font-weight: 600">− $ 100.000</span>
+      </div>
+      <div role="listitem" class="retiro">
+        <span class="icono" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5EC8F2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="3"></rect><path d="M11 18h2"></path></svg></span>
+        <span style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px">
+          <span style="font-size: 15px; font-weight: 500; color: #A1A1AA">Sin nota</span>
+          <span style="font-size: 12px; color: #A1A1AA">3 nov · 9:30 a. m. · Transferencia</span>
+        </span>
+        <span style="font-size: 15px; font-weight: 600">− $ 50.000</span>
+      </div>
+    </div>
+
+    <p style="margin: auto 0 0; padding-top: 14px; border-top: 1px solid #1F2125; display: flex; justify-content: space-between; font-size: 13px; color: #A1A1AA">
+      <span>Total retirado desde el inicio</span>
+      <span style="color: #F5F5F5; font-weight: 600">$ 350.000</span>
+    </p>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

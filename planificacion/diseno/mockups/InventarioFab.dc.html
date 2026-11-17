@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Inventario · acciones</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#000}
+a{color:#5EC8F2}a:hover{color:#8FDBF7}
+.accion{display:flex;align-items:center;justify-content:flex-end;gap:12px;border:0;background:transparent;padding:0;font-family:Inter,sans-serif}
+.accion .texto{padding:10px 14px;border-radius:12px;background:#17181B;border:1px solid #2A2C31;color:#F5F5F5;font-size:14px;font-weight:600}
+.accion .circulo{width:48px;height:48px;border-radius:999px;display:flex;align-items:center;justify-content:center}
+</style>
+</helmet>
+<div style="position: relative; width: 390px; height: 844px; overflow: hidden; background: #000000; color: #F5F5F5; font-family: Inter, system-ui, sans-serif">
+  <div aria-hidden="true" style="padding: 28px 20px; display: flex; flex-direction: column; gap: 22px; opacity: 0.35">
+    <div style="font-size: 28px; font-weight: 700">Inventario</div>
+    <div style="height: 52px; border-radius: 12px; background: #17181B"></div>
+    <div style="height: 150px; border-radius: 20px; background: #0F1012; border: 1px solid #1F2125"></div>
+    <div style="height: 180px; border-radius: 20px; background: #0F1012; border: 1px solid #1F2125"></div>
+  </div>
+  <div aria-hidden="true" style="position: absolute; inset: 0; background: rgba(0,0,0,0.65)"></div>
+
+  <div role="menu" aria-label="Acciones de inventario" style="position: absolute; right: 24px; bottom: 164px; display: flex; flex-direction: column; align-items: flex-end; gap: 16px">
+    <button type="button" role="menuitem" class="accion">
+      <span class="texto">Aportar capital</span>
+      <span class="circulo" aria-hidden="true" style="background: #0F1012; border: 1px solid #5EC8F2">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5EC8F2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h15a3 3 0 013 3v7a3 3 0 01-3 3H3z"></path><path d="M3 7l12-4v4M17 14h.5"></path></svg>
+      </span>
+    </button>
+    <button type="button" role="menuitem" class="accion">
+      <span class="texto">Nueva compra</span>
+      <span class="circulo" aria-hidden="true" style="background: #CBFF3D">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0A0A0A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5z"></path><path d="M3 8v8l9 5 9-5V8M12 13v8"></path></svg>
+      </span>
+    </button>
+  </div>
+
+  <button type="button" aria-label="Cerrar acciones" aria-expanded="true" style="position: absolute; right: 20px; bottom: 92px; width: 56px; height: 56px; border: 0; border-radius: 999px; background: #2A2C31; display: flex; align-items: center; justify-content: center">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F5F5F5" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+  </button>
+
+  <div aria-hidden="true" style="position: absolute; left: 0; right: 0; bottom: 0; height: 72px; border-top: 1px solid #1F2125; background: #0A0A0B; opacity: 0.35"></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

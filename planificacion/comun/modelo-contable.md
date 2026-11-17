@@ -50,7 +50,14 @@ Todas las cantidades y montos son enteros (pesos colombianos) y se verifican con
 | R-09 | **Mostrador:** sus ventas son siempre de contado; no puede quedar debiendo. | B (cliente Mostrador) |
 | R-10 | **Venta bajo costo:** se permite, con aviso al fijar el precio; la pérdida se calcula y se muestra. | A4 |
 | R-11 | **Operación compuesta = una transacción:** si algo falla, no queda nada escrito. | RNF-03 |
-| R-12 | **Nada se borra:** los errores se corrigen anulando con un movimiento inverso (Etapa 6, migración v2). | A7 |
+| R-12 | **Nada se borra ni se edita:** los errores se corrigen anulando con un movimiento inverso, y después se registra la operación correcta (Etapa 6, en una migración nueva; la `002` ya es el índice del teléfono). Las ventas se consultan por su número, por cliente (incluido Mostrador) o por fecha. | A7; revisión del plan (2026-11-16) |
+| R-13 | **Nada con fecha futura:** compra, aporte, venta, abono, retiro y traspaso llevan la fecha de ahora (del `CLOCK`) o una pasada, nunca una posterior (`FECHA_FUTURA`). | Etapa 3 (L8) y revisión del plan (2026-11-16) |
+| R-14 | **La venta no es anterior a la compra de sus lotes:** su fecha debe ser igual o posterior a la compra más reciente de los lotes que incluye (`VENTA_ANTERIOR_A_COMPRA`). | Etapa 3, D17 (L14) |
+| R-15 | **Confirmación antes de guardar:** la venta y el abono muestran un resumen pequeño con **Aceptar** y **Volver a editar**. Por eso la venta a un cliente registrado lleva 5 toques y la de Mostrador 3: es una excepción aprobada a RNF-05. | Etapa 3, D15 (L11); revisión del plan (2026-11-16) |
+| R-16 | **Teléfono único:** si un cliente tiene teléfono, es un celular de 10 dígitos que empieza por 3, y ningún otro cliente puede tener el mismo (índice único parcial, migración `002`). | Etapa 3, D9 (L5, L6) |
+| R-17 | **Aporte mayor a $0:** un aporte de $0 no es válido. El botón queda deshabilitado y el dominio lo rechaza. | Revisión del plan (2026-11-16) |
+
+**Partes del documento maestro que quedan reemplazadas:** el progreso de un lote es `resmas_disponibles / resmas_iniciales` (A6), no "/10" ni "de las 10 iniciales" (RF-03 y §5.3). La estructura de carpetas de §5.2 y el plan de §6 los reemplazan `comun/base.md` y `README.md`.
 
 ## 5. Métricas del dashboard (RF-21)
 

@@ -9,7 +9,7 @@ Reglas visuales comunes a todas las pantallas. Salen de los mockups aprobados po
 | Finanzas (dashboard) y sus 5 modales | ✅ aprobada |
 | Inventario, botón flotante abierto, estados de la vista y modales de compra y aporte | ✅ aprobada |
 | Vender, estados de los campos y sus 4 modales | presentada, sin objeciones |
-| Clientes: directorio, indicador de deuda, expediente y modal de abonos | pendiente de diseñar |
+| Clientes: directorio, indicador de deuda, expediente, estados y modal de abonos con su resumen | ✅ aprobada (2026-11-17) |
 
 Los textos marcados como "propuesto" en los mockups esperan la aprobación de Miguel. Si un mockup ignoró una regla del plan, se corrige el mockup antes de implementarlo.
 
@@ -34,3 +34,10 @@ Los textos marcados como "propuesto" en los mockups esperan la aprobación de Mi
   - arqueo por bolsillo, con el botón de traspaso;
   - tarjetas con el capital en inventario, las cuentas por cobrar (capital y ganancia), la ganancia histórica, la ganancia retirada (con la reinvertida), el margen de ventas del mes y la pérdida por ventas bajo costo.
 - **Inventario:** avisos propuestos "Compra registrada · Lote #N" y "Aporte registrado". Sin "Capital Externo" (A2).
+- **Clientes:**
+  - directorio con el total por cobrar, buscador, filtro "Todos / Con deuda" y la deuda de cada cliente en rojo, o "Al día" en gris. Mostrador no aparece porque nunca tiene deuda (R-09);
+  - expediente con la deuda total (capital por recuperar y ganancia por cobrar), los botones **Registrar abono** y **Pagar todo**, y las pestañas Facturas y Abonos (RF-06, RF-15). Las facturas van de la más nueva a la más antigua;
+  - estado de factura: Pendiente en rojo, Abonada parcialmente en celeste y Pagada en verde (`#34D399`);
+  - medio de pago: Efectivo en verde billete (`#8FCB6B`) y Transferencia en violeta (`#B49CF0`), cada uno con su ícono;
+  - modal de abono con tres modos: "A la deuda" en cascada de la factura más antigua a la más nueva (RF-12, R-02), "A una factura" (RF-13) y "Pagar todo" (RF-14). Lleva un resumen antes de guardar (R-15) y no acepta fecha futura (R-13);
+  - "Editar" reutiliza el modal de nuevo cliente con el título "Editar cliente".

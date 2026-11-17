@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Expediente · abonos</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#000}
+a{color:#5EC8F2}a:hover{color:#8FDBF7}
+.segmento{display:grid;gap:4px;padding:4px;border-radius:12px;background:#17181B}
+.segmento a{height:40px;border-radius:9px;color:#A1A1AA;font:500 13px Inter,sans-serif;text-decoration:none;display:flex;align-items:center;justify-content:center}
+.segmento a[aria-current="page"]{background:#2A2C31;color:#F5F5F5;font-weight:600}
+.meta{font-size:12px;color:#A1A1AA}
+.abono{background:#0F1012;border:1px solid #1F2125;border-radius:20px;padding:16px;display:flex;flex-direction:column;gap:14px}
+.chip{display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 10px;border-radius:999px;background:#17181B;color:#D4D4D8;font:600 11px Inter,sans-serif;white-space:nowrap}
+.chip.efectivo{background:rgba(143,203,107,0.14);color:#8FCB6B}
+.chip.transferencia{background:rgba(155,123,234,0.16);color:#B49CF0}
+.aplicado{background:#17181B;border-radius:14px;padding:4px 14px}
+.aplicado-fila{min-height:40px;display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:13px}
+.aplicado-fila + .aplicado-fila{border-top:1px solid #23252A}
+.cifras{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding-top:12px;border-top:1px solid #1F2125}
+.cifra{display:flex;flex-direction:column;gap:2px}
+</style>
+</helmet>
+<div style="width: 390px; height: 1280px; box-sizing: border-box; background: #000000; color: #F5F5F5; font-family: Inter, system-ui, sans-serif; display: flex; flex-direction: column">
+
+  <div style="height: 56px; padding: 0 8px; display: flex; justify-content: space-between; align-items: center">
+    <a href="Clientes.dc.html" aria-label="Volver a clientes" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5EC8F2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>
+    </a>
+    <a href="ModalNuevoCliente.dc.html" style="height: 44px; padding: 0 12px; display: flex; align-items: center; color: #5EC8F2; font-size: 15px; font-weight: 600; text-decoration: none">Editar</a>
+  </div>
+
+  <header style="padding: 4px 20px 0; display: flex; align-items: center; gap: 14px">
+    <span aria-hidden="true" style="width: 56px; height: 56px; border-radius: 999px; background: #17181B; color: #5EC8F2; font-size: 18px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0">MG</span>
+    <div style="display: flex; flex-direction: column; gap: 4px">
+      <h1 style="margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -0.02em">María Gómez</h1>
+      <span style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: #A1A1AA">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A1A1AA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2"></rect><path d="M11 18h2"></path></svg>
+        3104567890
+      </span>
+    </div>
+  </header>
+
+  <main style="flex-grow: 1; padding: 20px 20px 24px; display: flex; flex-direction: column; gap: 20px">
+
+    <section aria-label="Deuda del cliente" style="background: #0F1012; border: 1px solid #1F2125; border-radius: 20px; padding: 20px; display: flex; flex-direction: column; gap: 16px">
+      <div style="display: flex; justify-content: space-between; align-items: flex-end; gap: 12px">
+        <div style="display: flex; flex-direction: column; gap: 4px">
+          <span class="meta">Deuda total</span>
+          <span style="font-size: 32px; font-weight: 700; letter-spacing: -0.02em; color: #FF6B6B">$ 90.000</span>
+        </div>
+        <span class="meta" style="padding-bottom: 6px">2 facturas con saldo</span>
+      </div>
+      <div class="cifras">
+        <div class="cifra"><span class="meta">Capital por recuperar</span><span style="font-size: 15px; font-weight: 600">$ 55.000</span></div>
+        <div class="cifra"><span class="meta">Ganancia por cobrar</span><span style="font-size: 15px; font-weight: 600">$ 35.000</span></div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <a href="ModalAbono.dc.html" style="height: 52px; border-radius: 14px; background: #CBFF3D; color: #0A0A0A; font-size: 15px; font-weight: 600; text-decoration: none; display: flex; align-items: center; justify-content: center">Registrar abono</a>
+        <a href="ModalAbonoEstados.dc.html" style="height: 48px; box-sizing: border-box; border: 1px solid #5EC8F2; border-radius: 14px; color: #5EC8F2; font-size: 14px; font-weight: 600; text-decoration: none; display: flex; align-items: center; justify-content: center">Pagar todo · $ 90.000</a>
+      </div>
+    </section>
+
+    <nav class="segmento" aria-label="Historial del cliente" style="grid-template-columns: repeat(2, minmax(0, 1fr))">
+      <a href="ClienteExpediente.dc.html">Facturas · 4</a>
+      <a href="#" aria-current="page">Abonos · 3</a>
+    </nav>
+
+    <div role="list" aria-label="Abonos" style="display: flex; flex-direction: column; gap: 12px">
+
+      <article role="listitem" class="abono" aria-label="Abono del 16 de noviembre">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px">
+          <div style="display: flex; flex-direction: column; gap: 2px">
+            <span style="font-size: 18px; font-weight: 700">$ 50.000</span>
+            <span class="meta">16 nov 2026 · 3:45 p. m. · Abono inicial</span>
+          </div>
+          <span class="chip efectivo">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"></rect><circle cx="12" cy="12" r="2.5"></circle></svg>
+            Efectivo
+          </span>
+        </div>
+        <div class="aplicado" role="list" aria-label="Aplicado a">
+          <div role="listitem" class="aplicado-fila"><span>Factura #48</span><span style="font-weight: 600">$ 50.000</span></div>
+        </div>
+      </article>
+
+      <article role="listitem" class="abono" aria-label="Abono del 10 de noviembre">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px">
+          <div style="display: flex; flex-direction: column; gap: 2px">
+            <span style="font-size: 18px; font-weight: 700">$ 33.000</span>
+            <span class="meta">10 nov 2026 · 6:30 p. m. · A una factura</span>
+          </div>
+          <span class="chip efectivo">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"></rect><circle cx="12" cy="12" r="2.5"></circle></svg>
+            Efectivo
+          </span>
+        </div>
+        <div class="aplicado" role="list" aria-label="Aplicado a">
+          <div role="listitem" class="aplicado-fila"><span>Factura #41</span><span style="font-weight: 600">$ 33.000</span></div>
+        </div>
+      </article>
+
+      <article role="listitem" class="abono" aria-label="Abono del 1 de noviembre">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px">
+          <div style="display: flex; flex-direction: column; gap: 2px">
+            <span style="font-size: 18px; font-weight: 700">$ 60.000</span>
+            <span class="meta">1 nov 2026 · 10:15 a. m. · A la deuda</span>
+          </div>
+          <span class="chip transferencia">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10l9-6 9 6M5 10v8M19 10v8M9.5 10v8M14.5 10v8M3 20h18"></path></svg>
+            Transferencia
+          </span>
+        </div>
+        <div class="aplicado" role="list" aria-label="Aplicado a">
+          <div role="listitem" class="aplicado-fila"><span>Factura #29 <span class="meta">· quedó pagada</span></span><span style="font-weight: 600">$ 48.000</span></div>
+          <div role="listitem" class="aplicado-fila"><span>Factura #41</span><span style="font-weight: 600">$ 12.000</span></div>
+        </div>
+      </article>
+    </div>
+  </main>
+
+  <nav aria-label="Navegación principal" style="height: 72px; flex-shrink: 0; border-top: 1px solid #1F2125; background: #0A0A0B; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr))">
+    <a href="Main.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: #A1A1AA; font-size: 11px; font-weight: 500">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#A1A1AA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"></path><path d="M7 15l4-4 3 3 5-6"></path></svg>
+      Finanzas
+    </a>
+    <a href="Vender.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: #A1A1AA; font-size: 11px; font-weight: 500">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#A1A1AA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="20" r="1.5"></circle><circle cx="18" cy="20" r="1.5"></circle><path d="M2 3h3l2.5 12h11L21 7H6.2"></path></svg>
+      Vender
+    </a>
+    <a href="Inventario.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: #A1A1AA; font-size: 11px; font-weight: 500">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#A1A1AA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8l-9-5-9 5 9 5 9-5z"></path><path d="M3 8v8l9 5 9-5V8"></path></svg>
+      Inventario
+    </a>
+    <a href="Clientes.dc.html" aria-current="page" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: #CBFF3D; font-size: 11px; font-weight: 600">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#CBFF3D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"></path><path d="M16 4.5a3.5 3.5 0 010 7M18 14.8c1.8.7 3 2.5 3.5 5.2"></path></svg>
+      Clientes
+    </a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1280}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

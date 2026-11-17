@@ -14,7 +14,7 @@ Los `.dc.html` son la fuente del lienzo y no se ven bien abiertos solos en el na
 | Finanzas | `Main.dc.html` | `FinRetiro`, `FinRetiroEstados`, `FinHistorial`, `FinHistorialEstados`, `FinTraspaso`, `FinTraspasoEstados`, `FinMes`, `FinRespaldo`, `FinRespaldoEstados` |
 | Vender | `Vender.dc.html` | `VenderEstados` (estados de todos los campos de la app), `ModalCliente`, `ModalClienteEstados`, `ModalNuevoCliente`, `ModalFecha`, `ModalResumen`, `ModalResumenEstados` |
 | Inventario | `Inventario.dc.html` | `InventarioFab`, `InventarioEstados`, `ModalCompra`, `ModalCompraEstados`, `ModalAporte`, `ModalAporteEstados` |
-| Clientes | — | Pendiente de diseñar |
+| Clientes | `Clientes.dc.html` (directorio), `ClienteExpediente.dc.html` (expediente, pestaña Facturas) | `ClienteAbonos` (expediente, pestaña Abonos), `ClientesEstados`, `ModalAbono`, `ModalAbonoEstados`, `ModalAbonoResumen`. Editar cliente reutiliza `ModalNuevoCliente` con el título «Editar cliente» |
 
 ## Textos propuestos
 
@@ -24,3 +24,5 @@ Los textos marcados como «propuesto» en los artboards todavía no existen en `
 - Estados vacíos: la búsqueda de clientes sin resultados y el mes sin retiros.
 - Mensaje de error: «El archivo no es una copia válida de la app».
 - Resumen de venta: la fila «Queda debiendo».
+- Clientes: «Agrega el primero con el botón +.», «Ningún cliente tiene deuda» y «Este cliente todavía no tiene compras».
+- Abono: «La fecha del abono no puede ser futura» (hoy `FECHA_FUTURA` dice «La fecha de la venta no puede ser futura»).

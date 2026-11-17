@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Registrar abono</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#000}
+a{color:#5EC8F2}a:hover{color:#8FDBF7}
+.campo{position:relative}
+.campo input,.campo .selector{box-sizing:border-box;width:100%;height:56px;padding:0 16px;border:1px solid #3A3D44;border-radius:12px;background:transparent;color:#F5F5F5;font:500 16px Inter,sans-serif;outline:none}
+.campo .selector{display:flex;align-items:center;gap:12px;text-align:left}
+.campo label{position:absolute;top:-9px;left:12px;padding:0 6px;font:500 12px Inter,sans-serif;line-height:16px;color:#A1A1AA;background:#0F1012}
+.ayuda{margin:6px 4px 0;font-size:12px;line-height:16px;color:#A1A1AA}
+.segmento{display:grid;gap:4px;padding:4px;border-radius:12px;background:#17181B}
+.segmento button{height:40px;border:0;border-radius:9px;background:transparent;color:#A1A1AA;font:500 13px Inter,sans-serif}
+.segmento button[aria-pressed="true"]{background:#2A2C31;color:#F5F5F5;font-weight:600}
+.fila{min-height:48px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.fila + .fila{border-top:1px solid #23252A}
+.meta{font-size:12px;color:#A1A1AA}
+</style>
+</helmet>
+<div style="position: relative; width: 390px; height: 844px; overflow: hidden; background: #000000; color: #F5F5F5; font-family: Inter, system-ui, sans-serif">
+  <div aria-hidden="true" style="padding: 76px 20px; opacity: 0.35">
+    <div style="font-size: 24px; font-weight: 700">María Gómez</div>
+  </div>
+  <div aria-hidden="true" style="position: absolute; inset: 0; background: rgba(0,0,0,0.6)"></div>
+
+  <section role="dialog" aria-modal="true" aria-labelledby="titulo" style="position: absolute; left: 0; right: 0; bottom: 0; top: 48px; background: #0F1012; border-radius: 24px 24px 0 0; padding: 10px 20px 24px; display: flex; flex-direction: column; gap: 18px">
+    <div aria-hidden="true" style="align-self: center; width: 36px; height: 4px; border-radius: 999px; background: #3A3D44"></div>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: -6px">
+      <div style="display: flex; flex-direction: column; gap: 2px">
+        <h2 id="titulo" style="margin: 0; font-size: 18px; font-weight: 600">Registrar abono</h2>
+        <span class="meta">María Gómez · debe <strong style="color: #FF6B6B; font-weight: 600">$ 90.000</strong></span>
+      </div>
+      <a href="ClienteExpediente.dc.html" style="height: 44px; padding: 0 8px; margin-right: -8px; display: flex; align-items: center; color: #5EC8F2; font-size: 15px; font-weight: 600; text-decoration: none">Cancelar</a>
+    </div>
+
+    <div class="segmento" role="group" aria-label="Cómo se aplica el abono" style="grid-template-columns: repeat(3, minmax(0, 1fr))">
+      <button type="button" aria-pressed="true">A la deuda</button>
+      <button type="button" aria-pressed="false">A una factura</button>
+      <button type="button" aria-pressed="false">Pagar todo</button>
+    </div>
+
+    <div>
+      <div class="campo">
+        <label for="monto">Monto del abono</label>
+        <input id="monto" type="text" inputmode="numeric" value="$ 50.000">
+      </div>
+      <p class="ayuda">Hasta $ 90.000</p>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <span id="lbl-medio" style="font-size: 13px; color: #A1A1AA">Medio de pago</span>
+      <div class="segmento" role="group" aria-labelledby="lbl-medio" style="grid-template-columns: repeat(2, minmax(0, 1fr))">
+        <button type="button" aria-pressed="true">Efectivo</button>
+        <button type="button" aria-pressed="false">Transferencia</button>
+      </div>
+    </div>
+
+    <div class="campo">
+      <label for="fecha">Fecha del abono</label>
+      <button id="fecha" type="button" class="selector">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5EC8F2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg>
+        <span style="flex-grow: 1">Hoy · 10:20 a. m.</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A1A1AA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+      </button>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <span style="font-size: 13px; color: #A1A1AA">Así se aplica · de la más antigua a la más nueva</span>
+      <div role="list" aria-label="Distribución del abono" style="background: #17181B; border-radius: 14px; padding: 2px 14px">
+        <div role="listitem" class="fila">
+          <span style="display: flex; flex-direction: column; gap: 2px">
+            <span style="font-size: 14px; font-weight: 600">Factura #41</span>
+            <span class="meta">28 oct · queda pagada</span>
+          </span>
+          <span style="font-size: 14px; font-weight: 600">$ 30.000</span>
+        </div>
+        <div role="listitem" class="fila">
+          <span style="display: flex; flex-direction: column; gap: 2px">
+            <span style="font-size: 14px; font-weight: 600">Factura #48</span>
+            <span class="meta">16 nov · queda debiendo $ 40.000</span>
+          </span>
+          <span style="font-size: 14px; font-weight: 600">$ 20.000</span>
+        </div>
+      </div>
+    </div>
+
+    <a href="ModalAbonoResumen.dc.html" style="margin-top: auto; height: 52px; border-radius: 14px; background: #CBFF3D; color: #0A0A0A; font-size: 15px; font-weight: 600; text-decoration: none; display: flex; align-items: center; justify-content: center">Revisar abono · $ 50.000</a>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -22,7 +22,7 @@ export const MENSAJES_ERROR: Record<CodigoRegla, string> = {
   LOTE_REPETIDO: 'Ese lote ya está en la venta',
   ABONO_INICIAL_INVALIDO: 'El abono inicial debe ser mayor a cero y menor que el total. Si paga todo, elige Contado',
   MOSTRADOR_SOLO_CONTADO: 'Las ventas a Mostrador solo pueden ser de contado',
-  FECHA_FUTURA: 'La fecha de la venta no puede ser futura',
+  FECHA_FUTURA: 'La fecha no puede ser futura',
   VENTA_ANTERIOR_A_COMPRA: 'La venta no puede ser anterior a la compra del lote',
 };
 

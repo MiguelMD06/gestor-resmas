@@ -44,7 +44,7 @@ describe('mensajes-error', () => {
       'El abono inicial debe ser mayor a cero y menor que el total. Si paga todo, elige Contado',
     ],
     ['MOSTRADOR_SOLO_CONTADO', 'Las ventas a Mostrador solo pueden ser de contado'],
-    ['FECHA_FUTURA', 'La fecha de la venta no puede ser futura'],
+    ['FECHA_FUTURA', 'La fecha no puede ser futura'],
     ['VENTA_ANTERIOR_A_COMPRA', 'La venta no puede ser anterior a la compra del lote'],
   ])('translates %s to its exact Spanish message', (codigo, texto) => {
     expect(mensajeDeError(new ReglaNegocioError(codigo, 'detail'))).toBe(texto);

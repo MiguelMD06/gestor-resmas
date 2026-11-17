@@ -9,13 +9,21 @@
 | 0 | Fundaciones | RNF-01, RNF-02, RNF-03, RNF-04; esquema con A1, A2, A5, A6 y las correcciones B | ✅ hecha (PR #3) | [PLAN](etapas/0-fundaciones/PLAN.md) | `etapas/0-fundaciones/reporte` |
 | 1 | Motor contable (dominio puro, sin interfaz) | RN-03, RF-11, RF-16; reglas de RF-12, RF-13, RF-14, RF-17, RF-19 y RF-20; A1, A3, A4; pendientes de la revisión de la Etapa 0 | ✅ hecha (PR #5) | [PLAN](etapas/1-motor-contable/PLAN.md) | `etapas/1-motor-contable/reporte` |
 | 2 | Inventario y aportes de capital | RN-01, RN-02, RF-01, RF-02, RF-03, RF-04; A2, A3; navegación con pestañas | ✅ hecha (PR #11) | [PLAN](etapas/2-inventario/PLAN.md) | `etapas/2-inventario/reporte` |
-| 3 | Clientes y punto de venta | RF-05, RF-07, RF-08, RF-09, RF-10, RNF-05; A4 (aviso) | implementada, en revisión (PR #15) | [PLAN](etapas/3-clientes-venta/PLAN.md) | `etapas/3-clientes-venta/reporte` |
-| 4 | Cartera y expediente del cliente | RF-06, RF-11, RF-12, RF-13, RF-14, RF-15 | pendiente | — | — |
+| 3 | Clientes y punto de venta | RF-05, RF-07, RF-08, RF-09, RF-10, RNF-05; A4 (aviso) | ✅ hecha (PR #15) | [PLAN](etapas/3-clientes-venta/PLAN.md) | `etapas/3-clientes-venta/reporte` |
+| 3B | Rediseño visual | Mockups aprobados del canvas de diseño; `comun/diseno.md`; defecto del selector de clientes (Etapa 3, L16) | pendiente | — | — |
+| 4 | Cartera y expediente del cliente | RF-06, RF-11, RF-12, RF-13, RF-14, RF-15; confirmación del abono (R-15) | pendiente | — | — |
 | 5 | Finanzas: retiros, traspasos y dashboard | RN-04, RF-17, RF-18, RF-19, RF-20, RF-21; A5 (ganancia mensual) | pendiente | — | — |
-| 6 | Respaldo y anulaciones | RNF-06; A7 (migración v2) | pendiente | — | — |
-| 7 | Build Android firmado y pruebas en dispositivo | RNF-01 (entrega), RNF-05 (pulido) | pendiente | — | — |
+| 6 | Respaldo, historial de ventas y anulaciones | RNF-06; A7 (una migración nueva); historial de ventas por número, cliente (incluido Mostrador) o fecha | pendiente | — | — |
+| 7 | APK de release firmada | RNF-01 (entrega): clave de firma, nombre, ícono y versión de la app | pendiente | — | — |
 
 El motor contable va antes que las pantallas porque las etapas 2 a 5 ya lo necesitan: las compras mueven bolsillos y los cobros reparten capital y ganancia.
+
+**Ajustes de la revisión del plan (2026-11-16):**
+
+- **Etapa 3B:** rehace las pantallas existentes (Finanzas provisional, Vender, Inventario y Clientes) según los mockups aprobados. Las etapas 4 y 5 diseñan lo que falta con el mismo sistema (`comun/diseno.md`). Si un mockup ignoró una regla, se corrige el mockup antes de implementarlo.
+- **Reglas nuevas en el código:** R-13 (nada con fecha futura) y R-17 (aporte mayor a $0) de `comun/modelo-contable.md` todavía no se cumplen en la compra ni en el aporte. Se corrigen en la Etapa 3B, que rehace esas pantallas.
+- **Etapa 6:** una venta no se edita. Se consulta por su número, se anula con confirmación (devuelve el stock y revierte el dinero) y se registra la venta correcta (A7, R-12).
+- **Etapa 7:** el PR #12 ya agregó la plataforma Android y la APK de debug (`npm run apk`), y las pruebas en el dispositivo se hacen en cada etapa. Queda solo la APK de release firmada. El aviso de la Etapa 0 sobre el SDK y JDK 21 ya no aplica.
 
 ## Estructura
 
@@ -26,7 +34,8 @@ planificacion/
 ├── planteamiento_requerimientos.md           planteamiento inicial
 ├── comun/
 │   ├── base.md                               contexto que va al inicio de toda instrucción de agy
-│   └── modelo-contable.md                    reglas contables y esquema v1 corregidos (A1–A7)
+│   ├── modelo-contable.md                    reglas contables y esquema v1 corregidos (A1–A7, R-01–R-17)
+│   └── diseno.md                             sistema de diseño de la interfaz (mockups aprobados)
 └── etapas/
     └── <n>-<nombre>/
         ├── PLAN.md                           Specs, decisiones, bloques, verificación, commits, Por aprobar, Log
@@ -37,7 +46,7 @@ planificacion/
 
 ## Cómo trabajamos
 
-Formato híbrido: la estructura de la skill `planificacion-por-etapas` más la trazabilidad de ODD (gentle-ai).
+Formato híbrido: una estructura de planificación por etapas propia más la trazabilidad de ODD (gentle-ai).
 
 1. **Plan:** cada etapa tiene un `PLAN.md` con **Specs** (`S#` que citan textualmente los RF, RN o RNF y las decisiones), los bloques y un **Log** con los mensajes del usuario copiados tal cual. No se escribe código hasta que el plan está aprobado.
 2. **Bloques:** cada bloque delegado lleva `tarea.md`, con sus `S#` y sus rutas permitidas, e `instruccion.md` = `comun/base.md` + `tarea.md`, en UTF-8 sin BOM.
@@ -47,7 +56,7 @@ Formato híbrido: la estructura de la skill `planificacion-por-etapas` más la t
    agy -p "Lee el archivo planificacion/etapas/<etapa>/bloques/<id>/instruccion.md (UTF-8) y ejecuta al pie de la letra la instruccion completa que contiene. Ese archivo es tu unica tarea." --model "<modelo>" --dangerously-skip-permissions --output-format json *> planificacion/etapas/<etapa>/logs/<id>.log
    ```
 
-4. **Revisión:** el coordinador compara `HEAD` antes y después, revisa el diff contra las rutas permitidas y hace commits atómicos (skill `commits-atomicos`).
+4. **Revisión:** el coordinador compara `HEAD` antes y después, revisa el diff contra las rutas permitidas y hace commits atómicos (skill `work-unit-commits`).
    **PRs por etapa:** el plan va en su propio PR y **se integra apenas se aprueba**, antes de empezar a implementar. La rama de implementación sale siempre del `main` actual; los PRs nunca se encadenan. Todos los merges se hacen con rebase.
 5. **Cierre:**
    - **todos los bloques quedan revisados** antes de abrir el PR: los que la evaluación de riesgo dejó pendientes de revisión se revisan juntos en ese momento;
@@ -60,6 +69,8 @@ Formato híbrido: la estructura de la skill `planificacion-por-etapas` más la t
 `agy` tiene acceso de **solo lectura** a Engram; solo el coordinador escribe en él.
 
 ## Índice de bloques
+
+Este índice cubre las etapas 0 y 1. Desde la Etapa 2, el estado de cada bloque está en la tabla **Bloques** del `PLAN.md` de su etapa.
 
 | Etapa | Bloque | Estado |
 |-------|--------|--------|

@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Vender</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#000}
+a{color:#5EC8F2}a:hover{color:#8FDBF7}
+.campo{position:relative}
+.campo input,.campo .selector{box-sizing:border-box;width:100%;height:56px;padding:0 16px;border:1px solid #3A3D44;border-radius:12px;background:transparent;color:#F5F5F5;font:500 16px Inter,sans-serif;outline:none}
+.campo .selector{display:flex;align-items:center;gap:12px;text-align:left}
+.campo label{position:absolute;top:-9px;left:12px;padding:0 6px;font:500 12px Inter,sans-serif;line-height:16px;color:#A1A1AA;background:#0F1012}
+.campo.sobre-negro label{background:#000}
+.ayuda{margin:6px 4px 0;font-size:12px;line-height:16px;color:#A1A1AA}
+.segmento{display:grid;gap:4px;padding:4px;border-radius:12px;background:#17181B}
+.segmento button{height:40px;border:0;border-radius:9px;background:transparent;color:#A1A1AA;font:500 13px Inter,sans-serif}
+.segmento button[aria-pressed="true"]{background:#2A2C31;color:#F5F5F5;font-weight:600}
+</style>
+</helmet>
+<div style="width: 390px; height: 1480px; box-sizing: border-box; background: #000000; color: #F5F5F5; font-family: Inter, system-ui, sans-serif; display: flex; flex-direction: column">
+
+  <header style="padding: 28px 20px 4px; display: flex; flex-direction: column; gap: 2px">
+    <h1 style="margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.02em">Vender</h1>
+    <p style="margin: 0; font-size: 13px; color: #A1A1AA">Nueva venta</p>
+  </header>
+
+  <main style="flex-grow: 1; padding: 20px 20px 24px; display: flex; flex-direction: column; gap: 22px">
+
+    <div class="campo sobre-negro">
+      <label for="cliente">Cliente</label>
+      <button id="cliente" type="button" class="selector">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="{{sky}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c1-4 4-6 8-6s7 2 8 6"></path></svg>
+        <span style="flex-grow: 1">María Gómez</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A1A1AA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+      </button>
+    </div>
+
+    <div class="campo sobre-negro">
+      <label for="fecha">Fecha de la venta</label>
+      <button id="fecha" type="button" class="selector">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="{{sky}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg>
+        <span style="flex-grow: 1">16 nov 2026 · 3:45 p. m.</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A1A1AA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+      </button>
+    </div>
+
+    <section aria-label="Lotes disponibles" style="display: flex; flex-direction: column; gap: 10px">
+      <div style="display: flex; justify-content: space-between; align-items: baseline">
+        <h2 style="margin: 0; font-size: 15px; font-weight: 600">Lotes disponibles</h2>
+        <span style="font-size: 12px; color: #A1A1AA">Toca para agregar</span>
+      </div>
+      <div style="background: #0F1012; border: 1px solid #1F2125; border-radius: 20px; overflow: hidden; display: flex; flex-direction: column">
+        <button type="button" disabled aria-disabled="true" style="min-height: 68px; padding: 12px 16px; border: 0; border-bottom: 1px solid #1F2125; background: transparent; color: #F5F5F5; font-family: Inter, sans-serif; display: flex; align-items: center; gap: 12px; text-align: left; opacity: 0.6">
+          <span style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-size: 14px; font-weight: 600">Carta · Lote 12</span>
+            <span style="font-size: 12px; color: #A1A1AA">34 resmas · costo $ 18.000 c/u</span>
+          </span>
+          <span style="font-size: 12px; font-weight: 600; color: {{sky}}; display: flex; align-items: center; gap: 4px">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="{{sky}}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>
+            Agregado
+          </span>
+        </button>
+        <button type="button" aria-label="Agregar Oficio · Lote 9" style="min-height: 68px; padding: 12px 16px; border: 0; border-bottom: 1px solid #1F2125; background: transparent; color: #F5F5F5; font-family: Inter, sans-serif; display: flex; align-items: center; gap: 12px; text-align: left">
+          <span style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-size: 14px; font-weight: 600">Oficio · Lote 9</span>
+            <span style="font-size: 12px; color: #A1A1AA">12 resmas · costo $ 21.000 c/u</span>
+          </span>
+          <span style="width: 36px; height: 36px; border-radius: 999px; border: 1px solid {{lime}}; display: flex; align-items: center; justify-content: center">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{{lime}}" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+          </span>
+        </button>
+        <button type="button" aria-label="Agregar Carta · Lote 13" style="min-height: 68px; padding: 12px 16px; border: 0; background: transparent; color: #F5F5F5; font-family: Inter, sans-serif; display: flex; align-items: center; gap: 12px; text-align: left">
+          <span style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-size: 14px; font-weight: 600">Carta · Lote 13</span>
+            <span style="font-size: 12px; color: #A1A1AA">50 resmas · costo $ 18.500 c/u</span>
+          </span>
+          <span style="width: 36px; height: 36px; border-radius: 999px; border: 1px solid {{lime}}; display: flex; align-items: center; justify-content: center">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{{lime}}" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+          </span>
+        </button>
+      </div>
+    </section>
+
+    <section aria-label="Detalle de venta" style="display: flex; flex-direction: column; gap: 10px">
+      <h2 style="margin: 0; font-size: 15px; font-weight: 600">Detalle de venta</h2>
+      <div style="background: #0F1012; border: 1px solid #1F2125; border-radius: 20px; padding: 16px 16px 18px; display: flex; flex-direction: column; gap: 20px">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start">
+          <div style="display: flex; flex-direction: column; gap: 2px">
+            <span style="font-size: 15px; font-weight: 600">Carta · Lote 12</span>
+            <span style="font-size: 12px; color: #A1A1AA">Costo $ 18.000 · Disponibles 34</span>
+          </div>
+          <button type="button" aria-label="Quitar Carta · Lote 12" style="width: 44px; height: 44px; margin: -8px -8px 0 0; border: 0; border-radius: 12px; background: transparent; display: flex; align-items: center; justify-content: center">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FF6B6B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"></path></svg>
+          </button>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+          <div>
+            <div class="campo">
+              <label for="cantidad">Cantidad (resmas)</label>
+              <input id="cantidad" type="text" inputmode="numeric" value="5">
+            </div>
+            <p class="ayuda">Máximo 34</p>
+          </div>
+          <div>
+            <div class="campo">
+              <label for="precio">Precio por resma</label>
+              <input id="precio" type="text" inputmode="numeric" value="$ 22.000">
+            </div>
+            <p class="ayuda">Costo $ 18.000</p>
+          </div>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding-top: 14px; border-top: 1px solid #1F2125; font-size: 13px">
+          <span style="color: #A1A1AA">Subtotal <strong style="color: #F5F5F5; font-weight: 600">$ 110.000</strong></span>
+          <span style="color: #A1A1AA">Ganancia <strong style="color: #34D399; font-weight: 600">+ $ 20.000</strong></span>
+        </div>
+      </div>
+    </section>
+
+    <section aria-label="Cierre de la venta" style="background: #0F1012; border: 1px solid #1F2125; border-radius: 20px; padding: 20px; display: flex; flex-direction: column; gap: 18px">
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+        <div style="display: flex; flex-direction: column; gap: 4px">
+          <span style="font-size: 12px; color: #A1A1AA">Total</span>
+          <span style="font-size: 18px; font-weight: 700">$ 110.000</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 4px">
+          <span style="font-size: 12px; color: #A1A1AA">Costo</span>
+          <span style="font-size: 18px; font-weight: 700">$ 90.000</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 4px">
+          <span style="font-size: 12px; color: #A1A1AA">Ganancia</span>
+          <span style="font-size: 18px; font-weight: 700; color: #34D399">$ 20.000</span>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <span id="lbl-forma" style="font-size: 13px; color: #A1A1AA">Forma de pago</span>
+        <div class="segmento" role="group" aria-labelledby="lbl-forma" style="grid-template-columns: repeat(3, minmax(0, 1fr))">
+          <button type="button" aria-pressed="false">Contado</button>
+          <button type="button" aria-pressed="false">Fiado</button>
+          <button type="button" aria-pressed="true">Abono inicial</button>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <span id="lbl-medio" style="font-size: 13px; color: #A1A1AA">Medio de pago</span>
+        <div class="segmento" role="group" aria-labelledby="lbl-medio" style="grid-template-columns: repeat(2, minmax(0, 1fr))">
+          <button type="button" aria-pressed="true">Efectivo</button>
+          <button type="button" aria-pressed="false">Transferencia</button>
+        </div>
+      </div>
+
+      <div style="padding-top: 6px">
+        <div class="campo">
+          <label for="abono">Abono inicial</label>
+          <input id="abono" type="text" inputmode="numeric" value="$ 50.000">
+        </div>
+        <p class="ayuda">Mayor a cero y menor que el total de $ 110.000</p>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: baseline; padding-top: 14px; border-top: 1px solid #1F2125">
+        <span style="font-size: 13px; color: #A1A1AA">Queda debiendo</span>
+        <span style="font-size: 16px; font-weight: 700">$ 60.000</span>
+      </div>
+    </section>
+  </main>
+
+  <footer style="padding: 12px 20px 16px; border-top: 1px solid #1F2125; background: #000">
+    <button type="button" style="width: 100%; height: 52px; border: 0; border-radius: 14px; background: {{lime}}; color: #0A0A0A; font: 600 15px Inter, sans-serif">Confirmar venta · $ 110.000</button>
+  </footer>
+
+  <nav aria-label="Navegación principal" style="height: 72px; border-top: 1px solid #1F2125; background: #0A0A0B; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr))">
+    <a href="Main.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: #A1A1AA; font-size: 11px; font-weight: 500">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#A1A1AA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"></path><path d="M7 15l4-4 3 3 5-6"></path></svg>
+      Finanzas
+    </a>
+    <a href="#" aria-current="page" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: {{lime}}; font-size: 11px; font-weight: 600">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="{{lime}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="20" r="1.5"></circle><circle cx="18" cy="20" r="1.5"></circle><path d="M2 3h3l2.5 12h11L21 7H6.2"></path></svg>
+      Vender
+    </a>
+    <a href="#" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: #A1A1AA; font-size: 11px; font-weight: 500">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#A1A1AA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8l-9-5-9 5 9 5 9-5z"></path><path d="M3 8v8l9 5 9-5V8"></path></svg>
+      Inventario
+    </a>
+    <a href="#" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: #A1A1AA; font-size: 11px; font-weight: 500">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#A1A1AA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"></path><path d="M16 4.5a3.5 3.5 0 010 7M18 14.8c1.8.7 3 2.5 3.5 5.2"></path></svg>
+      Clientes
+    </a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"lime":{"editor":"color","default":"#CBFF3D","options":["#CBFF3D","#B8F400","#D9FF66"],"section":"Paleta"},"sky":{"editor":"color","default":"#5EC8F2","options":["#5EC8F2","#38BDF8","#7DD3FC"],"section":"Paleta"},"$preview":{"width":390,"height":1480}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      lime: this.props.lime ?? '#CBFF3D',
+      sky: this.props.sky ?? '#5EC8F2'
+    };
+  }
+}
+</script>
+</body>
+</html>

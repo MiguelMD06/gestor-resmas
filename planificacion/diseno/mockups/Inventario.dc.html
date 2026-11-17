@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Inventario</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#000}
+a{color:#5EC8F2}a:hover{color:#8FDBF7}
+.segmento{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;padding:4px;border-radius:12px;background:#17181B}
+.segmento button{min-height:44px;border:0;border-radius:9px;background:transparent;color:#A1A1AA;font:500 14px Inter,sans-serif;display:flex;align-items:center;justify-content:center;gap:8px}
+.segmento button[aria-pressed="true"]{background:#2A2C31;color:#F5F5F5;font-weight:600}
+.conteo{font-size:12px;font-weight:600;padding:2px 8px;border-radius:999px;background:#0F1012;color:#A1A1AA}
+.lote{background:#0F1012;border:1px solid #1F2125;border-radius:20px;padding:18px 18px 16px;display:flex;flex-direction:column;gap:14px}
+.meta{font-size:12px;color:#A1A1AA}
+.barra{height:8px;border-radius:999px;background:#232529;overflow:hidden}
+</style>
+</helmet>
+<div style="position: relative; width: 390px; height: 980px; box-sizing: border-box; background: #000000; color: #F5F5F5; font-family: Inter, system-ui, sans-serif; display: flex; flex-direction: column">
+
+  <header style="padding: 28px 20px 4px; display: flex; flex-direction: column; gap: 2px">
+    <h1 style="margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.02em">Inventario</h1>
+    <p style="margin: 0; font-size: 13px; color: #A1A1AA">Lotes y compras</p>
+  </header>
+
+  <main style="flex-grow: 1; padding: 20px 20px 24px; display: flex; flex-direction: column; gap: 18px">
+    <div class="segmento" role="group" aria-label="Tipo de papel">
+      <button type="button" aria-pressed="true">Carta <span class="conteo">84</span></button>
+      <button type="button" aria-pressed="false">Oficio <span class="conteo">12</span></button>
+    </div>
+
+    <section aria-label="Resumen de papel Carta" style="background: #0F1012; border: 1px solid #1F2125; border-radius: 20px; padding: 20px; display: flex; flex-direction: column; gap: 16px">
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <span style="font-size: 13px; color: #A1A1AA">Papel Carta disponible</span>
+        <span style="display: flex; align-items: baseline; gap: 8px">
+          <span style="font-size: 40px; font-weight: 700; letter-spacing: -0.03em">84</span>
+          <span style="font-size: 15px; color: #A1A1AA">resmas</span>
+        </span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; padding-top: 14px; border-top: 1px solid #1F2125">
+        <div style="display: flex; flex-direction: column; gap: 4px">
+          <span class="meta">Valor al costo</span>
+          <span style="font-size: 16px; font-weight: 600">$ 1.537.000</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 4px">
+          <span class="meta">Lotes activos</span>
+          <span style="font-size: 16px; font-weight: 600">2</span>
+        </div>
+      </div>
+    </section>
+
+    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 4px">
+      <h2 style="margin: 0; font-size: 15px; font-weight: 600">Lotes activos</h2>
+      <span class="meta">Más antiguo primero</span>
+    </div>
+
+    <article class="lote" aria-label="Lote 12">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start">
+        <div style="display: flex; flex-direction: column; gap: 2px">
+          <span style="font-size: 15px; font-weight: 600">Lote #12</span>
+          <span class="meta">Ingreso 5 nov 2026 · 4 cajas</span>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px">
+          <span style="font-size: 15px; font-weight: 600">$ 18.000</span>
+          <span class="meta">por resma</span>
+        </div>
+      </div>
+      <div style="display: flex; align-items: baseline; gap: 6px">
+        <span style="font-size: 28px; font-weight: 700; letter-spacing: -0.02em">34</span>
+        <span style="font-size: 14px; color: #A1A1AA">de 40 resmas</span>
+      </div>
+      <div class="barra" role="progressbar" aria-label="Resmas disponibles del lote 12" aria-valuemin="0" aria-valuemax="40" aria-valuenow="34">
+        <div style="width: 85%; height: 8px; border-radius: 999px; background: {{sky}}"></div>
+      </div>
+      <div style="display: flex; justify-content: space-between">
+        <span class="meta">85 % disponible</span>
+        <span class="meta">Valor en stock <strong style="color: #F5F5F5; font-weight: 600">$ 612.000</strong></span>
+      </div>
+    </article>
+
+    <article class="lote" aria-label="Lote 13">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start">
+        <div style="display: flex; flex-direction: column; gap: 2px">
+          <span style="font-size: 15px; font-weight: 600">Lote #13</span>
+          <span class="meta">Ingreso 12 nov 2026 · 5 cajas</span>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px">
+          <span style="font-size: 15px; font-weight: 600">$ 18.500</span>
+          <span class="meta">por resma</span>
+        </div>
+      </div>
+      <div style="display: flex; align-items: baseline; gap: 6px">
+        <span style="font-size: 28px; font-weight: 700; letter-spacing: -0.02em">50</span>
+        <span style="font-size: 14px; color: #A1A1AA">de 50 resmas</span>
+      </div>
+      <div class="barra" role="progressbar" aria-label="Resmas disponibles del lote 13" aria-valuemin="0" aria-valuemax="50" aria-valuenow="50">
+        <div style="width: 100%; height: 8px; border-radius: 999px; background: {{sky}}"></div>
+      </div>
+      <div style="display: flex; justify-content: space-between">
+        <span class="meta">100 % disponible</span>
+        <span class="meta">Valor en stock <strong style="color: #F5F5F5; font-weight: 600">$ 925.000</strong></span>
+      </div>
+    </article>
+  </main>
+
+  <button type="button" aria-label="Acciones de inventario" aria-expanded="false" style="position: absolute; right: 20px; bottom: 92px; width: 56px; height: 56px; border: 0; border-radius: 999px; background: {{lime}}; box-shadow: 0 8px 24px rgba(203,255,61,0.18); display: flex; align-items: center; justify-content: center">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0A0A0A" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+  </button>
+
+  <nav aria-label="Navegación principal" style="height: 72px; border-top: 1px solid #1F2125; background: #0A0A0B; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr))">
+    <a href="Main.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: #A1A1AA; font-size: 11px; font-weight: 500">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#A1A1AA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"></path><path d="M7 15l4-4 3 3 5-6"></path></svg>
+      Finanzas
+    </a>
+    <a href="Vender.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: #A1A1AA; font-size: 11px; font-weight: 500">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#A1A1AA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="20" r="1.5"></circle><circle cx="18" cy="20" r="1.5"></circle><path d="M2 3h3l2.5 12h11L21 7H6.2"></path></svg>
+      Vender
+    </a>
+    <a href="#" aria-current="page" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: {{lime}}; font-size: 11px; font-weight: 600">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="{{lime}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8l-9-5-9 5 9 5 9-5z"></path><path d="M3 8v8l9 5 9-5V8"></path></svg>
+      Inventario
+    </a>
+    <a href="#" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: #A1A1AA; font-size: 11px; font-weight: 500">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#A1A1AA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"></path><path d="M16 4.5a3.5 3.5 0 010 7M18 14.8c1.8.7 3 2.5 3.5 5.2"></path></svg>
+      Clientes
+    </a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"lime":{"editor":"color","default":"#CBFF3D","options":["#CBFF3D","#B8F400","#D9FF66"],"section":"Paleta"},"sky":{"editor":"color","default":"#5EC8F2","options":["#5EC8F2","#38BDF8","#7DD3FC"],"section":"Paleta"},"$preview":{"width":390,"height":980}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { lime: this.props.lime ?? '#CBFF3D', sky: this.props.sky ?? '#5EC8F2' };
+  }
+}
+</script>
+</body>
+</html>

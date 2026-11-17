@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Nueva compra de cajas</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#000}
+a{color:#5EC8F2}a:hover{color:#8FDBF7}
+.campo{position:relative}
+.campo input,.campo .selector{box-sizing:border-box;width:100%;height:56px;padding:0 16px;border:1px solid #3A3D44;border-radius:12px;background:transparent;color:#F5F5F5;font:500 16px Inter,sans-serif;outline:none}
+.campo .selector{display:flex;align-items:center;gap:12px;text-align:left}
+.campo label{position:absolute;top:-9px;left:12px;padding:0 6px;font:500 12px Inter,sans-serif;line-height:16px;color:#A1A1AA;background:#0F1012}
+.ayuda{margin:6px 4px 0;font-size:12px;line-height:16px;color:#A1A1AA}
+.grupo{display:flex;flex-direction:column;gap:8px}
+.grupo>span{font-size:13px;color:#A1A1AA}
+.segmento{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;padding:4px;border-radius:12px;background:#17181B}
+.segmento button{min-height:44px;border:0;border-radius:9px;background:transparent;color:#A1A1AA;font:500 13px Inter,sans-serif}
+.segmento button[aria-pressed="true"]{background:#2A2C31;color:#F5F5F5;font-weight:600}
+.btn-p{height:52px;border:0;border-radius:14px;background:#CBFF3D;color:#0A0A0A;font:600 15px Inter,sans-serif}
+.btn-t{height:44px;padding:0 8px;margin-right:-8px;border:0;background:transparent;color:#5EC8F2;font:600 15px Inter,sans-serif}
+.asa{align-self:center;width:36px;height:4px;border-radius:999px;background:#3A3D44}
+.hoja{position:absolute;left:0;right:0;bottom:0;background:#0F1012;border-radius:24px 24px 0 0;padding:10px 20px 28px;display:flex;flex-direction:column;gap:20px}
+.cab{display:flex;justify-content:space-between;align-items:center;margin-top:-8px}
+.cab h2{margin:0;font-size:18px;font-weight:600}
+.fila{display:flex;justify-content:space-between;font-size:14px}
+.fila span:first-child{color:#A1A1AA}
+.fila span:last-child{font-weight:600}
+</style>
+</helmet>
+<div style="position: relative; width: 390px; height: 844px; overflow: hidden; background: #000000; color: #F5F5F5; font-family: Inter, system-ui, sans-serif">
+  <div aria-hidden="true" style="padding: 28px 20px; opacity: 0.35"><div style="font-size: 28px; font-weight: 700">Inventario</div></div>
+  <div aria-hidden="true" style="position: absolute; inset: 0; background: rgba(0,0,0,0.6)"></div>
+
+  <section class="hoja" role="dialog" aria-modal="true" aria-labelledby="titulo" style="top: 44px">
+    <div class="asa" aria-hidden="true"></div>
+    <div class="cab"><h2 id="titulo">Nueva compra de cajas</h2><button type="button" class="btn-t">Cancelar</button></div>
+
+    <div class="grupo">
+      <span id="lbl-tipo">Tipo de papel</span>
+      <div class="segmento" role="group" aria-labelledby="lbl-tipo">
+        <button type="button" aria-pressed="true">Carta</button>
+        <button type="button" aria-pressed="false">Oficio</button>
+      </div>
+    </div>
+
+    <div class="campo">
+      <label for="fecha">Fecha</label>
+      <button id="fecha" type="button" class="selector">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5EC8F2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg>
+        <span style="flex-grow: 1">16 nov 2026</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A1A1AA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+      </button>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+      <div>
+        <div class="campo"><label for="cajas">Cantidad de cajas</label><input id="cajas" type="text" inputmode="numeric" value="4"></div>
+        <p class="ayuda">Cada caja trae 10 resmas</p>
+      </div>
+      <div>
+        <div class="campo"><label for="costo">Costo por caja</label><input id="costo" type="text" inputmode="numeric" value="$ 180.000"></div>
+        <p class="ayuda">Divisible entre 10</p>
+      </div>
+    </div>
+
+    <div class="grupo">
+      <span id="lbl-medio">Medio de pago</span>
+      <div class="segmento" role="group" aria-labelledby="lbl-medio">
+        <button type="button" aria-pressed="true">Efectivo</button>
+        <button type="button" aria-pressed="false">Transferencia</button>
+      </div>
+    </div>
+
+    <section aria-label="Vista previa de la compra" style="background: #17181B; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+      <div style="display: flex; justify-content: space-between; align-items: baseline">
+        <span style="font-size: 13px; color: #A1A1AA">Entran al inventario</span>
+        <span style="font-size: 20px; font-weight: 700">40 resmas</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 10px; padding-top: 12px; border-top: 1px solid #2A2C31">
+        <div class="fila"><span>Costo total</span><span>$ 720.000</span></div>
+        <div class="fila"><span>Costo por resma</span><span>$ 18.000</span></div>
+        <div class="fila"><span>Saldo disponible en Efectivo</span><span>$ 912.000</span></div>
+      </div>
+    </section>
+
+    <button type="button" class="btn-p" style="margin-top: auto">Guardar compra · $ 720.000</button>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

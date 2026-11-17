@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Resumen de venta · estados</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#000}
+a{color:#5EC8F2}a:hover{color:#8FDBF7}
+.etiqueta-estado{margin:0 0 12px;font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#8A8E96}
+.nota{margin:10px 4px 0;font-size:12px;line-height:17px;color:#A1A1AA}
+.toast{min-height:52px;padding:12px 16px;border-radius:14px;background:#17181B;border:1px solid #2A2C31;display:flex;align-items:center;gap:12px;font-size:14px;font-weight:500}
+</style>
+</helmet>
+<div style="width: 390px; height: 900px; box-sizing: border-box; background: #000000; color: #F5F5F5; font-family: Inter, system-ui, sans-serif; padding: 28px 20px 32px; display: flex; flex-direction: column; gap: 30px">
+  <header style="display: flex; flex-direction: column; gap: 4px">
+    <h1 style="margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.02em">Resumen de venta · estados</h1>
+    <p style="margin: 0; font-size: 13px; color: #A1A1AA">Qué ve el usuario al tocar Aceptar.</p>
+  </header>
+
+  <div>
+    <p class="etiqueta-estado">Guardando</p>
+    <div aria-busy="true" style="background: #0F1012; border: 1px solid #1F2125; border-radius: 20px; overflow: hidden">
+      <div role="progressbar" aria-label="Guardando venta" style="height: 3px; background: #1F2125">
+        <div style="width: 40%; height: 3px; margin-left: 30%; background: #CBFF3D; border-radius: 999px"></div>
+      </div>
+      <div style="padding: 18px 16px; display: flex; flex-direction: column; gap: 10px">
+        <div style="display: flex; justify-content: space-between; align-items: baseline">
+          <span style="font-size: 14px; color: #A1A1AA">Total</span>
+          <span style="font-size: 24px; font-weight: 700">$ 110.000</span>
+        </div>
+        <button type="button" disabled aria-disabled="true" aria-busy="true" style="height: 52px; border: 0; border-radius: 14px; background: #CBFF3D; opacity: 0.6; color: #0A0A0A; font: 600 15px Inter, sans-serif; display: flex; align-items: center; justify-content: center; gap: 10px">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0A0A0A" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M21 12a9 9 0 11-6.2-8.6"></path></svg>
+          Guardando venta…
+        </button>
+        <button type="button" disabled aria-disabled="true" style="height: 48px; border: 1px solid #5EC8F2; border-radius: 14px; background: transparent; color: #5EC8F2; opacity: 0.4; font: 600 14px Inter, sans-serif">Volver a editar</button>
+      </div>
+    </div>
+    <p class="nota">Los dos botones se bloquean y la hoja no se cierra con el fondo ni con el gesto hasta que termine (regla 3).</p>
+  </div>
+
+  <div>
+    <p class="etiqueta-estado">Venta registrada</p>
+    <div class="toast" role="status">
+      <span aria-hidden="true" style="width: 28px; height: 28px; border-radius: 999px; background: rgba(52,211,153,0.15); display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#34D399" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"></path></svg>
+      </span>
+      Venta registrada
+    </div>
+    <p class="nota">La hoja se cierra y Vender queda en blanco para la siguiente venta. El aviso dura 2,5 s.</p>
+  </div>
+
+  <div>
+    <p class="etiqueta-estado">Error al guardar</p>
+    <div class="toast" role="alert">
+      <span aria-hidden="true" style="width: 28px; height: 28px; border-radius: 999px; background: rgba(255,107,107,0.15); display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FF6B6B" stroke-width="2.5" stroke-linecap="round"><path d="M12 7v6M12 16.5v.5"></path></svg>
+      </span>
+      No hay suficientes resmas disponibles en el lote
+    </div>
+    <p class="nota">Muestra el mensaje del dominio (aquí, el stock cambió). La hoja se cierra y Vender recarga los lotes para que el usuario corrija y reintente. El aviso dura 3 s.</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

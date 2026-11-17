@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Elegir mes</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#000}
+a{color:#5EC8F2}a:hover{color:#8FDBF7}
+.btn-t{height:44px;padding:0 8px;margin-right:-8px;border:0;background:transparent;color:#5EC8F2;font:600 15px Inter,sans-serif}
+.asa{align-self:center;width:36px;height:4px;border-radius:999px;background:#3A3D44}
+.hoja{position:absolute;left:0;right:0;bottom:0;background:#0F1012;border-radius:24px 24px 0 0;padding:10px 20px 28px;display:flex;flex-direction:column;gap:20px}
+.cab{display:flex;justify-content:space-between;align-items:center;margin-top:-8px}
+.cab h2{margin:0;font-size:18px;font-weight:600}
+.mes{height:52px;border:0;border-radius:12px;font:500 14px Inter,sans-serif}
+</style>
+</helmet>
+<div style="position: relative; width: 390px; height: 844px; overflow: hidden; background: #000000; color: #F5F5F5; font-family: Inter, system-ui, sans-serif">
+  <div aria-hidden="true" style="padding: 28px 20px; opacity: 0.35"><div style="font-size: 28px; font-weight: 700">Finanzas</div></div>
+  <div aria-hidden="true" style="position: absolute; inset: 0; background: rgba(0,0,0,0.6)"></div>
+
+  <section class="hoja" role="dialog" aria-modal="true" aria-labelledby="titulo" style="top: 404px">
+    <div class="asa" aria-hidden="true"></div>
+    <div class="cab"><h2 id="titulo">Elegir mes</h2><button type="button" class="btn-t">Listo</button></div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center">
+      <span style="font-size: 15px; font-weight: 600">2026</span>
+      <div style="display: flex; gap: 4px">
+        <button type="button" aria-label="Año anterior" style="width: 44px; height: 44px; border: 0; border-radius: 12px; background: #17181B; display: flex; align-items: center; justify-content: center">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5EC8F2" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>
+        </button>
+        <button type="button" disabled aria-disabled="true" aria-label="Año siguiente" style="width: 44px; height: 44px; border: 0; border-radius: 12px; background: #17181B; opacity: 0.4; display: flex; align-items: center; justify-content: center">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A1A1AA" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+        </button>
+      </div>
+    </div>
+
+    <div role="group" aria-label="Meses de 2026" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+      <sc-for list="{{meses}}" as="m" hint-placeholder-count="12">
+        <button type="button" class="mes" disabled="{{m.deshabilitado}}" aria-disabled="{{m.ariaDeshabilitado}}" aria-pressed="{{m.ariaSeleccionado}}" style="{{m.estilo}}">{{m.nombre}}</button>
+      </sc-for>
+    </div>
+
+    <p style="margin: 0 4px; font-size: 12px; line-height: 16px; color: #A1A1AA">Cambia las cifras del mes: ganancia, margen y pérdidas por ventas bajo costo.</p>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const nombres = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    const actual = 10;
+    const meses = nombres.map((nombre, i) => {
+      const futuro = i > actual;
+      const seleccionado = i === actual;
+      let estilo = 'background: #17181B; color: #F5F5F5';
+      if (futuro) estilo = 'background: #17181B; color: #4A4D54';
+      if (seleccionado) estilo = 'background: #CBFF3D; color: #0A0A0A; font-weight: 700';
+      return {
+        nombre: nombre,
+        deshabilitado: futuro,
+        ariaDeshabilitado: futuro ? 'true' : 'false',
+        ariaSeleccionado: seleccionado ? 'true' : 'false',
+        estilo: estilo
+      };
+    });
+    return { meses: meses };
+  }
+}
+</script>
+</body>
+</html>

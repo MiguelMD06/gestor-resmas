@@ -1,0 +1,66 @@
+.totales-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.total-celda {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.total-etiqueta {
+  font-size: 12px;
+  color: var(--app-texto-secundario, #a1a1aa);
+}
+
+.total-valor {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ion-text-color, #f5f5f5);
+}
+
+.linea-totales {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 14px;
+  border-top: 1px solid var(--app-borde, #1f2125);
+  font-size: 13px;
+}
+
+.linea-total-dato {
+  color: var(--app-texto-secundario, #a1a1aa);
+
+  strong {
+    color: var(--ion-text-color, #f5f5f5);
+    font-weight: 600;
+  }
+}
+
+.ganancia-positiva {
+  color: var(--ion-color-success, #3dd68c) !important;
+}
+
+.ganancia-negativa {
+  color: var(--ion-color-danger, #ff6b6b) !important;
+}
+
+.queda-debiendo {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding-top: 14px;
+  border-top: 1px solid var(--app-borde, #1f2125);
+}
+
+.queda-debiendo-etiqueta {
+  font-size: 13px;
+  color: var(--app-texto-secundario, #a1a1aa);
+}
+
+.queda-debiendo-valor {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ion-text-color, #f5f5f5);
+}

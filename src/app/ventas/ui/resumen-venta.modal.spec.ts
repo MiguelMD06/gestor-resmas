@@ -260,4 +260,32 @@ describe('ResumenVentaModalComponent', () => {
     expect(mockRegistrarVenta.registrar).toHaveBeenCalledTimes(1);
     expect(mockModalCtrl.dismiss).toHaveBeenCalledTimes(1);
   });
+
+  it('shows Queda debiendo for Fiado and Abono inicial, and hides it for Contado', () => {
+    expect(fixture.debugElement.query(By.css('[data-testid="resumen-debiendo"]'))).toBeNull();
+
+    const f1 = TestBed.createComponent(ResumenVentaModalComponent);
+    const c1 = f1.componentInstance;
+    c1.cliente = ana;
+    c1.lineas = component.lineas;
+    c1.totalVenta = pesos(75000);
+    c1.pago = { modalidad: 'FIADO' };
+    c1.fecha = fechaHora('2026-11-15 14:30:00');
+    f1.detectChanges();
+    expect(f1.debugElement.query(By.css('[data-testid="resumen-debiendo"]')).nativeElement.textContent.trim()).toBe(
+      '$ 75.000',
+    );
+
+    const f2 = TestBed.createComponent(ResumenVentaModalComponent);
+    const c2 = f2.componentInstance;
+    c2.cliente = ana;
+    c2.lineas = component.lineas;
+    c2.totalVenta = pesos(75000);
+    c2.pago = { modalidad: 'ABONO_INICIAL', monto: 25000, medio: 'EFECTIVO' };
+    c2.fecha = fechaHora('2026-11-15 14:30:00');
+    f2.detectChanges();
+    expect(f2.debugElement.query(By.css('[data-testid="resumen-debiendo"]')).nativeElement.textContent.trim()).toBe(
+      '$ 50.000',
+    );
+  });
 });

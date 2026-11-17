@@ -120,7 +120,7 @@ test.describe('Independent verification V3 — UI & Adversarial suite', () => {
 
     await venderPage.locator('[data-testid="item-lote"]').first().click();
     const linea = venderPage.locator('[data-testid="linea-venta"]').first();
-    const inputPrecio = linea.locator('[data-testid="input-precio-unitario"] input');
+    const inputPrecio = linea.locator('[data-testid="input-precio-unitario"] input:not(.cloned-input)');
     const btnConfirmar = venderPage.locator('[data-testid="btn-confirmar-venta"]');
 
     await inputPrecio.fill('3800');

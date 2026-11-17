@@ -1,0 +1,120 @@
+.campo-selector {
+  position: relative;
+}
+
+.campo-selector-etiqueta {
+  position: absolute;
+  top: -9px;
+  left: 12px;
+  padding: 0 6px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  color: var(--app-texto-secundario, #a1a1aa);
+  background: var(--ion-background-color, #000000);
+  z-index: 1;
+}
+
+.campo-selector-boton {
+  box-sizing: border-box;
+  width: 100%;
+  height: 56px;
+  padding: 0 16px;
+  border: 1px solid var(--app-borde-campo, #3a3d44);
+  border-radius: var(--app-radio-campo, 12px);
+  background: transparent;
+  color: var(--ion-text-color, #f5f5f5);
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+
+  ion-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+}
+
+.campo-selector-valor {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.campo-selector-flecha {
+  font-size: 16px;
+  color: var(--app-texto-secundario, #a1a1aa);
+}
+
+.campo-error {
+  .campo-selector-boton {
+    border-color: var(--ion-color-danger, #ff6b6b);
+  }
+
+  .campo-selector-etiqueta {
+    color: var(--ion-color-danger, #ff6b6b);
+  }
+}
+
+.campo-inactivo {
+  opacity: 0.45;
+}
+
+app-campo-pesos.app-campo-contorno {
+  ion-item {
+    --padding-start: 0;
+    --inner-padding-end: 0;
+    --background: transparent;
+    --border-width: 0;
+    --inner-border-width: 0;
+  }
+
+  ion-input {
+    --border-color: var(--app-borde-campo, #3a3d44);
+    --border-radius: var(--app-radio-campo, 12px);
+    --border-width: 1px;
+    --highlight-color-focused: var(--ion-color-secondary, #5ec8f2);
+    --highlight-color-invalid: var(--ion-color-danger, #ff6b6b);
+    --padding-start: 14px;
+    --padding-end: 14px;
+    --color: var(--ion-text-color, #f5f5f5);
+    min-height: 56px;
+    border: 1px solid var(--app-borde-campo, #3a3d44);
+    border-radius: var(--app-radio-campo, 12px);
+    padding-inline: 12px;
+  }
+
+  &.app-campo-aviso ion-input {
+    border-color: var(--ion-color-warning, #f5b544);
+  }
+}
+
+.ayuda-campo {
+  display: block;
+  margin: 6px 4px 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--app-texto-secundario, #a1a1aa);
+}
+
+.ayuda-error {
+  color: var(--ion-color-danger, #ff6b6b);
+}
+
+.aviso-bajo-costo {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  color: var(--ion-color-warning, #f5b544);
+  margin-top: 0;
+
+  ion-icon {
+    font-size: 15px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+}

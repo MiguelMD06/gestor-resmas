@@ -221,4 +221,46 @@ test.describe('Vender flow: POS sales, touches, multilote, lot exhaustion and pe
 
     expect(consoleErrors).toEqual([]);
   });
+
+  test('E6 (3B): customer selector rows have uniform height and Mostrador shows "Venta rápida · solo contado"', async ({
+    page,
+  }) => {
+    const consoleErrors = capturarErroresConsola(page);
+    await prepararEstadoInicial(page);
+
+    // Add a second customer with phone so selector has Mostrador + 2 customers with phone
+    const clientesPage = page.locator('app-clientes');
+    await clientesPage.locator('[data-testid="fab-nuevo-cliente"]').click();
+    const modalNuevo = page.locator('app-cliente-modal');
+    await expect(modalNuevo).toBeVisible();
+    await modalNuevo.locator('[data-testid="input-nombre"] input').fill('Carlos Díaz');
+    await modalNuevo.locator('[data-testid="input-telefono"] input').fill('3205550101');
+    await modalNuevo.locator('[data-testid="btn-guardar-cliente"]').click();
+    await expect(modalNuevo).toHaveCount(0);
+
+    // Navigate to Vender and open customer selector
+    await page.locator('ion-tab-bar ion-tab-button[tab="vender"]').click();
+    await expect(page).toHaveURL(/\/vender$/);
+    const venderPage = page.locator('app-vender');
+    await venderPage.locator('[data-testid="selector-cliente"]').click();
+
+    const modalSelector = page.locator('[data-testid="modal-selector-cliente"]');
+    await expect(modalSelector).toBeVisible();
+
+    const filas = modalSelector.locator('[data-testid="item-cliente-vender"]');
+    await expect(filas).toHaveCount(3);
+
+    const filaMostrador = filas.filter({ hasText: 'Mostrador' });
+    await expect(filaMostrador).toContainText('Venta rápida · solo contado');
+
+    const alturas: number[] = [];
+    for (let i = 0; i < 3; i++) {
+      const box = await filas.nth(i).boundingBox();
+      expect(box).not.toBeNull();
+      alturas.push(box!.height);
+    }
+
+    expect(Math.max(...alturas) - Math.min(...alturas)).toBeLessThanOrEqual(1);
+    expect(consoleErrors).toEqual([]);
+  });
 });

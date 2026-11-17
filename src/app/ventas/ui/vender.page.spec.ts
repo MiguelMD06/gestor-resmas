@@ -617,8 +617,8 @@ describe('VenderPage', () => {
         }),
       );
 
-    component.onBuscarClienteInput({ detail: { value: 'a' } } as CustomEvent);
-    component.onBuscarClienteInput({ detail: { value: 'ana' } } as CustomEvent);
+    component.onBuscarClienteTexto('a');
+    component.onBuscarClienteTexto('ana');
 
     resolveFresh([ana]);
     await Promise.resolve();
@@ -857,5 +857,53 @@ describe('VenderPage', () => {
     component.quitarLinea(loteCartaA.idLote);
     fixture.detectChanges();
     expect(component.lineas()).toEqual([]);
+  });
+
+  it('prevents concurrent crearNuevoCliente modals, shows error toast on rejection, and releases guard', async () => {
+    await component.ionViewWillEnter();
+    fixture.detectChanges();
+
+    let resolverModal: (modal: {
+      present: ReturnType<typeof vi.fn>;
+      onDidDismiss: ReturnType<typeof vi.fn>;
+    }) => void = () => undefined;
+    mockModalCtrl.create.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolverModal = resolve;
+      }),
+    );
+
+    const p1 = component.crearNuevoCliente();
+    const p2 = component.crearNuevoCliente();
+
+    expect(mockModalCtrl.create).toHaveBeenCalledTimes(1);
+
+    resolverModal({
+      present: vi.fn().mockResolvedValue(undefined),
+      onDidDismiss: vi.fn().mockResolvedValue({ data: null, role: ROL_CANCELAR }),
+    });
+    await Promise.all([p1, p2]);
+
+    mockModalCtrl.create.mockRejectedValueOnce(new Error('Modal create failed'));
+    await expect(component.crearNuevoCliente()).resolves.toBeUndefined();
+
+    expect(mockToastCtrl.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: MENSAJE_ERROR_GENERICO,
+        duration: 3000,
+        color: 'danger',
+        position: 'bottom',
+      }),
+    );
+    expect(mockToastPresent).toHaveBeenCalled();
+
+    // Guard was released so a new attempt succeeds
+    mockModalCtrl.create.mockResolvedValueOnce({
+      present: vi.fn().mockResolvedValue(undefined),
+      onDidDismiss: vi.fn().mockResolvedValue({ data: ana, role: ROL_GUARDADO }),
+    });
+    await component.crearNuevoCliente();
+    expect(mockModalCtrl.create).toHaveBeenCalledTimes(3);
+    expect(component.clienteSeleccionado()).toEqual(ana);
   });
 });

@@ -1,10 +1,10 @@
 import type { ComponentFixture } from '@angular/core/testing';
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { ModalController } from '@ionic/angular';
+import { ModalController, ToastController } from '@ionic/angular';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { ROL_GUARDADO, soloCierreExplicito } from '../../shared/ui/formulario';
+import { ROL_CANCELAR, ROL_GUARDADO, soloCierreExplicito } from '../../shared/ui/formulario';
 import { MENSAJE_ERROR_GENERICO } from '../../shared/ui/mensajes-error';
 import { BuscarClientes } from '../application/buscar-clientes';
 import type { Cliente } from '../domain/cliente';
@@ -17,6 +17,8 @@ describe('ClientesPage', () => {
   let component: ClientesPage;
   let mockBuscarClientes: { buscar: ReturnType<typeof vi.fn> };
   let mockModalCtrl: { create: ReturnType<typeof vi.fn> };
+  let mockToastCtrl: { create: ReturnType<typeof vi.fn> };
+  let mockToastPresent: ReturnType<typeof vi.fn>;
 
   const ana: Cliente = {
     idCliente: 1,
@@ -37,11 +39,17 @@ describe('ClientesPage', () => {
       }),
     };
 
+    mockToastPresent = vi.fn().mockResolvedValue(undefined);
+    mockToastCtrl = {
+      create: vi.fn().mockResolvedValue({ present: mockToastPresent }),
+    };
+
     await TestBed.configureTestingModule({
       imports: [ClientesPage],
       providers: [
         { provide: BuscarClientes, useValue: mockBuscarClientes },
         { provide: ModalController, useValue: mockModalCtrl },
+        { provide: ToastController, useValue: mockToastCtrl },
       ],
     }).compileComponents();
 
@@ -156,5 +164,49 @@ describe('ClientesPage', () => {
     const items = fixture.debugElement.queryAll(By.css('[data-testid="item-cliente"]'));
     expect(items).toHaveLength(1);
     expect(items[0].nativeElement.textContent).toContain('Ana Pérez');
+  });
+
+  it('prevents concurrent abrirModalNuevo modals, shows error toast on rejection, and releases guard', async () => {
+    let resolverModal: (modal: {
+      present: ReturnType<typeof vi.fn>;
+      onDidDismiss: ReturnType<typeof vi.fn>;
+    }) => void = () => undefined;
+    mockModalCtrl.create.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolverModal = resolve;
+      }),
+    );
+
+    const p1 = component.abrirModalNuevo();
+    const p2 = component.abrirModalNuevo();
+
+    expect(mockModalCtrl.create).toHaveBeenCalledTimes(1);
+
+    resolverModal({
+      present: vi.fn().mockResolvedValue(undefined),
+      onDidDismiss: vi.fn().mockResolvedValue({ data: null, role: ROL_CANCELAR }),
+    });
+    await Promise.all([p1, p2]);
+
+    mockModalCtrl.create.mockRejectedValueOnce(new Error('Modal create failed'));
+    await expect(component.abrirModalNuevo()).resolves.toBeUndefined();
+
+    expect(mockToastCtrl.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: MENSAJE_ERROR_GENERICO,
+        duration: 3000,
+        color: 'danger',
+        position: 'bottom',
+      }),
+    );
+    expect(mockToastPresent).toHaveBeenCalled();
+
+    // Guard was released so a new attempt succeeds
+    mockModalCtrl.create.mockResolvedValueOnce({
+      present: vi.fn().mockResolvedValue(undefined),
+      onDidDismiss: vi.fn().mockResolvedValue({ data: ana, role: ROL_GUARDADO }),
+    });
+    await component.abrirModalNuevo();
+    expect(mockModalCtrl.create).toHaveBeenCalledTimes(3);
   });
 });

@@ -14,6 +14,7 @@ import {
   IonTitle,
   IonToolbar,
   ModalController,
+  ToastController,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { add } from 'ionicons/icons';
@@ -117,8 +118,10 @@ import { ClienteModalComponent } from './cliente.modal';
 export class ClientesPage {
   private readonly buscarClientes = inject(BuscarClientes);
   private readonly modalCtrl = inject(ModalController);
+  private readonly toastCtrl = inject(ToastController);
 
   private peticionActual = 0;
+  private abriendoModal = false;
 
   readonly busqueda = signal('');
   readonly clientes = signal<Cliente[]>([]);
@@ -177,15 +180,36 @@ export class ClientesPage {
   }
 
   private async abrirModalCliente(cliente?: Cliente): Promise<void> {
-    const modal = await this.modalCtrl.create({
-      component: ClienteModalComponent,
-      componentProps: cliente ? { cliente } : undefined,
-      canDismiss: soloCierreExplicito,
-    });
-    await modal.present();
-    const { role } = await modal.onDidDismiss();
-    if (role === ROL_GUARDADO) {
-      await this.cargarClientes();
+    if (this.abriendoModal) {
+      return;
+    }
+
+    this.abriendoModal = true;
+    try {
+      const modal = await this.modalCtrl.create({
+        component: ClienteModalComponent,
+        componentProps: cliente ? { cliente } : undefined,
+        canDismiss: soloCierreExplicito,
+      });
+      await modal.present();
+      const { role } = await modal.onDidDismiss();
+      if (role === ROL_GUARDADO) {
+        await this.cargarClientes();
+      }
+    } catch (error: unknown) {
+      try {
+        const toast = await this.toastCtrl.create({
+          message: mensajeDeError(error),
+          duration: 3000,
+          color: 'danger',
+          position: 'bottom',
+        });
+        await toast.present();
+      } catch {
+        // Avoid unhandled rejection if toast fails
+      }
+    } finally {
+      this.abriendoModal = false;
     }
   }
 }

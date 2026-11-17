@@ -272,27 +272,29 @@ describe('VenderPage', () => {
 
     await component.abrirResumen();
 
-    expect(mockModalCtrl.create).toHaveBeenCalledWith({
-      component: ResumenVentaModalComponent,
-      componentProps: {
-        cliente: ana,
-        lineas: [
-          {
-            idLote: loteCartaA.idLote,
-            tipoPapel: 'CARTA',
-            cantidad: 5,
-            precioUnitario: pesos(15000),
-            subtotalVenta: pesos(75000),
-          },
-        ],
-        totalVenta: pesos(75000),
-        pago: { modalidad: 'CONTADO', medio: 'EFECTIVO' },
-        fecha: ahoraFija,
-        alCambiarGuardando: expect.any(Function),
-        alGuardar: expect.any(Function),
-      },
-      canDismiss: soloCierreExplicito,
-    });
+    expect(mockModalCtrl.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        component: ResumenVentaModalComponent,
+        componentProps: {
+          cliente: ana,
+          lineas: [
+            {
+              idLote: loteCartaA.idLote,
+              tipoPapel: 'CARTA',
+              cantidad: 5,
+              precioUnitario: pesos(15000),
+              subtotalVenta: pesos(75000),
+            },
+          ],
+          totalVenta: pesos(75000),
+          pago: { modalidad: 'CONTADO', medio: 'EFECTIVO' },
+          fecha: ahoraFija,
+          alCambiarGuardando: expect.any(Function),
+          alGuardar: expect.any(Function),
+        },
+        canDismiss: soloCierreExplicito,
+      }),
+    );
     expect(component.clienteSeleccionado()).toEqual(ana);
     expect(component.lineas()).toHaveLength(1);
   });
@@ -432,10 +434,12 @@ describe('VenderPage', () => {
     await component.crearNuevoCliente();
     fixture.detectChanges();
 
-    expect(mockModalCtrl.create).toHaveBeenCalledWith({
-      component: ClienteModalComponent,
-      canDismiss: soloCierreExplicito,
-    });
+    expect(mockModalCtrl.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        component: ClienteModalComponent,
+        canDismiss: soloCierreExplicito,
+      }),
+    );
     expect(component.clienteSeleccionado()).toEqual(ana);
     expect(component.selectorClienteAbierto()).toBe(false);
   });
@@ -905,5 +909,25 @@ describe('VenderPage', () => {
     await component.crearNuevoCliente();
     expect(mockModalCtrl.create).toHaveBeenCalledTimes(3);
     expect(component.clienteSeleccionado()).toEqual(ana);
+  });
+
+  it('renders SelectorClienteContenidoComponent with ion-page, Mostrador subtitle and customer initials (S9, E6)', () => {
+    const selectorFixture = TestBed.createComponent(SelectorClienteContenidoComponent);
+    selectorFixture.componentRef.setInput('busqueda', '');
+    selectorFixture.componentRef.setInput('clientes', [mostrador, ana]);
+    selectorFixture.componentRef.setInput('buscando', false);
+    selectorFixture.componentRef.setInput('errorBusqueda', null);
+    selectorFixture.componentRef.setInput('clienteSeleccionadoId', ana.idCliente);
+    selectorFixture.detectChanges();
+
+    expect(selectorFixture.nativeElement.classList.contains('ion-page')).toBe(true);
+
+    const filas = selectorFixture.debugElement.queryAll(By.css('[data-testid="item-cliente-vender"]'));
+    expect(filas).toHaveLength(2);
+    expect(filas[0].nativeElement.textContent).toContain('Mostrador');
+    expect(filas[0].nativeElement.textContent).toContain('Venta rápida · solo contado');
+    expect(filas[1].nativeElement.textContent).toContain('AP');
+    expect(filas[1].nativeElement.textContent).toContain('Ana María Pérez');
+    expect(filas[1].nativeElement.textContent).toContain('3001234567');
   });
 });

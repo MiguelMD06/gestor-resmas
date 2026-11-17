@@ -103,6 +103,9 @@ describe('ClientesPage', () => {
       component: ClienteModalComponent,
       componentProps: undefined,
       canDismiss: soloCierreExplicito,
+      cssClass: 'modal-sheet',
+      breakpoints: [0, 0.65, 0.9],
+      initialBreakpoint: 0.65,
     });
     expect(spyCargar).toHaveBeenCalled();
   });
@@ -120,6 +123,9 @@ describe('ClientesPage', () => {
       component: ClienteModalComponent,
       componentProps: { cliente: ana },
       canDismiss: soloCierreExplicito,
+      cssClass: 'modal-sheet',
+      breakpoints: [0, 0.65, 0.9],
+      initialBreakpoint: 0.65,
     });
     expect(spyCargar).toHaveBeenCalled();
   });
@@ -208,5 +214,37 @@ describe('ClientesPage', () => {
     });
     await component.abrirModalNuevo();
     expect(mockModalCtrl.create).toHaveBeenCalledTimes(3);
+  });
+
+  it('displays initials (first + last word, or single letter) and "Sin celular" when phone is missing', async () => {
+    const anaMaria: Cliente = {
+      idCliente: 10,
+      nombre: 'Ana María Pérez',
+      telefono: '3001234567',
+      esMostrador: false,
+    };
+    const mononimo: Cliente = {
+      idCliente: 11,
+      nombre: 'Sofía',
+      telefono: null,
+      esMostrador: false,
+    };
+    mockBuscarClientes.buscar.mockResolvedValueOnce([anaMaria, mononimo]);
+
+    await component.cargarClientes();
+    fixture.detectChanges();
+
+    const items = fixture.debugElement.queryAll(By.css('[data-testid="item-cliente"]'));
+    expect(items).toHaveLength(2);
+
+    const avatar0 = items[0].query(By.css('[data-testid="avatar-cliente"]'));
+    expect(avatar0).toBeTruthy();
+    expect(avatar0.nativeElement.textContent.trim()).toBe('AP');
+    expect(items[0].nativeElement.textContent).toContain('3001234567');
+
+    const avatar1 = items[1].query(By.css('[data-testid="avatar-cliente"]'));
+    expect(avatar1).toBeTruthy();
+    expect(avatar1.nativeElement.textContent.trim()).toBe('S');
+    expect(items[1].nativeElement.textContent).toContain('Sin celular');
   });
 });

@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Clientes · estados</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#000}
+a{color:#5EC8F2}a:hover{color:#8FDBF7}
+.grupo{margin:0;font-size:15px;font-weight:600}
+.etiqueta-estado{margin:0 0 12px;font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#8A8E96}
+.nota{margin:10px 4px 0;font-size:12px;line-height:17px;color:#A1A1AA}
+.tarjeta{background:#0F1012;border:1px solid #1F2125;border-radius:20px;padding:18px;display:flex;flex-direction:column;gap:14px}
+.vacio{align-items:center;text-align:center;padding:26px 20px}
+.b{height:10px;border-radius:999px;background:#1F2125}
+.btn-p{height:48px;border:0;border-radius:14px;background:#CBFF3D;color:#0A0A0A;font:600 14px Inter,sans-serif}
+.btn-p[disabled]{background:#2A2C31;color:#8A8E96}
+.btn-s{height:48px;border:1px solid #5EC8F2;border-radius:14px;background:transparent;color:#5EC8F2;font:600 14px Inter,sans-serif}
+.meta{font-size:12px;color:#A1A1AA}
+.chip{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:999px;font:600 11px Inter,sans-serif;white-space:nowrap}
+.chip.pendiente{background:rgba(255,107,107,0.12);color:#FF6B6B}
+</style>
+</helmet>
+<div style="width: 390px; height: 1640px; box-sizing: border-box; background: #000000; color: #F5F5F5; font-family: Inter, system-ui, sans-serif; padding: 28px 20px 32px; display: flex; flex-direction: column; gap: 26px">
+  <header style="display: flex; flex-direction: column; gap: 4px">
+    <h1 style="margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.02em">Clientes · estados</h1>
+    <p style="margin: 0; font-size: 13px; color: #A1A1AA">Directorio y expediente: cargando, vacío, error y casos borde.</p>
+  </header>
+
+  <h2 class="grupo">Directorio</h2>
+
+  <div>
+    <p class="etiqueta-estado">Cargando</p>
+    <div class="tarjeta" aria-busy="true" aria-label="Cargando clientes" style="gap: 18px">
+      <div style="display: flex; align-items: center; gap: 12px"><div style="width: 40px; height: 40px; border-radius: 999px; background: #1F2125"></div><div style="flex-grow: 1; display: flex; flex-direction: column; gap: 8px"><div class="b" style="width: 55%"></div><div class="b" style="width: 35%"></div></div><div class="b" style="width: 60px"></div></div>
+      <div style="display: flex; align-items: center; gap: 12px"><div style="width: 40px; height: 40px; border-radius: 999px; background: #1F2125"></div><div style="flex-grow: 1; display: flex; flex-direction: column; gap: 8px"><div class="b" style="width: 45%"></div><div class="b" style="width: 30%"></div></div><div class="b" style="width: 48px"></div></div>
+      <div style="display: flex; align-items: center; gap: 12px"><div style="width: 40px; height: 40px; border-radius: 999px; background: #1F2125"></div><div style="flex-grow: 1; display: flex; flex-direction: column; gap: 8px"><div class="b" style="width: 60%"></div><div class="b" style="width: 32%"></div></div><div class="b" style="width: 56px"></div></div>
+    </div>
+    <p class="nota">Buscador y filtro deshabilitados mientras carga (regla 3).</p>
+  </div>
+
+  <div>
+    <p class="etiqueta-estado">Sin clientes</p>
+    <div class="tarjeta vacio">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#A1A1AA" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"></path><path d="M16 4.5a3.5 3.5 0 010 7M18 14.8c1.8.7 3 2.5 3.5 5.2"></path></svg>
+      <p style="margin: 0; font-size: 14px; font-weight: 600">Todavía no hay clientes</p>
+      <p style="margin: -6px 0 0; font-size: 13px; line-height: 19px; color: #A1A1AA">Agrega el primero con el botón +.</p>
+    </div>
+    <p class="nota">Segunda línea: texto propuesto.</p>
+  </div>
+
+  <div>
+    <p class="etiqueta-estado">Búsqueda sin resultados · filtro sin deudores</p>
+    <div style="display: flex; flex-direction: column; gap: 10px">
+      <div class="tarjeta vacio" style="padding: 20px">
+        <p style="margin: 0; font-size: 14px; font-weight: 600">No se encontraron clientes</p>
+      </div>
+      <div class="tarjeta vacio" style="padding: 20px">
+        <p style="margin: 0; font-size: 14px; font-weight: 600">Ningún cliente tiene deuda</p>
+      </div>
+    </div>
+    <p class="nota">«Ningún cliente tiene deuda»: texto propuesto.</p>
+  </div>
+
+  <div>
+    <p class="etiqueta-estado">Error de carga</p>
+    <div class="tarjeta" role="alert">
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; padding-top: 6px">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#FF6B6B" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v6M12 16.5v.5"></path></svg>
+        <p style="margin: 0; font-size: 14px; font-weight: 600">Ocurrió un error inesperado</p>
+      </div>
+      <button type="button" class="btn-p">Reintentar</button>
+    </div>
+    <p class="nota">Un error nunca se muestra como «Todavía no hay clientes» (regla 4).</p>
+  </div>
+
+  <h2 class="grupo" style="padding-top: 6px">Expediente</h2>
+
+  <div>
+    <p class="etiqueta-estado">Cliente al día</p>
+    <section class="tarjeta" aria-label="Deuda del cliente" style="padding: 20px">
+      <div style="display: flex; justify-content: space-between; align-items: flex-end">
+        <div style="display: flex; flex-direction: column; gap: 4px">
+          <span class="meta">Deuda total</span>
+          <span style="font-size: 32px; font-weight: 700; letter-spacing: -0.02em">$ 0</span>
+        </div>
+        <span class="meta" style="padding-bottom: 6px; display: flex; align-items: center; gap: 4px">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A1A1AA" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>
+          Al día
+        </span>
+      </div>
+      <button type="button" class="btn-p" disabled aria-disabled="true">Registrar abono</button>
+    </section>
+    <p class="nota">Sin deuda no hay abono ni «Pagar todo»; el dominio igual rechaza con «El cliente no tiene deuda pendiente».</p>
+  </div>
+
+  <div>
+    <p class="etiqueta-estado">Factura sin abonos</p>
+    <article class="tarjeta" aria-label="Factura 52">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px">
+        <div style="display: flex; flex-direction: column; gap: 2px">
+          <span style="font-size: 15px; font-weight: 600">Factura #52</span>
+          <span class="meta">17 nov 2026 · 9:30 a. m.</span>
+        </div>
+        <span class="chip pendiente">Pendiente</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; font-size: 14px"><span>1 × Oficio <span class="meta">· $ 22.000 c/u</span></span><span style="font-weight: 600">$ 22.000</span></div>
+      <div style="display: flex; justify-content: space-between; padding-top: 12px; border-top: 1px solid #1F2125">
+        <span class="meta">Pagado <strong style="color: #F5F5F5; font-weight: 600">$ 0</strong></span>
+        <span class="meta">Saldo <strong style="color: #FF6B6B; font-weight: 700">$ 22.000</strong></span>
+      </div>
+    </article>
+  </div>
+
+  <div>
+    <p class="etiqueta-estado">Sin compras · error</p>
+    <div style="display: flex; flex-direction: column; gap: 10px">
+      <div class="tarjeta vacio" style="padding: 20px">
+        <p style="margin: 0; font-size: 14px; font-weight: 600">Este cliente todavía no tiene compras</p>
+      </div>
+      <div class="tarjeta" role="alert">
+        <p style="margin: 0; text-align: center; font-size: 14px; font-weight: 600">Ocurrió un error inesperado</p>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+          <button type="button" class="btn-s">Volver</button>
+          <button type="button" class="btn-p">Reintentar</button>
+        </div>
+      </div>
+    </div>
+    <p class="nota">«Este cliente todavía no tiene compras»: texto propuesto.</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1640}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

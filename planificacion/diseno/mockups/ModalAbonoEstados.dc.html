@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Abono · estados</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#000}
+a{color:#5EC8F2}a:hover{color:#8FDBF7}
+.etiqueta-estado{margin:0 0 12px;font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#8A8E96}
+.nota{margin:10px 4px 0;font-size:12px;line-height:17px;color:#A1A1AA}
+.hoja{background:#0F1012;border:1px solid #1F2125;border-radius:20px;padding:20px 18px 18px;display:flex;flex-direction:column;gap:16px}
+.campo{position:relative}
+.campo input,.campo .selector{box-sizing:border-box;width:100%;height:56px;padding:0 16px;border:1px solid #3A3D44;border-radius:12px;background:transparent;color:#F5F5F5;font:500 16px Inter,sans-serif;outline:none}
+.campo .selector{display:flex;align-items:center;gap:12px;text-align:left}
+.campo input::placeholder{color:#8A8E96}
+.campo input[readonly]{background:#17181B;border-color:#17181B}
+.campo label{position:absolute;top:-9px;left:12px;padding:0 6px;font:500 12px Inter,sans-serif;line-height:16px;color:#A1A1AA;background:#0F1012}
+.campo.error input,.campo.error .selector{border:2px solid #FF6B6B}
+.campo.error label{color:#FF6B6B}
+.campo input[readonly] + label,.campo label.sobre-gris{background:#0F1012}
+.ayuda{margin:6px 4px 0;font-size:12px;line-height:16px;color:#A1A1AA}
+.msg-error{margin:6px 4px 0;font-size:12px;line-height:16px;color:#FF6B6B;display:flex;align-items:flex-start;gap:6px}
+.segmento{display:grid;gap:4px;padding:4px;border-radius:12px;background:#17181B}
+.segmento button{height:40px;border:0;border-radius:9px;background:transparent;color:#A1A1AA;font:500 13px Inter,sans-serif}
+.segmento button[aria-pressed="true"]{background:#2A2C31;color:#F5F5F5;font-weight:600}
+.btn-p{height:52px;border:0;border-radius:14px;background:#CBFF3D;color:#0A0A0A;font:600 15px Inter,sans-serif;display:flex;align-items:center;justify-content:center;gap:10px}
+.btn-p[disabled]{background:#2A2C31;color:#8A8E96}
+.btn-s{height:48px;border:1px solid #5EC8F2;border-radius:14px;background:transparent;color:#5EC8F2;font:600 14px Inter,sans-serif}
+.btn-s[disabled]{border-color:#3A3D44;color:#6B6F78}
+.opcion{min-height:56px;padding:0 14px;border:1px solid #3A3D44;border-radius:12px;display:flex;align-items:center;gap:12px;cursor:pointer}
+.opcion.sel{border:2px solid #5EC8F2}
+.opcion input{width:18px;height:18px;margin:0;accent-color:#5EC8F2}
+.meta{font-size:12px;color:#A1A1AA}
+</style>
+</helmet>
+<div style="width: 390px; height: 2240px; box-sizing: border-box; background: #000000; color: #F5F5F5; font-family: Inter, system-ui, sans-serif; padding: 28px 20px 32px; display: flex; flex-direction: column; gap: 26px">
+  <header style="display: flex; flex-direction: column; gap: 4px">
+    <h1 style="margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.02em">Abono · estados</h1>
+    <p style="margin: 0; font-size: 13px; color: #A1A1AA">Validación de cada campo, los tres modos, guardando y error.</p>
+  </header>
+
+  <div>
+    <p class="etiqueta-estado">Monto vacío</p>
+    <div class="hoja">
+      <div>
+        <div class="campo">
+          <label for="m1">Monto del abono</label>
+          <input id="m1" type="text" inputmode="numeric" placeholder="$ 0">
+        </div>
+        <p class="ayuda">Hasta $ 90.000</p>
+      </div>
+      <button type="button" class="btn-p" disabled aria-disabled="true">Revisar abono</button>
+    </div>
+    <p class="nota">El botón queda deshabilitado mientras falte el monto (regla 1).</p>
+  </div>
+
+  <div>
+    <p class="etiqueta-estado">Monto mayor que la deuda · con decimales</p>
+    <div class="hoja">
+      <div>
+        <div class="campo error">
+          <label for="m2">Monto del abono</label>
+          <input id="m2" type="text" inputmode="numeric" value="$ 95.000" aria-invalid="true" aria-describedby="e2">
+        </div>
+        <p id="e2" class="msg-error"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FF6B6B" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="flex-shrink: 0; margin-top: 1px"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v6M12 16.5v.5"></path></svg>El monto supera la deuda del cliente</p>
+      </div>
+      <div>
+        <div class="campo error">
+          <label for="m3">Monto del abono</label>
+          <input id="m3" type="text" inputmode="numeric" value="$ 20.000,50" aria-invalid="true" aria-describedby="e3">
+        </div>
+        <p id="e3" class="msg-error"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FF6B6B" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="flex-shrink: 0; margin-top: 1px"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v6M12 16.5v.5"></path></svg>Escribe el monto en pesos, sin decimales</p>
+      </div>
+      <button type="button" class="btn-p" disabled aria-disabled="true">Revisar abono</button>
+    </div>
+  </div>
+
+  <div>
+    <p class="etiqueta-estado">A una factura</p>
+    <div class="hoja">
+      <div class="segmento" role="group" aria-label="Cómo se aplica el abono" style="grid-template-columns: repeat(3, minmax(0, 1fr))">
+        <button type="button" aria-pressed="false">A la deuda</button>
+        <button type="button" aria-pressed="true">A una factura</button>
+        <button type="button" aria-pressed="false">Pagar todo</button>
+      </div>
+      <fieldset style="margin: 0; padding: 0; border: 0; display: flex; flex-direction: column; gap: 8px">
+        <legend style="padding: 0 0 8px; font-size: 13px; color: #A1A1AA">Factura</legend>
+        <label class="opcion">
+          <input type="radio" name="factura">
+          <span style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 14px; font-weight: 600">Factura #41</span><span class="meta">28 oct 2026</span></span>
+          <span style="font-size: 13px; color: #A1A1AA">Saldo <strong style="color: #FF6B6B; font-weight: 600">$ 30.000</strong></span>
+        </label>
+        <label class="opcion sel">
+          <input type="radio" name="factura" checked>
+          <span style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 14px; font-weight: 600">Factura #48</span><span class="meta">16 nov 2026</span></span>
+          <span style="font-size: 13px; color: #A1A1AA">Saldo <strong style="color: #FF6B6B; font-weight: 600">$ 60.000</strong></span>
+        </label>
+      </fieldset>
+      <div>
+        <div class="campo error">
+          <label for="m4">Monto del abono</label>
+          <input id="m4" type="text" inputmode="numeric" value="$ 70.000" aria-invalid="true" aria-describedby="e4">
+        </div>
+        <p id="e4" class="msg-error"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FF6B6B" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="flex-shrink: 0; margin-top: 1px"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v6M12 16.5v.5"></path></svg>El monto supera el saldo de la factura</p>
+      </div>
+      <button type="button" class="btn-p" disabled aria-disabled="true">Revisar abono</button>
+    </div>
+    <p class="nota">Sin factura elegida, el monto y el botón quedan deshabilitados. Desde «Abonar a esta factura» la factura llega ya elegida (RF-13).</p>
+  </div>
+
+  <div>
+    <p class="etiqueta-estado">Pagar todo</p>
+    <div class="hoja">
+      <div class="segmento" role="group" aria-label="Cómo se aplica el abono" style="grid-template-columns: repeat(3, minmax(0, 1fr))">
+        <button type="button" aria-pressed="false">A la deuda</button>
+        <button type="button" aria-pressed="false">A una factura</button>
+        <button type="button" aria-pressed="true">Pagar todo</button>
+      </div>
+      <div>
+        <div class="campo">
+          <label for="m5">Monto a pagar</label>
+          <input id="m5" type="text" value="$ 90.000" readonly aria-readonly="true">
+        </div>
+        <p class="ayuda">Salda las 2 facturas con saldo</p>
+      </div>
+      <button type="button" class="btn-p">Revisar pago · $ 90.000</button>
+    </div>
+    <p class="nota">El monto es la deuda total y no se edita (RF-14, R-04). Es el modo con el que abre «Pagar todo».</p>
+  </div>
+
+  <div>
+    <p class="etiqueta-estado">Fecha futura</p>
+    <div class="hoja">
+      <div>
+        <div class="campo error">
+          <label for="f6">Fecha del abono</label>
+          <button id="f6" type="button" class="selector" aria-invalid="true" aria-describedby="e6">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FF6B6B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg>
+            <span style="flex-grow: 1">18 nov 2026 · 9:00 a. m.</span>
+          </button>
+        </div>
+        <p id="e6" class="msg-error"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FF6B6B" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="flex-shrink: 0; margin-top: 1px"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v6M12 16.5v.5"></path></svg>La fecha del abono no puede ser futura</p>
+      </div>
+    </div>
+    <p class="nota">R-13. Texto propuesto: hoy FECHA_FUTURA dice «La fecha de la venta…».</p>
+  </div>
+
+  <div>
+    <p class="etiqueta-estado">Guardando (en el resumen)</p>
+    <div class="hoja" aria-busy="true">
+      <button type="button" class="btn-p" disabled aria-disabled="true" style="background: #CBFF3D; color: #0A0A0A; opacity: 0.7">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0A0A0A" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M12 3a9 9 0 109 9"></path></svg>
+        Guardando…
+      </button>
+      <button type="button" class="btn-s" disabled aria-disabled="true">Volver a editar</button>
+    </div>
+    <p class="nota">Guarda en una sola transacción (RNF-03). Sin cerrar por fondo, gesto ni botones mientras guarda (reglas 2 y 3).</p>
+  </div>
+
+  <div>
+    <p class="etiqueta-estado">Error al guardar</p>
+    <div class="hoja">
+      <div role="alert" style="padding: 12px 14px; border-radius: 12px; background: rgba(255,107,107,0.1); color: #FF6B6B; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 8px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FF6B6B" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="flex-shrink: 0"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v6M12 16.5v.5"></path></svg>
+        Ocurrió un error inesperado
+      </div>
+      <button type="button" class="btn-p">Aceptar</button>
+      <button type="button" class="btn-s">Volver a editar</button>
+    </div>
+    <p class="nota">No se aplicó nada; los botones vuelven a habilitarse para reintentar.</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":2240}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

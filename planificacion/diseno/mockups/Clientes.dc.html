@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Clientes</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#000}
+a{color:#5EC8F2}a:hover{color:#8FDBF7}
+.campo{position:relative}
+.campo input{box-sizing:border-box;width:100%;height:56px;padding:0 16px 0 46px;border:1px solid #3A3D44;border-radius:12px;background:transparent;color:#F5F5F5;font:500 16px Inter,sans-serif;outline:none}
+.campo input::placeholder{color:#8A8E96}
+.campo label{position:absolute;top:-9px;left:12px;padding:0 6px;font:500 12px Inter,sans-serif;line-height:16px;color:#A1A1AA;background:#000}
+.segmento{display:grid;gap:4px;padding:4px;border-radius:12px;background:#17181B}
+.segmento button{height:40px;border:0;border-radius:9px;background:transparent;color:#A1A1AA;font:500 13px Inter,sans-serif}
+.segmento button[aria-pressed="true"]{background:#2A2C31;color:#F5F5F5;font-weight:600}
+.fila{min-height:68px;padding:12px 16px;border-bottom:1px solid #1F2125;color:#F5F5F5;text-decoration:none;font-family:Inter,sans-serif;display:flex;align-items:center;gap:12px}
+.fila:hover{color:#F5F5F5}
+.avatar{width:40px;height:40px;border-radius:999px;background:#17181B;color:#5EC8F2;font:600 14px Inter,sans-serif;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.nombre{font-size:15px;font-weight:600}
+.meta{font-size:12px;color:#A1A1AA}
+.deuda{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.monto-deuda{font-size:15px;font-weight:700;color:#FF6B6B}
+.al-dia{font-size:12px;color:#A1A1AA;display:flex;align-items:center;gap:4px}
+</style>
+</helmet>
+<div style="position: relative; width: 390px; height: 1000px; box-sizing: border-box; background: #000000; color: #F5F5F5; font-family: Inter, system-ui, sans-serif; display: flex; flex-direction: column">
+
+  <header style="padding: 28px 20px 4px; display: flex; flex-direction: column; gap: 2px">
+    <h1 style="margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.02em">Clientes</h1>
+    <p style="margin: 0; font-size: 13px; color: #A1A1AA">6 clientes</p>
+  </header>
+
+  <main style="flex-grow: 1; padding: 20px 20px 24px; display: flex; flex-direction: column; gap: 20px">
+
+    <section aria-label="Resumen de cartera" style="background: #0F1012; border: 1px solid #1F2125; border-radius: 20px; padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; gap: 12px">
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <span style="font-size: 12px; color: #A1A1AA">Por cobrar</span>
+        <span style="font-size: 26px; font-weight: 700; letter-spacing: -0.02em; color: #FF6B6B">$ 257.000</span>
+      </div>
+      <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px">
+        <span style="font-size: 20px; font-weight: 700">3</span>
+        <span style="font-size: 12px; color: #A1A1AA">clientes con deuda</span>
+      </div>
+    </section>
+
+    <div class="campo">
+      <label for="buscar">Buscar cliente</label>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A1A1AA" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="position: absolute; left: 16px; top: 19px"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>
+      <input id="buscar" type="search" placeholder="Buscar por nombre o celular">
+    </div>
+
+    <div class="segmento" role="group" aria-label="Filtrar clientes" style="grid-template-columns: repeat(2, minmax(0, 1fr))">
+      <button type="button" aria-pressed="true">Todos · 6</button>
+      <button type="button" aria-pressed="false">Con deuda · 3</button>
+    </div>
+
+    <div role="list" aria-label="Clientes" style="background: #0F1012; border: 1px solid #1F2125; border-radius: 20px; overflow: hidden; display: flex; flex-direction: column">
+      <div role="listitem"><a class="fila" href="ClienteExpediente.dc.html">
+        <span class="avatar" aria-hidden="true">AP</span>
+        <span style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px">
+          <span class="nombre">Andrés Pérez</span>
+          <span class="meta">3152201144</span>
+        </span>
+        <span class="deuda">
+          <span class="monto-deuda">$ 145.000</span>
+          <span class="meta">3 facturas</span>
+        </span>
+      </a></div>
+      <div role="listitem"><a class="fila" href="ClienteExpediente.dc.html">
+        <span class="avatar" aria-hidden="true">CR</span>
+        <span style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px">
+          <span class="nombre">Carolina Ruiz</span>
+          <span class="meta">3009182231</span>
+        </span>
+        <span class="al-dia">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A1A1AA" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>
+          Al día
+        </span>
+      </a></div>
+      <div role="listitem"><a class="fila" href="ClienteExpediente.dc.html">
+        <span class="avatar" aria-hidden="true">JD</span>
+        <span style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px">
+          <span class="nombre">Jorge Díaz</span>
+          <span class="meta">Sin celular</span>
+        </span>
+        <span class="deuda">
+          <span class="monto-deuda">$ 22.000</span>
+          <span class="meta">1 factura</span>
+        </span>
+      </a></div>
+      <div role="listitem"><a class="fila" href="ClienteExpediente.dc.html">
+        <span class="avatar" aria-hidden="true">MG</span>
+        <span style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px">
+          <span class="nombre">María Gómez</span>
+          <span class="meta">3104567890</span>
+        </span>
+        <span class="deuda">
+          <span class="monto-deuda">$ 90.000</span>
+          <span class="meta">2 facturas</span>
+        </span>
+      </a></div>
+      <div role="listitem"><a class="fila" href="ClienteExpediente.dc.html">
+        <span class="avatar" aria-hidden="true">PS</span>
+        <span style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px">
+          <span class="nombre">Papelería El Sol</span>
+          <span class="meta">3215540098</span>
+        </span>
+        <span class="al-dia">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A1A1AA" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>
+          Al día
+        </span>
+      </a></div>
+      <div role="listitem"><a class="fila" href="ClienteExpediente.dc.html" style="border-bottom: 0">
+        <span class="avatar" aria-hidden="true">SH</span>
+        <span style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px">
+          <span class="nombre">Sofía Herrera</span>
+          <span class="meta">3127773020</span>
+        </span>
+        <span class="al-dia">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A1A1AA" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>
+          Al día
+        </span>
+      </a></div>
+    </div>
+  </main>
+
+  <a href="ModalNuevoCliente.dc.html" aria-label="Nuevo cliente" style="position: absolute; right: 20px; bottom: 92px; width: 56px; height: 56px; border-radius: 999px; background: #CBFF3D; box-shadow: 0 8px 24px rgba(203,255,61,0.18); display: flex; align-items: center; justify-content: center">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0A0A0A" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+  </a>
+
+  <nav aria-label="Navegación principal" style="height: 72px; border-top: 1px solid #1F2125; background: #0A0A0B; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr))">
+    <a href="Main.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: #A1A1AA; font-size: 11px; font-weight: 500">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#A1A1AA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"></path><path d="M7 15l4-4 3 3 5-6"></path></svg>
+      Finanzas
+    </a>
+    <a href="Vender.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: #A1A1AA; font-size: 11px; font-weight: 500">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#A1A1AA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="20" r="1.5"></circle><circle cx="18" cy="20" r="1.5"></circle><path d="M2 3h3l2.5 12h11L21 7H6.2"></path></svg>
+      Vender
+    </a>
+    <a href="Inventario.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: #A1A1AA; font-size: 11px; font-weight: 500">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#A1A1AA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8l-9-5-9 5 9 5 9-5z"></path><path d="M3 8v8l9 5 9-5V8"></path></svg>
+      Inventario
+    </a>
+    <a href="#" aria-current="page" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: #CBFF3D; font-size: 11px; font-weight: 600">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#CBFF3D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"></path><path d="M16 4.5a3.5 3.5 0 010 7M18 14.8c1.8.7 3 2.5 3.5 5.2"></path></svg>
+      Clientes
+    </a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -62,4 +62,39 @@ test.describe('Main tab navigation', () => {
 
     expect(consoleErrors).toEqual([]);
   });
+
+  test('E1: mantiene fondo negro, fuente Inter y pestaña activa lima incluso con el sistema en modo claro', async ({
+    page,
+  }) => {
+    const consoleErrors = capturarErroresConsola(page);
+
+    await page.emulateMedia({ colorScheme: 'light' });
+    await page.goto('/');
+    await expect(page).toHaveURL(/\/inventario$/);
+
+    const estilos = await page.evaluate(() => {
+      const content = document.querySelector('ion-content');
+      const backgroundContent = content?.shadowRoot?.querySelector('#background-content');
+      const body = document.body;
+      const backgroundColor = backgroundContent ? getComputedStyle(backgroundContent).backgroundColor : null;
+      const bodyBackgroundColor = getComputedStyle(body).backgroundColor;
+      const fontFamily = getComputedStyle(body).fontFamily;
+      const activeTab = document.querySelector('ion-tab-bar ion-tab-button.tab-selected');
+      const tabColor = activeTab ? getComputedStyle(activeTab).color : null;
+
+      return {
+        backgroundColor,
+        bodyBackgroundColor,
+        fontFamily,
+        tabColor,
+      };
+    });
+
+    expect(estilos.backgroundColor).toBe('rgb(0, 0, 0)');
+    expect(estilos.bodyBackgroundColor).toBe('rgb(0, 0, 0)');
+    expect(estilos.fontFamily).toContain('Inter');
+    expect(estilos.tabColor).toBe('rgb(203, 255, 61)');
+
+    expect(consoleErrors).toEqual([]);
+  });
 });

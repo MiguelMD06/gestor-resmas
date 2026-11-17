@@ -1,0 +1,21 @@
+ion-button[color='primary'] {
+  min-height: 52px;
+  --border-radius: 14px;
+  --color: var(--ion-color-primary-contrast, #0a0a0a);
+  font-size: 15px;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+ion-button[fill='outline'][color='secondary'] {
+  min-height: 48px;
+  --border-radius: 14px;
+  --border-color: var(--ion-color-secondary, #5ec8f2);
+  --border-width: 1px;
+  --color: var(--ion-color-secondary, #5ec8f2);
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: normal;
+}

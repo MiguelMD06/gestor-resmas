@@ -31,6 +31,39 @@ import { cartOutline, cubeOutline, peopleOutline, walletOutline } from 'ionicons
     </ion-tabs>
   `,
   imports: [IonTabs, IonTabBar, IonTabButton, IonIcon, IonLabel],
+  styles: `
+    ion-tab-bar {
+      --background: var(--app-barra-pestanas, #0a0a0b);
+      --border: 1px solid var(--app-borde, #1f2125);
+      border-top: 1px solid var(--app-borde, #1f2125);
+      height: 72px;
+    }
+
+    ion-tab-button {
+      --color: var(--app-texto-secundario, #a1a1aa);
+      --color-selected: var(--ion-color-primary, #cbff3d);
+      font-size: 11px;
+      font-weight: 500;
+      gap: 4px;
+
+      ion-icon {
+        font-size: 22px;
+      }
+
+      ion-label {
+        font-size: 11px;
+        font-weight: 500;
+      }
+
+      &.tab-selected {
+        font-weight: 600;
+
+        ion-label {
+          font-weight: 600;
+        }
+      }
+    }
+  `,
 })
 export class TabsPage {
   constructor() {

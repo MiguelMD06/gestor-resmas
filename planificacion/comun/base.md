@@ -58,11 +58,13 @@ src/app/
 4. **Archivos temporales** fuera del repositorio. Si alguno queda dentro, informa su ruta exacta.
 5. **No instales dependencias** salvo que la tarea lo pida, y nunca corras formateadores, generadores ni instalaciones sobre todo el repositorio.
 6. **Pruebas que prueban lo que dicen:**
+   - prueba intentando romper el código: además del caso feliz, cubre valores límite, el segundo y el último elemento (no solo el primero), repetir la acción (doble envío) y fallos de carga o escritura;
    - cada prueba llama a la función que nombra su título;
    - un rechazo esperado se acota al error exacto: `toThrow(expect.objectContaining({ codigo: '...' }))` o un mensaje concreto, nunca `toThrow()` o `rejects.toThrow()` a secas;
    - nada de `try/catch` para verificar un error: si no se lanza, la prueba tiene que fallar;
    - los casos límite usan el valor límite exacto.
 7. **Engram:** tienes acceso de solo lectura. Úsalo si te sirve para tener contexto; nunca intentes escribir en él.
+8. **Cierra todo servidor** que levantes para una prueba apenas termine.
 
 ## Trampas conocidas del stack
 
@@ -85,7 +87,7 @@ npm run build
 npm run test:e2e
 ```
 
-Si tu bloque corre en paralelo con otro, la tarea dice cuáles de estos comandos corre el coordinador (por ejemplo, `build`, porque los dos escribirían en `www/`).
+Si tu bloque corre en paralelo con otro, la tarea dice cuáles de estos comandos corre el coordinador (por ejemplo, `build` porque los dos escribirían en `www/`, o `test:e2e` porque ambos usarían el puerto 4200).
 
 ## Reporte final
 

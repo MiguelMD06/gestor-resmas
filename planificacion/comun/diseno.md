@@ -1,6 +1,6 @@
 # Sistema de diseño de la interfaz
 
-Reglas visuales comunes a todas las pantallas. Salen de los mockups aprobados por Miguel el 2026-11-16 en el canvas de diseño (`https://claude.ai/artifact/TyjQcXwL9cECDmCa7LbdJC`). Las etapas 3B, 4 y 5 las aplican: la 3B rehace las pantallas que ya existen y las etapas 4 y 5 diseñan las que faltan con este mismo sistema.
+Reglas visuales comunes a todas las pantallas. Salen de los mockups aprobados por Miguel el 2026-11-16 en el lienzo de diseño (`planificacion/diseno/mockups/`). Las etapas 3B, 4 y 5 las aplican: la 3B rehace las pantallas que ya existen y las etapas 4 y 5 diseñan las que faltan con este mismo sistema.
 
 ## Estado de los mockups
 

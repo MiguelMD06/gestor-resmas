@@ -130,7 +130,10 @@ Prohibido todo lo demás.
 ## Lo que ya existe y debes reutilizar
 
 - El tema y los estilos compartidos de B3B.0 (`src/theme/variables.scss`, `src/app/shared/ui/estilos/`). **No repitas hexadecimales** que ya son variables.
-- **La hoja de fecha de D5** (`src/app/shared/ui/hoja-fecha.component.ts`), que dejó B3B.2 y ya usa Vender. Úsala tal cual; no la modifiques.
+- **La hoja de fecha de D5** (`src/app/shared/ui/hoja-fecha.component.ts`), que dejó B3B.2 y ya usa Vender (mira cómo la abre `src/app/ventas/ui/vender.page.ts`). Úsala tal cual; no la modifiques. Su API, según B3B.2:
+  - entradas: `titulo: string` (por defecto `'Fecha'`), `valor: FechaHora` (requerida), `maximo: FechaHora` (requerida, del `CLOCK`), `ayuda: string` (por defecto `'No puede ser una fecha futura.'`) y `datetimeTestId: string` (por defecto `'datetime-fecha'`);
+  - salidas: `fechaChange: FechaHora` (solo emite fechas válidas `<= maximo`) y `cerrar: void` (al tocar **Listo**);
+  - se abre dentro de un `ion-modal` en hoja (clase `modal-sheet`), como en Vender.
 - El código `FECHA_FUTURA` y su texto "La fecha no puede ser futura" (ya cambiado por el coordinador) y `MONTO_INVALIDO` "El monto debe ser un número entero mayor a cero", en `mensajes-error.ts`.
 - `CampoPesosComponent`, `formatearPesos`, `formulario.ts`, el `CLOCK` (cómo lo usa `ventas/domain/venta.ts` y `ventas/application/registrar-venta.ts` para rechazar `FECHA_FUTURA`).
 

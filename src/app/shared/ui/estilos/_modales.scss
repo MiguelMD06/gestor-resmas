@@ -1,0 +1,22 @@
+ion-modal {
+  --backdrop-opacity: 0.6;
+}
+
+ion-modal.modal-sheet,
+ion-modal[breakpoints] {
+  --background: var(--app-tarjeta, #0f1012);
+  --border-radius: 24px 24px 0 0;
+  --ion-background-color: var(--app-tarjeta, #0f1012);
+  --ion-toolbar-background: var(--app-tarjeta, #0f1012);
+
+  &::part(content) {
+    background: var(--app-tarjeta, #0f1012);
+    border-radius: 24px 24px 0 0;
+  }
+
+  &::part(handle) {
+    background: var(--app-borde-campo, #3a3d44);
+    width: 36px;
+    height: 4px;
+  }
+}

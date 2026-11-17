@@ -1,0 +1,20 @@
+ion-input[fill='outline'],
+ion-textarea[fill='outline'] {
+  --border-color: var(--app-borde-campo, #3a3d44);
+  --border-radius: var(--app-radio-campo, 12px);
+  --border-width: 1px;
+  --highlight-color-focused: var(--ion-color-secondary, #5ec8f2);
+  --highlight-color-invalid: var(--ion-color-danger, #ff6b6b);
+  --highlight-color-valid: var(--app-borde-campo, #3a3d44);
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --color: var(--ion-text-color, #f5f5f5);
+  --placeholder-color: #8a8e96;
+  min-height: 56px;
+
+  &.app-campo-aviso {
+    --border-color: var(--ion-color-warning, #f5b544);
+    --highlight-color-focused: var(--ion-color-warning, #f5b544);
+    --highlight-color-valid: var(--ion-color-warning, #f5b544);
+  }
+}

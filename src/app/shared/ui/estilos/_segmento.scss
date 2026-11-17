@@ -1,0 +1,30 @@
+ion-segment {
+  --background: var(--app-tarjeta-elevada, #17181b);
+  border-radius: var(--app-radio-campo, 12px);
+  padding: 4px;
+  min-height: 48px;
+}
+
+ion-segment-button {
+  --background: transparent;
+  --background-checked: #2a2c31;
+  --indicator-color: #2a2c31;
+  --indicator-box-shadow: none;
+  --border-radius: 9px;
+  --color: var(--app-texto-secundario, #a1a1aa);
+  --color-checked: #f5f5f5;
+  min-height: 40px;
+  font-size: 13px;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: normal;
+
+  &::part(indicator-background) {
+    background: #2a2c31;
+    border-radius: 9px;
+  }
+
+  &.segment-button-checked {
+    font-weight: 600;
+  }
+}

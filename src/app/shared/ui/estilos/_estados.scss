@@ -1,0 +1,22 @@
+.app-estado-vacio,
+.app-estado-error {
+  background: var(--app-tarjeta, #0f1012);
+  border: 1px solid var(--app-borde, #1f2125);
+  border-radius: var(--app-radio-tarjeta, 20px);
+  padding: 28px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+}
+
+.app-estado-vacio ion-icon {
+  font-size: 32px;
+  color: var(--app-texto-secundario, #a1a1aa);
+}
+
+.app-estado-error ion-icon {
+  font-size: 28px;
+  color: var(--ion-color-danger, #ff6b6b);
+}

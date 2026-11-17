@@ -26,7 +26,7 @@ import {
   ToastController,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { add, calendarOutline, closeOutline, personOutline, trashOutline } from 'ionicons/icons';
+import { add, calendarOutline, personOutline, trashOutline } from 'ionicons/icons';
 
 import { BuscarClientes } from '../../clientes/application/buscar-clientes';
 import type { Cliente } from '../../clientes/domain/cliente';
@@ -456,6 +456,7 @@ export class VenderPage {
   private peticionActual = 0;
   private peticionClientes = 0;
   private fechaEditadaManualmente = false;
+  private abriendoModalCliente = false;
 
   readonly cargando = signal(false);
   readonly errorCarga = signal<string | null>(null);
@@ -599,7 +600,7 @@ export class VenderPage {
   });
 
   constructor() {
-    addIcons({ personOutline, calendarOutline, trashOutline, add, closeOutline });
+    addIcons({ personOutline, calendarOutline, trashOutline, add });
   }
 
   async ionViewWillEnter(): Promise<void> {
@@ -701,10 +702,6 @@ export class VenderPage {
     this.selectorClienteAbierto.set(false);
   }
 
-  onBuscarClienteInput(event: CustomEvent | Event): void {
-    this.onBuscarClienteTexto(leerValorEvento(event));
-  }
-
   onBuscarClienteTexto(texto: string): void {
     this.busquedaCliente.set(texto);
     void this.buscarClientesSelector(texto);
@@ -750,14 +747,25 @@ export class VenderPage {
   }
 
   async crearNuevoCliente(): Promise<void> {
-    const modal = await this.modalCtrl.create({
-      component: ClienteModalComponent,
-      canDismiss: soloCierreExplicito,
-    });
-    await modal.present();
-    const { data, role } = await modal.onDidDismiss<Cliente>();
-    if (role === ROL_GUARDADO && data) {
-      this.seleccionarCliente(data);
+    if (this.abriendoModalCliente || this.guardando()) {
+      return;
+    }
+
+    this.abriendoModalCliente = true;
+    try {
+      const modal = await this.modalCtrl.create({
+        component: ClienteModalComponent,
+        canDismiss: soloCierreExplicito,
+      });
+      await modal.present();
+      const { data, role } = await modal.onDidDismiss<Cliente>();
+      if (role === ROL_GUARDADO && data) {
+        this.seleccionarCliente(data);
+      }
+    } catch (error: unknown) {
+      await this.mostrarToastError(error);
+    } finally {
+      this.abriendoModalCliente = false;
     }
   }
 
@@ -872,20 +880,24 @@ export class VenderPage {
         await this.cargarDatos();
       }
     } catch (error: unknown) {
-      try {
-        const toast = await this.toastCtrl.create({
-          message: mensajeDeError(error),
-          duration: 3000,
-          color: 'danger',
-          position: 'bottom',
-        });
-        await toast.present();
-      } catch {
-        // Avoid unhandled rejection if toast fails
-      }
+      await this.mostrarToastError(error);
     } finally {
       this.guardando.set(false);
       this.abriendoResumen.set(false);
+    }
+  }
+
+  private async mostrarToastError(error: unknown): Promise<void> {
+    try {
+      const toast = await this.toastCtrl.create({
+        message: mensajeDeError(error),
+        duration: 3000,
+        color: 'danger',
+        position: 'bottom',
+      });
+      await toast.present();
+    } catch {
+      // Avoid unhandled rejection if toast fails
     }
   }
 

@@ -114,8 +114,9 @@ describe('CampoPesosComponent', () => {
 
     const campo = fixture.debugElement.query(By.css('app-campo-pesos'));
     const ionInput = getIonInput();
-    expect(ionInput.nativeElement.disabled || ionInput.attributes['disabled'] !== undefined).toBe(true);
-    expect(ionInput.attributes['aria-disabled'] === 'true' || campo.attributes['aria-disabled'] === 'true').toBe(true);
+    expect(ionInput.nativeElement.disabled).toBe(true);
+    expect(ionInput.attributes['aria-disabled']).toBe('true');
+    expect(campo.attributes['aria-disabled']).toBe('true');
 
     host.disabled.set(false);
     fixture.detectChanges();

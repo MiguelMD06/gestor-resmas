@@ -266,4 +266,29 @@ describe('ClienteModalComponent', () => {
       Boolean(editFixture.debugElement.query(By.css('[data-testid="btn-guardar-cliente"]')).nativeElement.disabled),
     ).toBe(true);
   });
+
+  it('renders Celular input with inputmode="numeric"', () => {
+    const inputTelefono = fixture.debugElement.query(By.css('[data-testid="input-telefono"]'));
+    expect(inputTelefono).toBeTruthy();
+    expect(inputTelefono.attributes['inputmode']).toBe('numeric');
+  });
+
+  it('does not show validation hint when save already completed and dismiss rejects', async () => {
+    expect(fixture.nativeElement.textContent).toContain('Corrige los campos marcados para continuar');
+
+    mockModalCtrl.dismiss.mockRejectedValueOnce(new Error('Dismiss failed'));
+    component.nombre.set('Ana Pérez');
+    component.telefono.set('3001234567');
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).not.toContain('Corrige los campos marcados para continuar');
+
+    await expect(component.guardar()).resolves.toBeUndefined();
+    fixture.detectChanges();
+
+    expect(mockRegistrar.registrar).toHaveBeenCalledTimes(1);
+    expect(component.guardando()).toBe(false);
+    expect(estaDeshabilitado(botonGuardar())).toBe(true);
+    expect(fixture.nativeElement.textContent).not.toContain('Corrige los campos marcados para continuar');
+  });
 });

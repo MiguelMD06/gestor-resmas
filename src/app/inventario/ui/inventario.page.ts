@@ -396,7 +396,7 @@ export class InventarioPage {
   }
 
   porcentajeDisponible(lote: Lote): number {
-    return Math.round(progreso(lote) * 100);
+    return lote.resmasIniciales <= 0 ? 0 : Math.round((lote.resmasDisponibles * 100) / lote.resmasIniciales);
   }
 
   valorEnStock(lote: Lote): ReturnType<typeof pesos> {

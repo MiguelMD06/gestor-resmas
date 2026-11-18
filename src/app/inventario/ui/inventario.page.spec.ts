@@ -348,4 +348,232 @@ describe('InventarioPage', () => {
       }),
     );
   });
+
+  it('calculates and renders segment badges, summary totals, integer stock values, and progress percentages across multiple Carta and Oficio lots including a depleted lot and zero initial reams edge case', async () => {
+    const carta1: Lote = {
+      idLote: 10,
+      tipoPapel: 'CARTA',
+      fechaCompra: fechaHora('2026-11-08 09:00:00'),
+      cantidadCajas: cajas(2),
+      costoPorCaja: pesos(120000),
+      costoUnitarioResma: pesos(12000),
+      resmasIniciales: resmas(20),
+      resmasDisponibles: resmas(20),
+      medioPagoCompra: 'EFECTIVO',
+      estado: 'ACTIVO',
+    };
+    const carta2: Lote = {
+      idLote: 11,
+      tipoPapel: 'CARTA',
+      fechaCompra: fechaHora('2026-11-09 10:00:00'),
+      cantidadCajas: cajas(2),
+      costoPorCaja: pesos(150000),
+      costoUnitarioResma: pesos(15000),
+      resmasIniciales: resmas(20),
+      resmasDisponibles: resmas(7),
+      medioPagoCompra: 'TRANSFERENCIA',
+      estado: 'ACTIVO',
+    };
+    const cartaAgotado: Lote = {
+      idLote: 12,
+      tipoPapel: 'CARTA',
+      fechaCompra: fechaHora('2026-11-07 08:00:00'),
+      cantidadCajas: cajas(1),
+      costoPorCaja: pesos(110000),
+      costoUnitarioResma: pesos(11000),
+      resmasIniciales: resmas(10),
+      resmasDisponibles: resmas(0),
+      medioPagoCompra: 'EFECTIVO',
+      estado: 'AGOTADO',
+    };
+    const oficio1: Lote = {
+      idLote: 20,
+      tipoPapel: 'OFICIO',
+      fechaCompra: fechaHora('2026-11-10 11:00:00'),
+      cantidadCajas: cajas(1),
+      costoPorCaja: pesos(130000),
+      costoUnitarioResma: pesos(13000),
+      resmasIniciales: resmas(10),
+      resmasDisponibles: resmas(7),
+      medioPagoCompra: 'TRANSFERENCIA',
+      estado: 'ACTIVO',
+    };
+    const oficio2: Lote = {
+      idLote: 21,
+      tipoPapel: 'OFICIO',
+      fechaCompra: fechaHora('2026-11-11 12:00:00'),
+      cantidadCajas: cajas(3),
+      costoPorCaja: pesos(140000),
+      costoUnitarioResma: pesos(14000),
+      resmasIniciales: resmas(30),
+      resmasDisponibles: resmas(10),
+      medioPagoCompra: 'EFECTIVO',
+      estado: 'ACTIVO',
+    };
+
+    mockConsultarInventario.activos.mockResolvedValueOnce({
+      CARTA: [carta1, carta2, cartaAgotado],
+      OFICIO: [oficio1, oficio2],
+    });
+
+    await component.cargarLotes();
+    fixture.detectChanges();
+
+    // Segment badges (both tabs always visible)
+    expect(component.totalResmasCarta()).toBe(27);
+    expect(component.totalResmasOficio()).toBe(17);
+    expect(
+      fixture.debugElement
+        .query(By.css('[data-testid="segment-carta"] .conteo-badge'))
+        .nativeElement.textContent.trim(),
+    ).toBe('27');
+    expect(
+      fixture.debugElement
+        .query(By.css('[data-testid="segment-oficio"] .conteo-badge'))
+        .nativeElement.textContent.trim(),
+    ).toBe('17');
+
+    // Carta tab signals and summary DOM
+    expect(component.tipoSeleccionado()).toBe('CARTA');
+    expect(component.totalResmasVisibles()).toBe(27);
+    expect(component.valorCostoVisible()).toBe(pesos(345000));
+    expect(Number.isInteger(component.valorCostoVisible())).toBe(true);
+
+    let resumen = fixture.debugElement.query(By.css('.resumen-papel'));
+    expect(resumen.nativeElement.textContent).toContain('Papel Carta disponible');
+    expect(resumen.query(By.css('.resumen-numero')).nativeElement.textContent.trim()).toBe('27');
+    let resumenCeldas = resumen.queryAll(By.css('.resumen-grid .total-celda .seccion-titulo'));
+    expect(resumenCeldas).toHaveLength(2);
+    expect(resumenCeldas[0].nativeElement.textContent.trim()).toBe('$ 345.000');
+    expect(resumenCeldas[1].nativeElement.textContent.trim()).toBe('3');
+
+    // Carta lot calculations and cards (first, second, depleted last)
+    expect(component.porcentajeDisponible(carta1)).toBe(100);
+    expect(component.porcentajeDisponible(carta2)).toBe(35);
+    expect(component.porcentajeDisponible(cartaAgotado)).toBe(0);
+    expect(component.valorEnStock(carta1)).toBe(pesos(240000));
+    expect(component.valorEnStock(carta2)).toBe(pesos(105000));
+    expect(component.valorEnStock(cartaAgotado)).toBe(pesos(0));
+    expect(Number.isInteger(component.valorEnStock(carta1))).toBe(true);
+    expect(Number.isInteger(component.valorEnStock(carta2))).toBe(true);
+    expect(Number.isInteger(component.valorEnStock(cartaAgotado))).toBe(true);
+
+    let tarjetas = fixture.debugElement.queryAll(By.css('[data-testid="tarjeta-lote"]'));
+    expect(tarjetas).toHaveLength(3);
+
+    const esperadosCarta = [
+      { porcentaje: '100 % disponible', valor: 'Valor en stock $ 240.000', progreso: 1 },
+      { porcentaje: '35 % disponible', valor: 'Valor en stock $ 105.000', progreso: 0.35 },
+      { porcentaje: '0 % disponible', valor: 'Valor en stock $ 0', progreso: 0 },
+    ];
+    tarjetas.forEach((tarjeta, index) => {
+      const esperado = esperadosCarta[index];
+      expect(tarjeta.nativeElement.textContent).toContain(esperado.porcentaje);
+      expect(tarjeta.query(By.css('.linea-total-dato')).nativeElement.textContent.trim()).toBe(esperado.valor);
+      const barra = tarjeta.query(By.css('[data-testid="progreso-lote"]'));
+      expect(Number(barra.nativeElement.value ?? barra.attributes['ng-reflect-value'])).toBeCloseTo(
+        esperado.progreso,
+        5,
+      );
+    });
+
+    // Edge case: 0 initial reams must return 0 instead of NaN
+    const loteSinIniciales: Lote = {
+      ...cartaAgotado,
+      idLote: 99,
+      resmasIniciales: resmas(0),
+      resmasDisponibles: resmas(0),
+    };
+    expect(component.porcentajeDisponible(loteSinIniciales)).toBe(0);
+    expect(Number.isInteger(component.porcentajeDisponible(loteSinIniciales))).toBe(true);
+
+    // Switch to Oficio tab and verify totals + both cards
+    component.onSegmentChange(new CustomEvent('ionChange', { detail: { value: 'OFICIO' } }));
+    fixture.detectChanges();
+
+    expect(component.tipoSeleccionado()).toBe('OFICIO');
+    expect(component.totalResmasVisibles()).toBe(17);
+    expect(component.valorCostoVisible()).toBe(pesos(231000));
+    expect(Number.isInteger(component.valorCostoVisible())).toBe(true);
+
+    resumen = fixture.debugElement.query(By.css('.resumen-papel'));
+    expect(resumen.nativeElement.textContent).toContain('Papel Oficio disponible');
+    expect(resumen.query(By.css('.resumen-numero')).nativeElement.textContent.trim()).toBe('17');
+    resumenCeldas = resumen.queryAll(By.css('.resumen-grid .total-celda .seccion-titulo'));
+    expect(resumenCeldas[0].nativeElement.textContent.trim()).toBe('$ 231.000');
+    expect(resumenCeldas[1].nativeElement.textContent.trim()).toBe('2');
+
+    expect(component.porcentajeDisponible(oficio1)).toBe(70);
+    expect(component.porcentajeDisponible(oficio2)).toBe(33);
+    expect(component.valorEnStock(oficio1)).toBe(pesos(91000));
+    expect(component.valorEnStock(oficio2)).toBe(pesos(140000));
+    expect(Number.isInteger(component.valorEnStock(oficio1))).toBe(true);
+    expect(Number.isInteger(component.valorEnStock(oficio2))).toBe(true);
+
+    tarjetas = fixture.debugElement.queryAll(By.css('[data-testid="tarjeta-lote"]'));
+    expect(tarjetas).toHaveLength(2);
+
+    const esperadosOficio = [
+      { porcentaje: '70 % disponible', valor: 'Valor en stock $ 91.000', progreso: 0.7 },
+      { porcentaje: '33 % disponible', valor: 'Valor en stock $ 140.000', progreso: 1 / 3 },
+    ];
+    tarjetas.forEach((tarjeta, index) => {
+      const esperado = esperadosOficio[index];
+      expect(tarjeta.nativeElement.textContent).toContain(esperado.porcentaje);
+      expect(tarjeta.query(By.css('.linea-total-dato')).nativeElement.textContent.trim()).toBe(esperado.valor);
+      const barra = tarjeta.query(By.css('[data-testid="progreso-lote"]'));
+      expect(Number(barra.nativeElement.value ?? barra.attributes['ng-reflect-value'])).toBeCloseTo(
+        esperado.progreso,
+        5,
+      );
+    });
+  });
+
+  it('renders 0 badges, 0 resmas, $ 0 cost, 0 active lots, and empty message when there are zero lots', async () => {
+    mockConsultarInventario.activos.mockResolvedValueOnce({
+      CARTA: [],
+      OFICIO: [],
+    });
+
+    await component.cargarLotes();
+    fixture.detectChanges();
+
+    expect(component.totalResmasCarta()).toBe(0);
+    expect(component.totalResmasOficio()).toBe(0);
+    expect(component.totalResmasVisibles()).toBe(0);
+    expect(component.valorCostoVisible()).toBe(pesos(0));
+
+    expect(
+      fixture.debugElement
+        .query(By.css('[data-testid="segment-carta"] .conteo-badge'))
+        .nativeElement.textContent.trim(),
+    ).toBe('0');
+    expect(
+      fixture.debugElement
+        .query(By.css('[data-testid="segment-oficio"] .conteo-badge'))
+        .nativeElement.textContent.trim(),
+    ).toBe('0');
+
+    let resumen = fixture.debugElement.query(By.css('.resumen-papel'));
+    expect(resumen.query(By.css('.resumen-numero')).nativeElement.textContent.trim()).toBe('0');
+    expect(resumen.query(By.css('.resumen-unidad')).nativeElement.textContent.trim()).toBe('resmas');
+    let resumenCeldas = resumen.queryAll(By.css('.resumen-grid .total-celda .seccion-titulo'));
+    expect(resumenCeldas[0].nativeElement.textContent.trim()).toBe('$ 0');
+    expect(resumenCeldas[1].nativeElement.textContent.trim()).toBe('0');
+
+    expect(fixture.debugElement.query(By.css('[data-testid="mensaje-vacio"]'))).toBeTruthy();
+    expect(fixture.debugElement.queryAll(By.css('[data-testid="tarjeta-lote"]'))).toHaveLength(0);
+
+    component.onSegmentChange(new CustomEvent('ionChange', { detail: { value: 'OFICIO' } }));
+    fixture.detectChanges();
+
+    resumen = fixture.debugElement.query(By.css('.resumen-papel'));
+    expect(resumen.query(By.css('.resumen-numero')).nativeElement.textContent.trim()).toBe('0');
+    resumenCeldas = resumen.queryAll(By.css('.resumen-grid .total-celda .seccion-titulo'));
+    expect(resumenCeldas[0].nativeElement.textContent.trim()).toBe('$ 0');
+    expect(resumenCeldas[1].nativeElement.textContent.trim()).toBe('0');
+    const mensajeVacio = fixture.debugElement.query(By.css('[data-testid="mensaje-vacio"]'));
+    expect(mensajeVacio).toBeTruthy();
+    expect(mensajeVacio.nativeElement.textContent).toContain('Oficio');
+  });
 });

@@ -26,7 +26,7 @@ const ID_LOTE_PREVISUALIZACION = 0;
 })
 export class RegistrarCompra {
   private readonly db = inject(SQL_DATABASE);
-  private readonly clock = inject(CLOCK, { optional: true });
+  private readonly clock = inject(CLOCK);
   private readonly lotes = inject(LoteRepository);
   private readonly libro = inject(LibroRepository);
 
@@ -37,7 +37,7 @@ export class RegistrarCompra {
     fecha: FechaHora;
     medio: MedioPago;
   }): Promise<{ idLote: number; reinversion: Pesos }> {
-    if (this.clock && params.fecha > this.clock.ahora()) {
+    if (params.fecha > this.clock.ahora()) {
       throw new ReglaNegocioError('FECHA_FUTURA', `Purchase date ${params.fecha} cannot be in the future`);
     }
 

@@ -8,6 +8,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AporteModalComponent } from '../../finanzas/ui/aporte.modal';
 import { fechaHora, pesos, ReglaNegocioError, type Pesos } from '../../shared/domain';
 import { CLOCK } from '../../shared/infrastructure/clock/clock.token';
+import { MENSAJES_ERROR } from '../../shared/ui/mensajes-error';
 import { RegistrarCompra } from '../application/registrar-compra';
 
 import { NuevaCompraModalComponent } from './nueva-compra.modal';
@@ -661,5 +662,43 @@ describe('NuevaCompraModalComponent', () => {
     fixture.detectChanges();
 
     expect(component.selectorFechaAbierto()).toBe(false);
+  });
+
+  it('disables Guardar compra with exact FECHA_FUTURA text when selecting a later time on the same day as CLOCK', async () => {
+    component.cajas.set(2);
+    component.costoPorCaja.set(120000);
+    await component.actualizarPrevisualizacion();
+    component.onFechaSeleccionada(fechaHora('2026-11-10 10:00:01'));
+    fixture.detectChanges();
+
+    const errorFecha = fixture.debugElement.query(By.css('[data-testid="error-fecha"]'));
+    expect(errorFecha).toBeTruthy();
+    expect(errorFecha.nativeElement.textContent.trim()).toBe(MENSAJES_ERROR.FECHA_FUTURA);
+
+    const botonGuardar = fixture.debugElement.query(By.css('[data-testid="btn-guardar-compra"]'));
+    expect(botonGuardar.nativeElement.disabled || botonGuardar.attributes['disabled'] !== undefined).toBe(true);
+    expect(component.puedeGuardar()).toBe(false);
+
+    await component.guardar();
+    expect(mockRegistrarCompra.registrar).not.toHaveBeenCalled();
+  });
+
+  it('passes date and time selected via date sheet unchanged to registrar when saving', async () => {
+    component.onFechaSeleccionada(fechaHora('2026-11-08 14:25:30'));
+    component.cajas.set(2);
+    component.costoPorCaja.set(120000);
+    await component.actualizarPrevisualizacion();
+    fixture.detectChanges();
+
+    await component.guardar();
+
+    expect(mockRegistrarCompra.registrar).toHaveBeenCalledWith({
+      tipoPapel: 'CARTA',
+      cajas: 2,
+      costoPorCaja: 120000,
+      fecha: fechaHora('2026-11-08 14:25:30'),
+      medio: 'EFECTIVO',
+    });
+    expect(mockModalCtrl.dismiss).toHaveBeenCalledWith({ idLote: 1, guardado: true }, 'guardado');
   });
 });

@@ -11,11 +11,11 @@ import { LibroRepository } from '../infrastructure/libro.repository';
 })
 export class RegistrarAporte {
   private readonly db = inject(SQL_DATABASE);
-  private readonly clock = inject(CLOCK, { optional: true });
+  private readonly clock = inject(CLOCK);
   private readonly libro = inject(LibroRepository);
 
   async registrar(params: { fecha: FechaHora; medio: MedioPago; monto: Pesos }): Promise<number> {
-    if (this.clock && params.fecha > this.clock.ahora()) {
+    if (params.fecha > this.clock.ahora()) {
       throw new ReglaNegocioError('FECHA_FUTURA', `Contribution date ${params.fecha} cannot be in the future`);
     }
 

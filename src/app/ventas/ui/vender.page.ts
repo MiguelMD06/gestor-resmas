@@ -155,8 +155,7 @@ const MESES_CORTOS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 's
         @if (errorCarga(); as error) {
           <div class="app-estado-error" role="alert" data-testid="estado-error">
             <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
-            <p class="estado-titulo">Ocurrió un error inesperado</p>
-            <p class="estado-detalle" data-testid="mensaje-error-carga">{{ error }}</p>
+            <p class="estado-titulo" data-testid="mensaje-error-carga">{{ error }}</p>
             <ion-button
               expand="block"
               color="primary"
@@ -171,8 +170,7 @@ const MESES_CORTOS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 's
         } @else if (!cargando() && lotes().length === 0) {
           <div class="app-estado-vacio" data-testid="mensaje-sin-lotes">
             <ion-icon name="cube-outline" aria-hidden="true"></ion-icon>
-            <p class="estado-titulo">No hay lotes activos</p>
-            <p class="estado-detalle">Registra una compra en Inventario para comenzar a vender.</p>
+            <p class="estado-titulo">No hay lotes activos. Registra una compra en Inventario</p>
           </div>
         } @else {
           @if (cargando() && lotes().length === 0) {
@@ -416,8 +414,10 @@ const MESES_CORTOS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 's
                   <p class="ayuda-campo">Mayor a cero y menor que el total de {{ formatearPesos(totalVenta()) }}</p>
                 }
               </div>
+            }
 
-              <div class="queda-debiendo">
+            @if (modalidad() === 'FIADO' || modalidad() === 'ABONO_INICIAL') {
+              <div class="queda-debiendo" data-testid="queda-debiendo">
                 <span class="queda-debiendo-etiqueta">Queda debiendo</span>
                 <span class="queda-debiendo-valor">{{ formatearPesos(quedaDebiendo()) }}</span>
               </div>
@@ -633,12 +633,6 @@ const MESES_CORTOS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 's
       color: var(--ion-text-color);
     }
 
-    .estado-detalle {
-      margin: 0;
-      font-size: 13px;
-      color: var(--app-texto-secundario);
-    }
-
     .app-estado-error ion-button {
       width: 100%;
     }
@@ -702,7 +696,6 @@ export class VenderPage {
   readonly etiquetaPapel = etiquetaPapel;
   readonly esMostrador = computed(() => this.clienteSeleccionado()?.esMostrador ?? true);
   readonly maxFecha = signal<FechaHora>(this.clock.ahora());
-  readonly maxFechaIso = computed(() => this.maxFecha().replace(' ', 'T'));
 
   readonly fechaLegible = computed(() => {
     const f = this.fechaSeleccionada();
@@ -789,6 +782,9 @@ export class VenderPage {
 
   readonly quedaDebiendo = computed<Pesos>(() => {
     const total = this.totalVenta();
+    if (this.modalidad() !== 'ABONO_INICIAL') {
+      return total;
+    }
     const abono = this.montoAbonoInicial();
     if (abono === null || !Number.isSafeInteger(abono) || abono < 0 || abono >= total) {
       return total;

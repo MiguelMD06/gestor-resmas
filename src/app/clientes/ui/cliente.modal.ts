@@ -113,7 +113,7 @@ import { validarNombre, validarTelefono, type Cliente } from '../domain/cliente'
           >
             Guardar cliente
           </ion-button>
-          @if (!puedeGuardar() && !guardando()) {
+          @if (mostrarAyudaGuardar()) {
             <p class="ayuda-campo centrada">Corrige los campos marcados para continuar</p>
           }
         </div>
@@ -225,6 +225,8 @@ export class ClienteModalComponent implements OnInit {
   readonly puedeGuardar = computed(
     () => !this.guardando() && !this.guardado() && this.errorNombre() === null && this.errorTelefonoDominio() === null,
   );
+
+  readonly mostrarAyudaGuardar = computed(() => !this.guardando() && !this.guardado() && !this.puedeGuardar());
 
   constructor() {
     addIcons({ alertCircleOutline });

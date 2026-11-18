@@ -26,7 +26,7 @@ import { formatearPesos, pesos, type TipoPapel } from '../../shared/domain';
 import { soloCierreExplicito } from '../../shared/ui/formulario';
 import { mensajeDeError } from '../../shared/ui/mensajes-error';
 import { ConsultarInventario } from '../application/consultar-inventario';
-import { progreso, type Lote } from '../domain/lote';
+import type { Lote } from '../domain/lote';
 
 import { NuevaCompraModalComponent } from './nueva-compra.modal';
 
@@ -389,7 +389,7 @@ export class InventarioPage {
   );
 
   readonly formatearPesos = formatearPesos;
-  readonly progreso = progreso;
+  readonly progreso = (lote: Lote): number => this.porcentajeDisponible(lote) / 100;
 
   constructor() {
     addIcons({ add, alertCircleOutline, cartOutline, cubeOutline, walletOutline });

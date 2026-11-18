@@ -515,7 +515,7 @@ describe('InventarioPage', () => {
 
     const esperadosOficio = [
       { porcentaje: '70 % disponible', valor: 'Valor en stock $ 91.000', progreso: 0.7 },
-      { porcentaje: '33 % disponible', valor: 'Valor en stock $ 140.000', progreso: 1 / 3 },
+      { porcentaje: '33 % disponible', valor: 'Valor en stock $ 140.000', progreso: 0.33 },
     ];
     tarjetas.forEach((tarjeta, index) => {
       const esperado = esperadosOficio[index];
@@ -575,5 +575,68 @@ describe('InventarioPage', () => {
     const mensajeVacio = fixture.debugElement.query(By.css('[data-testid="mensaje-vacio"]'));
     expect(mensajeVacio).toBeTruthy();
     expect(mensajeVacio.nativeElement.textContent).toContain('Oficio');
+  });
+
+  it('shows 0 on both progress bar and percentage label for a lot with 0 initial reams', async () => {
+    const loteSinIniciales: Lote = {
+      idLote: 99,
+      tipoPapel: 'CARTA',
+      fechaCompra: fechaHora('2026-11-12 09:00:00'),
+      cantidadCajas: cajas(1),
+      costoPorCaja: pesos(120000),
+      costoUnitarioResma: pesos(12000),
+      resmasIniciales: resmas(0),
+      resmasDisponibles: resmas(0),
+      medioPagoCompra: 'EFECTIVO',
+      estado: 'ACTIVO',
+    };
+
+    mockConsultarInventario.activos.mockResolvedValueOnce({
+      CARTA: [loteSinIniciales],
+      OFICIO: [],
+    });
+
+    await component.cargarLotes();
+    fixture.detectChanges();
+
+    expect(component.progreso(loteSinIniciales)).toBe(0);
+    expect(component.porcentajeDisponible(loteSinIniciales)).toBe(0);
+    expect(Number.isInteger(component.porcentajeDisponible(loteSinIniciales))).toBe(true);
+
+    const tarjeta = fixture.debugElement.query(By.css('[data-testid="tarjeta-lote"]'));
+    expect(tarjeta).toBeTruthy();
+    expect(tarjeta.nativeElement.textContent).toContain('0 % disponible');
+    const barra = tarjeta.query(By.css('[data-testid="progreso-lote"]'));
+    expect(Number(barra.nativeElement.value ?? barra.attributes['ng-reflect-value'])).toBe(0);
+  });
+
+  it('rounds the percentage with integer math: 29 of 200 reams shows 15 and bar 0.15', async () => {
+    const loteMedioExacto: Lote = {
+      idLote: 100,
+      tipoPapel: 'CARTA',
+      fechaCompra: fechaHora('2026-11-12 09:00:00'),
+      cantidadCajas: cajas(1),
+      costoPorCaja: pesos(120000),
+      costoUnitarioResma: pesos(12000),
+      resmasIniciales: resmas(200),
+      resmasDisponibles: resmas(29),
+      medioPagoCompra: 'EFECTIVO',
+      estado: 'ACTIVO',
+    };
+
+    mockConsultarInventario.activos.mockResolvedValueOnce({
+      CARTA: [loteMedioExacto],
+      OFICIO: [],
+    });
+
+    await component.cargarLotes();
+    fixture.detectChanges();
+
+    expect(component.porcentajeDisponible(loteMedioExacto)).toBe(15);
+    const tarjeta = fixture.debugElement.query(By.css('[data-testid="tarjeta-lote"]'));
+    expect(tarjeta.nativeElement.textContent).toContain('15 % disponible');
+    expect(tarjeta.nativeElement.textContent).not.toContain('14 % disponible');
+    const barra = tarjeta.query(By.css('[data-testid="progreso-lote"]'));
+    expect(Number(barra.nativeElement.value ?? barra.attributes['ng-reflect-value'])).toBeCloseTo(0.15, 5);
   });
 });

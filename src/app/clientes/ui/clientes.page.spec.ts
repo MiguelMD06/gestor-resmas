@@ -247,4 +247,83 @@ describe('ClientesPage', () => {
     expect(avatar1.nativeElement.textContent.trim()).toBe('S');
     expect(items[1].nativeElement.textContent).toContain('Sin celular');
   });
+
+  it('displays client count when search is empty and result count while searching', async () => {
+    const juan: Cliente = { idCliente: 2, nombre: 'Juan Gómez', telefono: '3109876543', esMostrador: false };
+    mockBuscarClientes.buscar.mockResolvedValueOnce([ana]);
+
+    await component.cargarClientes();
+    fixture.detectChanges();
+
+    const obtenerSubtitulo = () => fixture.debugElement.query(By.css('.subtitulo-clientes'));
+    expect(obtenerSubtitulo()).toBeTruthy();
+    expect(obtenerSubtitulo().nativeElement.textContent.replace(/\s+/g, ' ').trim()).toBe('1 cliente');
+
+    mockBuscarClientes.buscar.mockResolvedValueOnce([ana, juan]);
+    await component.cargarClientes();
+    fixture.detectChanges();
+    expect(obtenerSubtitulo().nativeElement.textContent.replace(/\s+/g, ' ').trim()).toBe('2 clientes');
+
+    const searchbar = fixture.debugElement.query(By.css('[data-testid="searchbar-clientes"]'));
+
+    mockBuscarClientes.buscar.mockResolvedValueOnce([ana]);
+    searchbar.nativeElement.value = 'ana';
+    searchbar.triggerEventHandler('ionInput', { detail: { value: 'ana' }, target: searchbar.nativeElement });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    fixture.detectChanges();
+    expect(obtenerSubtitulo().nativeElement.textContent.replace(/\s+/g, ' ').trim()).toBe('1 resultado');
+
+    mockBuscarClientes.buscar.mockResolvedValueOnce([ana, juan]);
+    searchbar.nativeElement.value = 'a';
+    searchbar.triggerEventHandler('ionInput', { detail: { value: 'a' }, target: searchbar.nativeElement });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    fixture.detectChanges();
+    expect(obtenerSubtitulo().nativeElement.textContent.replace(/\s+/g, ' ').trim()).toBe('2 resultados');
+  });
+
+  it('keeps searchbar enabled during consecutive searches and displays only the latest search result', async () => {
+    const juan: Cliente = { idCliente: 2, nombre: 'Juan Gómez', telefono: '3109876543', esMostrador: false };
+    mockBuscarClientes.buscar.mockResolvedValueOnce([ana, juan]);
+
+    await component.cargarClientes();
+    fixture.detectChanges();
+
+    let resolverPrimera: (c: Cliente[]) => void = () => undefined;
+    let resolverSegunda: (c: Cliente[]) => void = () => undefined;
+
+    mockBuscarClientes.buscar
+      .mockReturnValueOnce(new Promise<Cliente[]>((r) => (resolverPrimera = r)))
+      .mockReturnValueOnce(new Promise<Cliente[]>((r) => (resolverSegunda = r)));
+
+    const searchbar = fixture.debugElement.query(By.css('[data-testid="searchbar-clientes"]'));
+
+    searchbar.nativeElement.value = 'a';
+    searchbar.triggerEventHandler('ionInput', { detail: { value: 'a' }, target: searchbar.nativeElement });
+    fixture.detectChanges();
+
+    expect(Boolean(searchbar.nativeElement.disabled)).toBe(false);
+    expect(searchbar.attributes['aria-disabled']).toBeUndefined();
+    expect(fixture.debugElement.query(By.css('[data-testid="indicador-carga"]'))).toBeTruthy();
+
+    searchbar.nativeElement.value = 'juan';
+    searchbar.triggerEventHandler('ionInput', { detail: { value: 'juan' }, target: searchbar.nativeElement });
+    fixture.detectChanges();
+
+    expect(Boolean(searchbar.nativeElement.disabled)).toBe(false);
+    expect(searchbar.attributes['aria-disabled']).toBeUndefined();
+    expect(fixture.debugElement.query(By.css('[data-testid="indicador-carga"]'))).toBeTruthy();
+
+    resolverSegunda([juan]);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    fixture.detectChanges();
+
+    resolverPrimera([ana]);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    fixture.detectChanges();
+
+    expect(fixture.debugElement.query(By.css('[data-testid="indicador-carga"]'))).toBeNull();
+    const items = fixture.debugElement.queryAll(By.css('[data-testid="item-cliente"]'));
+    expect(items).toHaveLength(1);
+    expect(items[0].nativeElement.textContent).toContain('Juan Gómez');
+  });
 });

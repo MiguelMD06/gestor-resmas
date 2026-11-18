@@ -8,6 +8,7 @@ import {
   IonItem,
   IonLabel,
   IonList,
+  IonProgressBar,
   IonSearchbar,
   IonSkeletonText,
   IonTitle,
@@ -17,6 +18,7 @@ import { addIcons } from 'ionicons';
 import { add, alertCircleOutline, checkmark, searchOutline, storefrontOutline } from 'ionicons/icons';
 
 import type { Cliente } from '../../clientes/domain/cliente';
+import { iniciales } from '../../shared/ui/iniciales';
 
 import { leerValorEvento } from './venta-ui.helpers';
 
@@ -42,6 +44,13 @@ import { leerValorEvento } from './venta-ui.helpers';
           </ion-button>
         </ion-buttons>
       </ion-toolbar>
+      @if (buscando()) {
+        <ion-progress-bar
+          type="indeterminate"
+          color="primary"
+          data-testid="indicador-carga-clientes"
+        ></ion-progress-bar>
+      }
     </ion-header>
 
     <ion-content class="selector-contenido">
@@ -84,8 +93,13 @@ import { leerValorEvento } from './venta-ui.helpers';
             </ion-button>
             <ion-button expand="block" fill="clear" color="secondary" (click)="cerrar.emit()"> Cerrar </ion-button>
           </div>
-        } @else if (buscando()) {
-          <div class="selector-esqueletos" aria-busy="true" aria-label="Cargando clientes">
+        } @else if (buscando() && clientes().length === 0) {
+          <div
+            class="selector-esqueletos"
+            aria-busy="true"
+            aria-label="Cargando clientes"
+            data-testid="esqueleto-clientes"
+          >
             @for (item of [1, 2, 3]; track item) {
               <div class="esqueleto-fila">
                 <ion-skeleton-text animated class="esqueleto-avatar"></ion-skeleton-text>
@@ -109,7 +123,7 @@ import { leerValorEvento } from './venta-ui.helpers';
             <p class="estado-detalle">Revisa el nombre o el celular, o créalo como cliente nuevo.</p>
           </div>
         } @else {
-          <ion-list lines="none" class="lista-clientes">
+          <ion-list lines="none" class="lista-clientes" [attr.aria-busy]="buscando() ? 'true' : null">
             @for (c of clientes(); track c.idCliente) {
               <ion-item
                 button
@@ -193,13 +207,6 @@ import { leerValorEvento } from './venta-ui.helpers';
       padding: 0;
     }
 
-    .fila-cliente {
-      --padding-start: 4px;
-      --inner-padding-end: 4px;
-      --min-height: 64px;
-      height: 64px;
-    }
-
     .etiqueta-cliente {
       margin: 0;
     }
@@ -273,6 +280,7 @@ import { leerValorEvento } from './venta-ui.helpers';
     IonItem,
     IonLabel,
     IonIcon,
+    IonProgressBar,
     IonSkeletonText,
   ],
 })
@@ -291,19 +299,9 @@ export class SelectorClienteContenidoComponent {
   readonly seleccionar = output<Cliente>();
 
   readonly leerValorEvento = leerValorEvento;
+  readonly iniciales = iniciales;
 
   constructor() {
     addIcons({ add, storefrontOutline, checkmark, searchOutline, alertCircleOutline });
-  }
-
-  iniciales(nombre: string): string {
-    const partes = nombre.trim().split(/\s+/).filter(Boolean);
-    if (partes.length === 0) {
-      return '?';
-    }
-    if (partes.length === 1) {
-      return partes[0].slice(0, 2).toUpperCase();
-    }
-    return `${partes[0][0]}${partes[partes.length - 1][0]}`.toUpperCase();
   }
 }

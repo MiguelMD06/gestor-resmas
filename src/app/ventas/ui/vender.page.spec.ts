@@ -272,29 +272,30 @@ describe('VenderPage', () => {
 
     await component.abrirResumen();
 
-    expect(mockModalCtrl.create).toHaveBeenCalledWith(
-      expect.objectContaining({
-        component: ResumenVentaModalComponent,
-        componentProps: {
-          cliente: ana,
-          lineas: [
-            {
-              idLote: loteCartaA.idLote,
-              tipoPapel: 'CARTA',
-              cantidad: 5,
-              precioUnitario: pesos(15000),
-              subtotalVenta: pesos(75000),
-            },
-          ],
-          totalVenta: pesos(75000),
-          pago: { modalidad: 'CONTADO', medio: 'EFECTIVO' },
-          fecha: ahoraFija,
-          alCambiarGuardando: expect.any(Function),
-          alGuardar: expect.any(Function),
-        },
-        canDismiss: soloCierreExplicito,
-      }),
-    );
+    expect(mockModalCtrl.create).toHaveBeenCalledWith({
+      component: ResumenVentaModalComponent,
+      breakpoints: [0, 0.85, 1],
+      initialBreakpoint: 0.85,
+      cssClass: 'modal-sheet',
+      componentProps: {
+        cliente: ana,
+        lineas: [
+          {
+            idLote: loteCartaA.idLote,
+            tipoPapel: 'CARTA',
+            cantidad: 5,
+            precioUnitario: pesos(15000),
+            subtotalVenta: pesos(75000),
+          },
+        ],
+        totalVenta: pesos(75000),
+        pago: { modalidad: 'CONTADO', medio: 'EFECTIVO' },
+        fecha: ahoraFija,
+        alCambiarGuardando: expect.any(Function),
+        alGuardar: expect.any(Function),
+      },
+      canDismiss: soloCierreExplicito,
+    });
     expect(component.clienteSeleccionado()).toEqual(ana);
     expect(component.lineas()).toHaveLength(1);
   });
@@ -350,7 +351,7 @@ describe('VenderPage', () => {
     await component.ionViewWillEnter();
     fixture.detectChanges();
 
-    expect(component.maxFechaIso()).toBe('2026-11-15T14:30:00');
+    expect(component.maxFecha()).toBe('2026-11-15 14:30:00');
 
     component.agregarLote(loteCartaA);
     component.actualizarCantidad(loteCartaA.idLote, '5');
@@ -434,12 +435,13 @@ describe('VenderPage', () => {
     await component.crearNuevoCliente();
     fixture.detectChanges();
 
-    expect(mockModalCtrl.create).toHaveBeenCalledWith(
-      expect.objectContaining({
-        component: ClienteModalComponent,
-        canDismiss: soloCierreExplicito,
-      }),
-    );
+    expect(mockModalCtrl.create).toHaveBeenCalledWith({
+      component: ClienteModalComponent,
+      breakpoints: [0, 0.72, 1],
+      initialBreakpoint: 0.72,
+      cssClass: 'modal-sheet',
+      canDismiss: soloCierreExplicito,
+    });
     expect(component.clienteSeleccionado()).toEqual(ana);
     expect(component.selectorClienteAbierto()).toBe(false);
   });
@@ -538,20 +540,20 @@ describe('VenderPage', () => {
     expect(fixture.debugElement.query(By.css('[data-testid="indicador-guardando"]'))).toBeNull();
   });
 
-  it('updates maxFechaIso with CLOCK each time the date picker is opened (V3)', async () => {
+  it('updates maxFecha with CLOCK each time the date picker is opened (V3)', async () => {
     await component.ionViewWillEnter();
     fixture.detectChanges();
 
     mockClock.ahora.mockReturnValue('2026-11-15 15:00:00');
     component.abrirSelectorFecha();
     fixture.detectChanges();
-    expect(component.maxFechaIso()).toBe('2026-11-15T15:00:00');
+    expect(component.maxFecha()).toBe('2026-11-15 15:00:00');
 
     component.cerrarSelectorFecha();
     mockClock.ahora.mockReturnValue('2026-11-15 17:45:00');
     component.abrirSelectorFecha();
     fixture.detectChanges();
-    expect(component.maxFechaIso()).toBe('2026-11-15T17:45:00');
+    expect(component.maxFecha()).toBe('2026-11-15 17:45:00');
   });
 
   it('shows error with Reintentar when customer search fails, keeps Reintentar disabled while retrying, recovers on retry, and discards stale search responses (V4, F11)', async () => {
@@ -929,5 +931,73 @@ describe('VenderPage', () => {
     expect(filas[1].nativeElement.textContent).toContain('AP');
     expect(filas[1].nativeElement.textContent).toContain('Ana María Pérez');
     expect(filas[1].nativeElement.textContent).toContain('3001234567');
+  });
+
+  it('shows skeleton only on initial load and keeps customer list visible with indicator while searching', () => {
+    const selectorFixture = TestBed.createComponent(SelectorClienteContenidoComponent);
+    selectorFixture.componentRef.setInput('busqueda', '');
+    selectorFixture.componentRef.setInput('clientes', []);
+    selectorFixture.componentRef.setInput('buscando', true);
+    selectorFixture.componentRef.setInput('errorBusqueda', null);
+    selectorFixture.detectChanges();
+
+    expect(selectorFixture.debugElement.query(By.css('[data-testid="esqueleto-clientes"]'))).toBeTruthy();
+    expect(selectorFixture.debugElement.queryAll(By.css('[data-testid="item-cliente-vender"]'))).toHaveLength(0);
+
+    // Subsequent search with loaded customers keeps rows visible and shows loading indicator
+    selectorFixture.componentRef.setInput('busqueda', 'ana');
+    selectorFixture.componentRef.setInput('clientes', [mostrador, ana]);
+    selectorFixture.componentRef.setInput('buscando', true);
+    selectorFixture.detectChanges();
+
+    expect(selectorFixture.debugElement.queryAll(By.css('[data-testid="item-cliente-vender"]'))).toHaveLength(2);
+    expect(selectorFixture.debugElement.query(By.css('[data-testid="indicador-carga-clientes"]'))).toBeTruthy();
+    expect(selectorFixture.debugElement.query(By.css('[data-testid="esqueleto-clientes"]'))).toBeNull();
+
+    selectorFixture.componentRef.setInput('buscando', false);
+    selectorFixture.detectChanges();
+
+    expect(selectorFixture.debugElement.queryAll(By.css('[data-testid="item-cliente-vender"]'))).toHaveLength(2);
+    expect(selectorFixture.debugElement.query(By.css('[data-testid="indicador-carga-clientes"]'))).toBeNull();
+    expect(selectorFixture.debugElement.query(By.css('[data-testid="esqueleto-clientes"]'))).toBeNull();
+  });
+
+  it('shows Queda debiendo for Fiado and Abono inicial, and hides it for Contado', async () => {
+    await component.ionViewWillEnter();
+    component.seleccionarCliente(ana);
+    component.agregarLote(loteCartaA);
+    component.actualizarCantidad(loteCartaA.idLote, '5');
+    component.actualizarPrecio(loteCartaA.idLote, 22000); // total = $ 110.000
+    fixture.detectChanges();
+
+    // Contado -> hidden
+    expect(component.modalidad()).toBe('CONTADO');
+    expect(fixture.debugElement.query(By.css('[data-testid="queda-debiendo"]'))).toBeNull();
+
+    // Fiado -> shows full sale total ($ 110.000)
+    component.modalidad.set('FIADO');
+    fixture.detectChanges();
+
+    const quedaFiado = fixture.debugElement.query(By.css('[data-testid="queda-debiendo"]'));
+    expect(quedaFiado).toBeTruthy();
+    expect(quedaFiado.nativeElement.textContent).toContain('Queda debiendo');
+    expect(quedaFiado.nativeElement.textContent).toContain('$ 110.000');
+    expect(component.quedaDebiendo()).toBe(pesos(110000));
+
+    // Abono inicial ($ 50.000) -> shows remaining balance ($ 60.000)
+    component.modalidad.set('ABONO_INICIAL');
+    component.montoAbonoInicial.set(50000);
+    fixture.detectChanges();
+
+    const quedaAbono = fixture.debugElement.query(By.css('[data-testid="queda-debiendo"]'));
+    expect(quedaAbono).toBeTruthy();
+    expect(quedaAbono.nativeElement.textContent).toContain('Queda debiendo');
+    expect(quedaAbono.nativeElement.textContent).toContain('$ 60.000');
+    expect(component.quedaDebiendo()).toBe(pesos(60000));
+
+    // Switching back to Contado hides it again
+    component.modalidad.set('CONTADO');
+    fixture.detectChanges();
+    expect(fixture.debugElement.query(By.css('[data-testid="queda-debiendo"]'))).toBeNull();
   });
 });

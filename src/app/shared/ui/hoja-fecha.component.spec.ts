@@ -69,4 +69,35 @@ describe('HojaFechaComponent', () => {
 
     expect(onCerrar).toHaveBeenCalledTimes(1);
   });
+
+  it('keeps last valid value and marks help text as alert on invalid or future dates, then clears on valid date', () => {
+    const fechas: FechaHora[] = [];
+    component.fechaChange.subscribe((f) => fechas.push(f));
+
+    const datetime = fixture.debugElement.query(By.css('[data-testid="datetime-fecha-venta"]'));
+
+    for (const value of ['2026-11-17T09:00:00', '2026-11-16T15:46:00', null, 'invalida']) {
+      datetime.nativeElement.value = value;
+      datetime.nativeElement.dispatchEvent(new CustomEvent('ionChange', { detail: { value } }));
+      fixture.detectChanges();
+
+      expect(fechas).toEqual([]);
+      expect(datetime.componentInstance.value).toBe('2026-11-16T14:00:00');
+
+      const ayuda = fixture.debugElement.query(By.css('[data-testid="hoja-fecha-ayuda"]'));
+      expect(ayuda).toBeTruthy();
+      expect(ayuda.nativeElement.classList.contains('hoja-fecha-ayuda-error')).toBe(true);
+      expect(ayuda.nativeElement.getAttribute('role')).toBe('alert');
+    }
+
+    datetime.nativeElement.value = '2026-11-15T10:30:00';
+    datetime.nativeElement.dispatchEvent(new CustomEvent('ionChange', { detail: { value: '2026-11-15T10:30:00' } }));
+    fixture.detectChanges();
+
+    expect(fechas).toEqual([fechaHora('2026-11-15 10:30:00')]);
+    const ayudaDespues = fixture.debugElement.query(By.css('[data-testid="hoja-fecha-ayuda"]'));
+    expect(ayudaDespues).toBeTruthy();
+    expect(ayudaDespues.nativeElement.classList.contains('hoja-fecha-ayuda-error')).toBe(false);
+    expect(ayudaDespues.nativeElement.getAttribute('role')).toBeNull();
+  });
 });

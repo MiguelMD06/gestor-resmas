@@ -113,4 +113,13 @@ describe('RegistrarAporte and ConsultarSaldos', () => {
     });
     expect(idMovimiento).toBeGreaterThan(0);
   });
+
+  it('requires CLOCK provider instead of silently skipping future-date validation', () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [RegistrarAporte, LibroRepository, { provide: SQL_DATABASE, useValue: db }],
+    });
+
+    expect(() => TestBed.inject(RegistrarAporte)).toThrow(/CLOCK/);
+  });
 });

@@ -330,4 +330,13 @@ describe('RegistrarCompra', () => {
     });
     expect(idLote).toBeGreaterThan(0);
   });
+
+  it('requires CLOCK provider instead of silently skipping future-date validation', () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [RegistrarCompra, LoteRepository, LibroRepository, { provide: SQL_DATABASE, useValue: db }],
+    });
+
+    expect(() => TestBed.inject(RegistrarCompra)).toThrow(/CLOCK/);
+  });
 });

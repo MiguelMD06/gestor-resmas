@@ -7,6 +7,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { fechaHora, pesos, ReglaNegocioError } from '../../shared/domain';
 import { CLOCK } from '../../shared/infrastructure/clock/clock.token';
+import { MENSAJES_ERROR } from '../../shared/ui/mensajes-error';
 import { RegistrarAporte } from '../application/registrar-aporte';
 
 import { AporteModalComponent } from './aporte.modal';
@@ -335,5 +336,37 @@ describe('AporteModalComponent', () => {
     fixture.detectChanges();
 
     expect(component.selectorFechaAbierto()).toBe(false);
+  });
+
+  it('disables Guardar aporte with exact FECHA_FUTURA text when selecting a later time on the same day as CLOCK', async () => {
+    component.monto.set(100000);
+    component.onFechaSeleccionada(fechaHora('2026-11-10 09:00:01'));
+    fixture.detectChanges();
+
+    const errorFecha = fixture.debugElement.query(By.css('[data-testid="error-fecha"]'));
+    expect(errorFecha).toBeTruthy();
+    expect(errorFecha.nativeElement.textContent.trim()).toBe(MENSAJES_ERROR.FECHA_FUTURA);
+
+    const botonGuardar = fixture.debugElement.query(By.css('[data-testid="btn-guardar-aporte"]'));
+    expect(botonGuardar.nativeElement.disabled || botonGuardar.attributes['disabled'] !== undefined).toBe(true);
+    expect(component.puedeGuardar()).toBe(false);
+
+    await component.guardar();
+    expect(mockRegistrarAporte.registrar).not.toHaveBeenCalled();
+  });
+
+  it('passes date and time selected via date sheet unchanged to registrar when saving', async () => {
+    component.onFechaSeleccionada(fechaHora('2026-11-08 14:25:30'));
+    component.monto.set(100000);
+    fixture.detectChanges();
+
+    await component.guardar();
+
+    expect(mockRegistrarAporte.registrar).toHaveBeenCalledWith({
+      fecha: fechaHora('2026-11-08 14:25:30'),
+      medio: 'EFECTIVO',
+      monto: pesos(100000),
+    });
+    expect(mockModalCtrl.dismiss).toHaveBeenCalledWith({ guardado: true }, 'guardado');
   });
 });

@@ -7,6 +7,7 @@ import { cobro, LibroRepository, verificarInvariante } from './finanzas';
 import { ConsultarSaldos, RegistrarAporte } from './finanzas/application';
 import { ConsultarInventario, LoteRepository, RegistrarCompra } from './inventario';
 import { fechaHora, pesos, resmas } from './shared/domain';
+import { CLOCK } from './shared/infrastructure/clock/clock.token';
 import { MIGRACIONES } from './shared/infrastructure/sqlite/migrations';
 import { migrar } from './shared/infrastructure/sqlite/migrations/migration-runner';
 import { SQL_DATABASE } from './shared/infrastructure/sqlite/sql-database.token';
@@ -36,6 +37,7 @@ describe('Acceptance examples E1-E7 through use cases, with repository-level see
         LoteRepository,
         LibroRepository,
         { provide: SQL_DATABASE, useValue: db },
+        { provide: CLOCK, useValue: { ahora: () => fechaPrueba } },
       ],
     });
 

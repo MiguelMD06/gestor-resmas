@@ -20,25 +20,12 @@ import { addIcons } from 'ionicons';
 import { add, alertCircleOutline, chevronForwardOutline, peopleOutline } from 'ionicons/icons';
 
 import { ROL_GUARDADO, soloCierreExplicito } from '../../shared/ui/formulario';
+import { iniciales } from '../../shared/ui/iniciales';
 import { mensajeDeError } from '../../shared/ui/mensajes-error';
 import { BuscarClientes } from '../application/buscar-clientes';
 import type { Cliente } from '../domain/cliente';
 
 import { ClienteModalComponent } from './cliente.modal';
-
-export function inicialesCliente(nombre: string): string {
-  const partes = nombre
-    .trim()
-    .split(/\s+/)
-    .filter((parte) => parte.length > 0);
-  if (partes.length === 0) {
-    return '';
-  }
-  if (partes.length === 1) {
-    return partes[0][0].toUpperCase();
-  }
-  return `${partes[0][0]}${partes[partes.length - 1][0]}`.toUpperCase();
-}
 
 @Component({
   selector: 'app-clientes',
@@ -50,7 +37,11 @@ export function inicialesCliente(nombre: string): string {
       @if (!cargando() && !errorCarga()) {
         <div class="subtitulo-contenedor">
           <p class="subtitulo-clientes">
-            {{ clientes().length }} {{ clientes().length === 1 ? 'cliente' : 'clientes' }}
+            @if (busqueda().trim()) {
+              {{ clientes().length }} {{ clientes().length === 1 ? 'resultado' : 'resultados' }}
+            } @else {
+              {{ clientes().length }} {{ clientes().length === 1 ? 'cliente' : 'clientes' }}
+            }
           </p>
         </div>
       }
@@ -61,8 +52,6 @@ export function inicialesCliente(nombre: string): string {
         <ion-searchbar
           placeholder="Buscar por nombre o celular"
           [value]="busqueda()"
-          [disabled]="cargando()"
-          [attr.aria-disabled]="cargando() ? 'true' : null"
           [debounce]="0"
           (ionInput)="onBuscarInput($event)"
           (ionClear)="onBuscarClear()"
@@ -272,13 +261,10 @@ export class ClientesPage {
   readonly clientes = signal<Cliente[]>([]);
   readonly cargando = signal(false);
   readonly errorCarga = signal<string | null>(null);
+  readonly iniciales = iniciales;
 
   constructor() {
     addIcons({ add, alertCircleOutline, chevronForwardOutline, peopleOutline });
-  }
-
-  iniciales(nombre: string): string {
-    return inicialesCliente(nombre);
   }
 
   async ionViewWillEnter(): Promise<void> {

@@ -1,4 +1,4 @@
-import { Component, computed, input, output } from '@angular/core';
+import { Component, computed, input, output, signal } from '@angular/core';
 import { IonButton, IonButtons, IonContent, IonDatetime, IonHeader, IonTitle, IonToolbar } from '@ionic/angular';
 
 import { fechaHora, type FechaHora } from '../domain';
@@ -34,8 +34,15 @@ import { fechaHora, type FechaHora } from '../domain';
           class="hoja-fecha-datetime"
         ></ion-datetime>
 
-        @if (ayuda()) {
-          <p class="hoja-fecha-ayuda">{{ ayuda() }}</p>
+        @if (ayuda() || fechaInvalida()) {
+          <p
+            class="hoja-fecha-ayuda"
+            [class.hoja-fecha-ayuda-error]="fechaInvalida()"
+            [attr.role]="fechaInvalida() ? 'alert' : null"
+            data-testid="hoja-fecha-ayuda"
+          >
+            {{ ayuda() || 'No puede ser una fecha futura.' }}
+          </p>
         }
       </div>
     </ion-content>
@@ -86,6 +93,11 @@ import { fechaHora, type FechaHora } from '../domain';
       line-height: 16px;
       color: var(--app-texto-secundario);
     }
+
+    .hoja-fecha-ayuda-error {
+      color: var(--ion-color-danger, #ff6b6b);
+      font-weight: 500;
+    }
   `,
   imports: [IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonContent, IonDatetime],
 })
@@ -99,23 +111,42 @@ export class HojaFechaComponent {
   readonly fechaChange = output<FechaHora>();
   readonly cerrar = output<void>();
 
+  readonly fechaInvalida = signal(false);
+
   readonly valorIso = computed(() => this.valor().replace(' ', 'T'));
   readonly maximoIso = computed(() => this.maximo().replace(' ', 'T'));
 
   onDatetimeChange(event: CustomEvent): void {
-    const val = event.detail?.value;
-    if (typeof val !== 'string') {
+    const nueva = this.parsearFecha(event.detail?.value);
+    if (nueva === null || nueva > this.maximo()) {
+      this.rechazarFecha(event);
       return;
+    }
+    this.fechaInvalida.set(false);
+    this.fechaChange.emit(nueva);
+  }
+
+  private parsearFecha(val: unknown): FechaHora | null {
+    if (typeof val !== 'string') {
+      return null;
     }
     const match = /^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})(?::(\d{2}))?/.exec(val);
     if (!match) {
-      return;
+      return null;
     }
     const [, datePart, hmPart, secPart] = match;
-    const nueva = fechaHora(`${datePart} ${hmPart}:${secPart ?? '00'}`);
-    if (nueva > this.maximo()) {
-      return;
+    try {
+      return fechaHora(`${datePart} ${hmPart}:${secPart ?? '00'}`);
+    } catch {
+      return null;
     }
-    this.fechaChange.emit(nueva);
+  }
+
+  private rechazarFecha(event: CustomEvent): void {
+    this.fechaInvalida.set(true);
+    const target = event.target as { value?: string } | null;
+    if (target) {
+      target.value = this.valorIso();
+    }
   }
 }

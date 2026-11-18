@@ -201,7 +201,7 @@ describe('AporteModalComponent', () => {
       new ReglaNegocioError('MONTO_INVALIDO', 'Amount must be greater than zero'),
     );
 
-    component.monto.set(0);
+    component.monto.set(100000);
     await component.guardar();
 
     expect(mockToastCtrl.create).toHaveBeenCalledWith(
@@ -267,5 +267,73 @@ describe('AporteModalComponent', () => {
 
     await component.guardar();
     expect(mockRegistrarAporte.registrar).not.toHaveBeenCalled();
+  });
+
+  it('shows FECHA_FUTURA message next to date and disables Guardar aporte when date is future, and enables with today (E4)', async () => {
+    component.monto.set(100000);
+    component.fecha.set('2026-11-11');
+    fixture.detectChanges();
+
+    const errorFecha = fixture.debugElement.query(By.css('[data-testid="error-fecha"]'));
+    expect(errorFecha).toBeTruthy();
+    expect(errorFecha.nativeElement.textContent).toContain('La fecha no puede ser futura');
+
+    const botonGuardar = fixture.debugElement.query(By.css('[data-testid="btn-guardar-aporte"]'));
+    expect(botonGuardar.nativeElement.disabled || botonGuardar.attributes['disabled'] !== undefined).toBe(true);
+
+    await component.guardar();
+    expect(mockRegistrarAporte.registrar).not.toHaveBeenCalled();
+
+    component.fecha.set('2026-11-10');
+    fixture.detectChanges();
+
+    expect(fixture.debugElement.query(By.css('[data-testid="error-fecha"]'))).toBeNull();
+    expect(botonGuardar.nativeElement.disabled).toBe(false);
+  });
+
+  it('shows MONTO_INVALIDO message and disables Guardar aporte when monto is 0, and enables with positive integer (E5, R-17)', async () => {
+    component.monto.set(0);
+    fixture.detectChanges();
+
+    const errorMonto = fixture.debugElement.query(By.css('[data-testid="error-monto"]'));
+    expect(errorMonto).toBeTruthy();
+    expect(errorMonto.nativeElement.textContent).toContain('El monto debe ser un número entero mayor a cero');
+
+    const botonGuardar = fixture.debugElement.query(By.css('[data-testid="btn-guardar-aporte"]'));
+    expect(botonGuardar.nativeElement.disabled || botonGuardar.attributes['disabled'] !== undefined).toBe(true);
+
+    await component.guardar();
+    expect(mockRegistrarAporte.registrar).not.toHaveBeenCalled();
+
+    component.monto.set(1);
+    fixture.detectChanges();
+
+    expect(fixture.debugElement.query(By.css('[data-testid="error-monto"]'))).toBeNull();
+    expect(botonGuardar.nativeElement.disabled).toBe(false);
+  });
+
+  it('opens date sheet with refreshed maxFecha from CLOCK, updates date and time on selection, and closes sheet (D5, E7)', () => {
+    expect(component.selectorFechaAbierto()).toBe(false);
+    expect(component.maxFecha()).toBe(fechaHora('2026-11-10 09:00:00'));
+
+    horaSimulada = '2026-11-10 15:45:00';
+    component.abrirSelectorFecha();
+    fixture.detectChanges();
+
+    expect(component.selectorFechaAbierto()).toBe(true);
+    expect(component.maxFecha()).toBe(fechaHora('2026-11-10 15:45:00'));
+    expect(fixture.debugElement.query(By.css('[data-testid="modal-fecha-aporte"]'))).toBeTruthy();
+
+    component.onFechaSeleccionada(fechaHora('2026-11-08 14:25:00'));
+    fixture.detectChanges();
+
+    expect(component.fecha()).toBe('2026-11-08');
+    expect(component.horaSeleccionada()).toBe('14:25:00');
+    expect(component.fechaHoraParaHoja()).toBe(fechaHora('2026-11-08 14:25:00'));
+
+    component.cerrarSelectorFecha();
+    fixture.detectChanges();
+
+    expect(component.selectorFechaAbierto()).toBe(false);
   });
 });

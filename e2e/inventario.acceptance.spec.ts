@@ -2,15 +2,37 @@ import { expect, test, type Page } from '@playwright/test';
 
 import { capturarErroresConsola } from './helpers/errores-consola';
 
-async function seleccionarEnIonSelect(page: Page, testId: string, textoOpcion: string): Promise<void> {
-  const select = page.locator(`[data-testid="${testId}"]`);
-  await select.click();
-  const alertButton = page.locator('ion-alert button.alert-radio-button', { hasText: textoOpcion });
-  await expect(alertButton).toBeVisible();
-  await alertButton.click();
-  const okButton = page.locator('ion-alert button', { hasText: 'OK' });
-  await okButton.click();
-  await expect(page.locator('ion-alert')).toHaveCount(0);
+async function seleccionarSegmento(page: Page, testIdBoton: string): Promise<void> {
+  const boton = page.locator(`[data-testid="${testIdBoton}"]`);
+  await expect(boton).toBeVisible();
+  await boton.click();
+}
+
+function formatearFechaLocal(fecha: Date): string {
+  const anio = fecha.getFullYear();
+  const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+  const dia = String(fecha.getDate()).padStart(2, '0');
+  return `${anio}-${mes}-${dia}`;
+}
+
+async function seleccionarFechaEnHoja(page: Page, fecha: Date): Promise<void> {
+  await page.locator('[data-testid="input-fecha"]').click();
+  const modalFecha = page.locator('[data-testid="modal-fecha-compra"]');
+  await expect(modalFecha).toBeVisible();
+
+  const datetime = modalFecha.locator('[data-testid="datetime-fecha-compra"]');
+  const diaBtn = datetime.locator(
+    `button.calendar-day[data-day="${fecha.getDate()}"][data-month="${fecha.getMonth() + 1}"][data-year="${fecha.getFullYear()}"]`,
+  );
+
+  for (let i = 0; i < 12 && (await diaBtn.count()) === 0; i++) {
+    await datetime.locator('.calendar-next-prev ion-button').first().click();
+  }
+
+  await expect(diaBtn).toBeVisible();
+  await diaBtn.click();
+  await modalFecha.locator('[data-testid="btn-listo-fecha"]').click();
+  await expect(modalFecha).toBeHidden();
 }
 
 test.describe('Independent verification V2: E8, E9 and adversarial UI flows', () => {
@@ -68,7 +90,6 @@ test.describe('Independent verification V2: E8, E9 and adversarial UI flows', ()
     const modalCompra = page.locator('app-nueva-compra-modal');
     await expect(modalCompra).toBeVisible();
 
-    const inputFecha = modalCompra.locator('[data-testid="input-fecha"] input');
     const inputCajas = modalCompra.locator('[data-testid="input-cajas"] input');
     const inputCosto = modalCompra.locator('[data-testid="input-costo-caja"] input');
     const btnGuardarCompra = modalCompra.locator('[data-testid="btn-guardar-compra"]');
@@ -125,39 +146,45 @@ test.describe('Independent verification V2: E8, E9 and adversarial UI flows', ()
     await expect(modalCompra.locator('[data-testid="aviso-saldo-insuficiente"]')).toHaveCount(0);
     await expect(btnGuardarCompra).toBeEnabled();
 
-    // 7. Choose a purchase date different from today (2026-10-15) and save Carta purchase (2 boxes at $120.000)
-    await inputFecha.fill('2026-10-15');
+    // 7. Choose a purchase date different from today and save Carta purchase (2 boxes at $120.000)
+    const fechaCarta = new Date();
+    fechaCarta.setDate(fechaCarta.getDate() - 3);
+    const fechaCartaStr = formatearFechaLocal(fechaCarta);
+    await seleccionarFechaEnHoja(page, fechaCarta);
     await btnGuardarCompra.click();
     await expect(modalCompra).toHaveCount(0);
 
-    // Verify Carta card shows chosen date 2026-10-15, "20 de 20 resmas", and "$ 12.000"
+    // Verify Carta card shows chosen date, "20 de 20 resmas", and "$ 12.000"
     const tarjetas = page.locator('[data-testid="tarjeta-lote"]');
     await expect(tarjetas).toHaveCount(1);
-    await expect(tarjetas.first()).toContainText('Ingreso: 2026-10-15');
+    await expect(tarjetas.first()).toContainText(`Ingreso: ${fechaCartaStr}`);
     await expect(tarjetas.first()).toContainText('20 de 20 resmas');
     await expect(tarjetas.first()).toContainText('$ 12.000');
 
-    // 8. E8: Add an Oficio lot (1 box at $130.000 by Transferencia on 2026-10-20)
+    // 8. E8: Add an Oficio lot (1 box at $130.000 by Transferencia on a different past date)
     await page.locator('[data-testid="fab-principal"]').click();
     const fabAporte = page.locator('[data-testid="fab-aportar-capital"]');
     await expect(fabAporte).toBeVisible();
     await fabAporte.click();
 
     await expect(modalAporte).toBeVisible();
-    await seleccionarEnIonSelect(page, 'select-medio', 'Transferencia');
+    await seleccionarSegmento(page, 'segment-medio-transferencia');
     await modalAporte.locator('[data-testid="input-monto"] input').fill('130000');
     await modalAporte.locator('[data-testid="btn-guardar-aporte"]').click();
     await expect(modalAporte).toHaveCount(0);
 
-    // Now buy 1 Oficio box at $130.000 by Transferencia on 2026-10-20
+    // Now buy 1 Oficio box at $130.000 by Transferencia
     await page.locator('[data-testid="fab-principal"]').click();
     await expect(fabCompra).toBeVisible();
     await fabCompra.click();
     await expect(modalCompra).toBeVisible();
 
-    await seleccionarEnIonSelect(page, 'select-tipo-papel', 'Oficio');
-    await seleccionarEnIonSelect(page, 'select-medio', 'Transferencia');
-    await inputFecha.fill('2026-10-20');
+    await seleccionarSegmento(page, 'segment-papel-oficio');
+    await seleccionarSegmento(page, 'segment-medio-transferencia');
+    const fechaOficio = new Date();
+    fechaOficio.setDate(fechaOficio.getDate() - 1);
+    const fechaOficioStr = formatearFechaLocal(fechaOficio);
+    await seleccionarFechaEnHoja(page, fechaOficio);
     await inputCajas.fill('1');
     await inputCosto.fill('130000');
 
@@ -170,14 +197,14 @@ test.describe('Independent verification V2: E8, E9 and adversarial UI flows', ()
 
     // 9. Verify E8 segment filtering: Carta shows only Carta, Oficio shows only Oficio
     await expect(tarjetas).toHaveCount(1);
-    await expect(tarjetas.first()).toContainText('Ingreso: 2026-10-15');
+    await expect(tarjetas.first()).toContainText(`Ingreso: ${fechaCartaStr}`);
     await expect(tarjetas.first()).toContainText('20 de 20 resmas');
     await expect(tarjetas.first()).toContainText('$ 12.000');
 
     // Switch to Oficio segment
     await page.locator('[data-testid="segment-oficio"]').click();
     await expect(tarjetas).toHaveCount(1);
-    await expect(tarjetas.first()).toContainText('Ingreso: 2026-10-20');
+    await expect(tarjetas.first()).toContainText(`Ingreso: ${fechaOficioStr}`);
     await expect(tarjetas.first()).toContainText('10 de 10 resmas');
     await expect(tarjetas.first()).toContainText('$ 13.000');
 

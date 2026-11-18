@@ -5,6 +5,7 @@ import { SqlJsDatabase } from '../../../testing/sqljs-sql-database.adapter';
 import { aporteCapital, cobro, verificarInvariante } from '../../finanzas/domain';
 import { LibroRepository } from '../../finanzas/infrastructure/libro.repository';
 import { fechaHora, pesos } from '../../shared/domain';
+import { CLOCK } from '../../shared/infrastructure/clock/clock.token';
 import { MIGRACIONES } from '../../shared/infrastructure/sqlite/migrations';
 import { migrar } from '../../shared/infrastructure/sqlite/migrations/migration-runner';
 import { SQL_DATABASE } from '../../shared/infrastructure/sqlite/sql-database.token';
@@ -26,7 +27,13 @@ describe('RegistrarCompra', () => {
 
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
-      providers: [RegistrarCompra, LoteRepository, LibroRepository, { provide: SQL_DATABASE, useValue: db }],
+      providers: [
+        RegistrarCompra,
+        LoteRepository,
+        LibroRepository,
+        { provide: SQL_DATABASE, useValue: db },
+        { provide: CLOCK, useValue: { ahora: () => fechaDummy } },
+      ],
     });
 
     casoDeUso = TestBed.inject(RegistrarCompra);
@@ -288,5 +295,39 @@ describe('RegistrarCompra', () => {
         medio: 'EFECTIVO',
       }),
     ).rejects.toMatchObject({ codigo: 'COSTO_CAJA_INVALIDO' });
+  });
+
+  it('rejects a purchase 1 second after CLOCK with FECHA_FUTURA without modifying tables, and accepts exact CLOCK time (D6, E3)', async () => {
+    await db.transaction(async (tx) => {
+      const movAporte = aporteCapital(fechaDummy, 'EFECTIVO', pesos(300000));
+      await libroRepo.registrar(tx, movAporte);
+    });
+
+    const lotesAntes = await db.query<{ count: number }>('SELECT COUNT(*) AS count FROM lotes_cajas;');
+    const movsAntes = await db.query<{ count: number }>('SELECT COUNT(*) AS count FROM movimientos_dinero;');
+
+    await expect(
+      casoDeUso.registrar({
+        tipoPapel: 'CARTA',
+        cajas: 1,
+        costoPorCaja: 120000,
+        fecha: fechaHora('2026-11-10 10:00:01'),
+        medio: 'EFECTIVO',
+      }),
+    ).rejects.toThrow(expect.objectContaining({ codigo: 'FECHA_FUTURA' }));
+
+    const lotesDespues = await db.query<{ count: number }>('SELECT COUNT(*) AS count FROM lotes_cajas;');
+    const movsDespues = await db.query<{ count: number }>('SELECT COUNT(*) AS count FROM movimientos_dinero;');
+    expect(lotesDespues[0].count).toBe(lotesAntes[0].count);
+    expect(movsDespues[0].count).toBe(movsAntes[0].count);
+
+    const { idLote } = await casoDeUso.registrar({
+      tipoPapel: 'CARTA',
+      cajas: 1,
+      costoPorCaja: 120000,
+      fecha: fechaDummy,
+      medio: 'EFECTIVO',
+    });
+    expect(idLote).toBeGreaterThan(0);
   });
 });

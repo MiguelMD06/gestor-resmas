@@ -12,6 +12,7 @@ import {
   type Pesos,
   type TipoPapel,
 } from '../../shared/domain';
+import { CLOCK } from '../../shared/infrastructure/clock/clock.token';
 import { SQL_DATABASE } from '../../shared/infrastructure/sqlite/sql-database.token';
 import { nuevoLote } from '../domain/lote';
 import { LoteRepository } from '../infrastructure/lote.repository';
@@ -25,6 +26,7 @@ const ID_LOTE_PREVISUALIZACION = 0;
 })
 export class RegistrarCompra {
   private readonly db = inject(SQL_DATABASE);
+  private readonly clock = inject(CLOCK, { optional: true });
   private readonly lotes = inject(LoteRepository);
   private readonly libro = inject(LibroRepository);
 
@@ -35,6 +37,10 @@ export class RegistrarCompra {
     fecha: FechaHora;
     medio: MedioPago;
   }): Promise<{ idLote: number; reinversion: Pesos }> {
+    if (this.clock && params.fecha > this.clock.ahora()) {
+      throw new ReglaNegocioError('FECHA_FUTURA', `Purchase date ${params.fecha} cannot be in the future`);
+    }
+
     const nuevo = nuevoLote(params.tipoPapel, params.cajas, params.costoPorCaja);
 
     return this.db.transaction(async (tx) => {

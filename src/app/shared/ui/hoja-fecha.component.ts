@@ -32,7 +32,9 @@ import { fechaHora, type FechaHora } from '../domain';
           (ionChange)="onDatetimeChange($event)"
           [attr.data-testid]="datetimeTestId()"
           class="hoja-fecha-datetime"
-        ></ion-datetime>
+        >
+          <span slot="time-label">Hora</span>
+        </ion-datetime>
 
         @if (ayuda() || fechaInvalida()) {
           <p

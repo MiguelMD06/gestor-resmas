@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { cajas, fechaHora, pesos, resmas } from '../../shared/domain';
 
-import { agruparPorTipo, descontarResmas, nuevoLote, progreso, type Lote } from './lote';
+import { agruparPorTipo, descontarResmas, nuevoLote, type Lote } from './lote';
 
 describe('nuevoLote', () => {
   it('calculates 10 reams, $12.000 unit cost and $120.000 total cost for 1 box at $120.000', () => {
@@ -86,17 +86,6 @@ describe('descontarResmas', () => {
 
   it('deducting 0 reams throws CANTIDAD_INVALIDA', () => {
     expect(() => descontarResmas(baseLote, 0)).toThrow(expect.objectContaining({ codigo: 'CANTIDAD_INVALIDA' }));
-  });
-});
-
-describe('progreso', () => {
-  it('returns 0.7 for 7 available reams out of 10 initial reams', () => {
-    const lote = {
-      resmasDisponibles: resmas(7),
-      resmasIniciales: resmas(10),
-    };
-
-    expect(progreso(lote)).toBe(0.7);
   });
 });
 

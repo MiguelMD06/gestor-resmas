@@ -100,4 +100,10 @@ describe('HojaFechaComponent', () => {
     expect(ayudaDespues.nativeElement.classList.contains('hoja-fecha-ayuda-error')).toBe(false);
     expect(ayudaDespues.nativeElement.getAttribute('role')).toBeNull();
   });
+
+  it('renders "Hora" in the time-label slot of ion-datetime instead of default English "Time"', () => {
+    const timeLabel = fixture.debugElement.query(By.css('ion-datetime [slot="time-label"]'));
+    expect(timeLabel).toBeTruthy();
+    expect(timeLabel.nativeElement.textContent.trim()).toBe('Hora');
+  });
 });

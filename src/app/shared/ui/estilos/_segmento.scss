@@ -3,6 +3,7 @@ ion-segment {
   border-radius: var(--app-radio-campo, 12px);
   padding: 4px;
   min-height: 48px;
+  grid-auto-columns: minmax(0, 1fr);
 }
 
 ion-segment-button {
@@ -13,6 +14,9 @@ ion-segment-button {
   --border-radius: 9px;
   --color: var(--app-texto-secundario, #a1a1aa);
   --color-checked: #f5f5f5;
+  --padding-start: 6px;
+  --padding-end: 6px;
+  min-width: 0;
   min-height: 40px;
   font-size: 13px;
   font-weight: 500;

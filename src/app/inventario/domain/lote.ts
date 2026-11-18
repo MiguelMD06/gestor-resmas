@@ -95,10 +95,6 @@ export function descontarResmas(
   };
 }
 
-export function progreso(lote: Pick<Lote, 'resmasDisponibles' | 'resmasIniciales'>): number {
-  return lote.resmasDisponibles / lote.resmasIniciales;
-}
-
 export function agruparPorTipo(lotes: readonly Lote[]): {
   CARTA: Lote[];
   OFICIO: Lote[];

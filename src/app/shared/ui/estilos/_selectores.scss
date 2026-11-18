@@ -78,7 +78,7 @@ app-campo-pesos.app-campo-contorno {
     --border-radius: var(--app-radio-campo, 12px);
     --border-width: 1px;
     --highlight-color-focused: var(--ion-color-secondary, #5ec8f2);
-    --highlight-color-invalid: var(--ion-color-danger, #ff6b6b);
+    --highlight-color-invalid: var(--ion-color-danger);
     --padding-start: 14px;
     --padding-end: 14px;
     --color: var(--ion-text-color, #f5f5f5);
@@ -90,6 +90,21 @@ app-campo-pesos.app-campo-contorno {
 
   &.app-campo-aviso ion-input {
     border-color: var(--ion-color-warning, #f5b544);
+  }
+}
+
+app-campo-pesos.app-campo-error,
+app-campo-pesos.app-campo-contorno.app-campo-error {
+  ion-input {
+    --border-color: var(--ion-color-danger);
+    --highlight-color-focused: var(--ion-color-danger);
+    --highlight-color-invalid: var(--ion-color-danger);
+    border-color: var(--ion-color-danger);
+
+    .label-text-wrapper,
+    .label-text {
+      color: var(--ion-color-danger);
+    }
   }
 }
 

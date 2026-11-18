@@ -16,6 +16,7 @@ const FORMATO_PESOS = /^(?:\d+|\d{1,3}(?:\.\d{3})+)$/;
   host: {
     '[attr.disabled]': 'disabled() ? "" : null',
     '[attr.aria-disabled]': 'disabled() ? "true" : null',
+    '[class.app-campo-error]': 'errorMostrado() !== null',
   },
   template: `
     <ion-item>
@@ -28,6 +29,8 @@ const FORMATO_PESOS = /^(?:\d+|\d{1,3}(?:\.\d{3})+)$/;
         [disabled]="disabled()"
         [attr.aria-disabled]="disabled() ? 'true' : null"
         [attr.aria-invalid]="errorMostrado() ? 'true' : null"
+        [class.ion-invalid]="errorMostrado() !== null"
+        [class.ion-touched]="errorMostrado() !== null"
         [placeholder]="placeholder()"
         (ionInput)="onInput($event)"
       ></ion-input>

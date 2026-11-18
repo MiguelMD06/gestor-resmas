@@ -245,4 +245,29 @@ describe('CampoPesosComponent', () => {
     expect(fixture.debugElement.query(By.css('[data-testid="error-campo"]'))).toBeNull();
     expect(getIonInput().attributes['aria-invalid']).not.toBe('true');
   });
+
+  it('toggles error classes on host and ion-input for external and format errors', () => {
+    const campo = fixture.debugElement.query(By.css('app-campo-pesos'));
+    const expectErrorClasses = (active: boolean): void => {
+      expect(campo.nativeElement.classList.contains('app-campo-error')).toBe(active);
+      expect(getIonInput().nativeElement.classList.contains('ion-invalid')).toBe(active);
+      expect(getIonInput().nativeElement.classList.contains('ion-touched')).toBe(active);
+    };
+
+    expectErrorClasses(false);
+
+    host.error.set('El monto debe ser un número entero mayor a cero');
+    fixture.detectChanges();
+    expectErrorClasses(true);
+
+    host.error.set(null);
+    fixture.detectChanges();
+    expectErrorClasses(false);
+
+    triggerIonInput('300.000,50');
+    expectErrorClasses(true);
+
+    triggerIonInput('300000');
+    expectErrorClasses(false);
+  });
 });

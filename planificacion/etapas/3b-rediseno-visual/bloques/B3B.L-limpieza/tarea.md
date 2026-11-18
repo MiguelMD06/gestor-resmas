@@ -35,10 +35,11 @@ Cada punto cita la ubicación que dio el revisor; verifica primero que el proble
    - `cliente.modal.ts` (cerca de 84): el celular debe tener `inputmode="numeric"`.
    - `clientes.page.ts` (cerca de 51-54): el subtítulo cuenta los clientes filtrados por la búsqueda; debe contar el total de clientes, o decir "N resultados" mientras hay texto en el buscador. Elige lo más claro y explícalo.
 9. **Aserciones del modal en `vender.page.spec.ts` (cerca de 275-297):** se pasaron a `expect.objectContaining`. Vuelve a verificar el objeto completo que recibe `ModalController.create`, incluidos los parámetros de la hoja (`breakpoints`, `initialBreakpoint`, `cssClass`), para que un cambio no previsto haga fallar la prueba.
+10. **El buscador de Clientes se come lo que se escribe (CRITICAL, confirmado):** `clientes.page.ts` (cerca de 61-70) enlaza `[disabled]="cargando()"` en el `ion-searchbar`, y `onBuscarInput` llama a `cargarClientes()`, que pone `cargando` en verdadero antes del `await` (cerca de 300-321). Al tipear rápido, cada tecla deshabilita el campo: pierde el foco y se descartan letras. Lo encontró la revisión con `agy` (lente reliability) sobre `a9fafda` y el refutador lo corroboró con `ion-searchbar.js` de Ionic. El buscador no se deshabilita mientras busca: se mantiene editable y con foco, se muestra el indicador de carga, y el patrón de id de petición (`peticionActual`) descarta las respuestas viejas (regla 3). Si hoy se deshabilita también algo más por `cargando()` que no sea el buscador, no lo cambies. Prueba: dos `ionInput` seguidos con la primera búsqueda pendiente dejan el buscador habilitado y la lista muestra solo el resultado de la última búsqueda.
 
 ## Pruebas
 
-Primero RED cuando el punto tenga una regla con resultado claro (2, 4, 5, 6). Las pruebas que ya existen siguen pasando sin cambiar lo que verifican.
+Primero RED cuando el punto tenga una regla con resultado claro (2, 4, 5, 6, 10). Las pruebas que ya existen siguen pasando sin cambiar lo que verifican.
 
 ## Verificación
 

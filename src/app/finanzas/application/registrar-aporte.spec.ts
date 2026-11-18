@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 
 import { SqlJsDatabase } from '../../../testing/sqljs-sql-database.adapter';
 import { fechaHora, pesos } from '../../shared/domain';
+import { CLOCK } from '../../shared/infrastructure/clock/clock.token';
 import { MIGRACIONES } from '../../shared/infrastructure/sqlite/migrations';
 import { migrar } from '../../shared/infrastructure/sqlite/migrations/migration-runner';
 import { SQL_DATABASE } from '../../shared/infrastructure/sqlite/sql-database.token';
@@ -17,13 +18,21 @@ describe('RegistrarAporte and ConsultarSaldos', () => {
   let registrarAporte: RegistrarAporte;
   let consultarSaldos: ConsultarSaldos;
 
+  const fechaDummy = fechaHora('2026-11-10 09:00:00');
+
   beforeEach(async () => {
     db = await SqlJsDatabase.create();
     await migrar(db, MIGRACIONES);
 
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
-      providers: [RegistrarAporte, ConsultarSaldos, LibroRepository, { provide: SQL_DATABASE, useValue: db }],
+      providers: [
+        RegistrarAporte,
+        ConsultarSaldos,
+        LibroRepository,
+        { provide: SQL_DATABASE, useValue: db },
+        { provide: CLOCK, useValue: { ahora: () => fechaDummy } },
+      ],
     });
 
     registrarAporte = TestBed.inject(RegistrarAporte);
@@ -83,5 +92,25 @@ describe('RegistrarAporte and ConsultarSaldos', () => {
       gananciaLibre: 0,
     });
     expect(saldosCasoUso).toEqual(saldosDirecto);
+  });
+
+  it('rejects a contribution 1 second after CLOCK with FECHA_FUTURA without modifying movimientos_dinero, and accepts exact CLOCK time (D6, E4)', async () => {
+    await expect(
+      registrarAporte.registrar({
+        fecha: fechaHora('2026-11-10 09:00:01'),
+        medio: 'EFECTIVO',
+        monto: pesos(100000),
+      }),
+    ).rejects.toThrow(expect.objectContaining({ codigo: 'FECHA_FUTURA' }));
+
+    const rows = await db.query<{ count: number }>('SELECT COUNT(*) AS count FROM movimientos_dinero;');
+    expect(rows[0].count).toBe(0);
+
+    const idMovimiento = await registrarAporte.registrar({
+      fecha: fechaDummy,
+      medio: 'EFECTIVO',
+      monto: pesos(100000),
+    });
+    expect(idMovimiento).toBeGreaterThan(0);
   });
 });

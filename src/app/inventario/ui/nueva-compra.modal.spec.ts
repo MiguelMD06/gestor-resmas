@@ -613,4 +613,53 @@ describe('NuevaCompraModalComponent', () => {
     await component.guardar();
     expect(mockRegistrarCompra.registrar).not.toHaveBeenCalled();
   });
+
+  it('shows FECHA_FUTURA message next to date and disables Guardar compra when date is future, and enables with today (E3)', async () => {
+    component.cajas.set(2);
+    component.costoPorCaja.set(120000);
+    await component.actualizarPrevisualizacion();
+    component.fecha.set('2026-11-11');
+    fixture.detectChanges();
+
+    const errorFecha = fixture.debugElement.query(By.css('[data-testid="error-fecha"]'));
+    expect(errorFecha).toBeTruthy();
+    expect(errorFecha.nativeElement.textContent).toContain('La fecha no puede ser futura');
+
+    const botonGuardar = fixture.debugElement.query(By.css('[data-testid="btn-guardar-compra"]'));
+    expect(botonGuardar.nativeElement.disabled || botonGuardar.attributes['disabled'] !== undefined).toBe(true);
+
+    await component.guardar();
+    expect(mockRegistrarCompra.registrar).not.toHaveBeenCalled();
+
+    component.fecha.set('2026-11-10');
+    fixture.detectChanges();
+
+    expect(fixture.debugElement.query(By.css('[data-testid="error-fecha"]'))).toBeNull();
+    expect(botonGuardar.nativeElement.disabled).toBe(false);
+  });
+
+  it('opens date sheet with refreshed maxFecha from CLOCK, updates date and time on selection, and closes sheet (D5, E7)', () => {
+    expect(component.selectorFechaAbierto()).toBe(false);
+    expect(component.maxFecha()).toBe(fechaHora('2026-11-10 10:00:00'));
+
+    horaSimulada = '2026-11-10 15:45:00';
+    component.abrirSelectorFecha();
+    fixture.detectChanges();
+
+    expect(component.selectorFechaAbierto()).toBe(true);
+    expect(component.maxFecha()).toBe(fechaHora('2026-11-10 15:45:00'));
+    expect(fixture.debugElement.query(By.css('[data-testid="modal-fecha-compra"]'))).toBeTruthy();
+
+    component.onFechaSeleccionada(fechaHora('2026-11-08 14:25:00'));
+    fixture.detectChanges();
+
+    expect(component.fecha()).toBe('2026-11-08');
+    expect(component.horaSeleccionada()).toBe('14:25:00');
+    expect(component.fechaHoraParaHoja()).toBe(fechaHora('2026-11-08 14:25:00'));
+
+    component.cerrarSelectorFecha();
+    fixture.detectChanges();
+
+    expect(component.selectorFechaAbierto()).toBe(false);
+  });
 });

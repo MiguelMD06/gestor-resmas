@@ -1000,4 +1000,18 @@ describe('VenderPage', () => {
     fixture.detectChanges();
     expect(fixture.debugElement.query(By.css('[data-testid="queda-debiendo"]'))).toBeNull();
   });
+
+  it('returns 0 from quedaDebiendo when modalidad is CONTADO', async () => {
+    await component.ionViewWillEnter();
+    component.seleccionarCliente(ana);
+    component.agregarLote(loteCartaA);
+    component.actualizarCantidad(loteCartaA.idLote, '5');
+    component.actualizarPrecio(loteCartaA.idLote, 22000); // total = $ 110.000
+    fixture.detectChanges();
+
+    expect(component.modalidad()).toBe('CONTADO');
+    expect(component.totalVenta()).toBe(pesos(110000));
+    expect(component.quedaDebiendo()).toBe(pesos(0));
+    expect(fixture.debugElement.query(By.css('[data-testid="queda-debiendo"]'))).toBeNull();
+  });
 });

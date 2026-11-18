@@ -782,6 +782,9 @@ export class VenderPage {
 
   readonly quedaDebiendo = computed<Pesos>(() => {
     const total = this.totalVenta();
+    if (this.modalidad() === 'CONTADO') {
+      return pesos(0);
+    }
     if (this.modalidad() !== 'ABONO_INICIAL') {
       return total;
     }

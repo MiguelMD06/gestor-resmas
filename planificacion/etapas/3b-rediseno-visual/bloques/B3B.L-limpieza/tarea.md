@@ -14,6 +14,13 @@ src/app/shared/ui/hoja-fecha.component.spec.ts
 src/app/shared/ui/iniciales.ts            (nuevo, si el punto 2 lo necesita)
 src/app/shared/ui/iniciales.spec.ts       (nuevo)
 src/app/shared/ui/estilos/**
+src/app/inventario/application/registrar-compra.ts
+src/app/inventario/application/registrar-compra.spec.ts
+src/app/finanzas/application/registrar-aporte.ts
+src/app/finanzas/application/registrar-aporte.spec.ts
+src/app/inventario.acceptance.spec.ts     (solo para proveer el CLOCK, punto 11)
+src/app/inventario/ui/**                  (puntos 12 y 13)
+src/app/finanzas/ui/aporte.modal.spec.ts  (punto 13)
 ```
 
 No uses git.
@@ -36,10 +43,13 @@ Cada punto cita la ubicación que dio el revisor; verifica primero que el proble
    - `clientes.page.ts` (cerca de 51-54): el subtítulo cuenta los clientes filtrados por la búsqueda; debe contar el total de clientes, o decir "N resultados" mientras hay texto en el buscador. Elige lo más claro y explícalo.
 9. **Aserciones del modal en `vender.page.spec.ts` (cerca de 275-297):** se pasaron a `expect.objectContaining`. Vuelve a verificar el objeto completo que recibe `ModalController.create`, incluidos los parámetros de la hoja (`breakpoints`, `initialBreakpoint`, `cssClass`), para que un cambio no previsto haga fallar la prueba.
 10. **El buscador de Clientes se come lo que se escribe (CRITICAL, confirmado):** `clientes.page.ts` (cerca de 61-70) enlaza `[disabled]="cargando()"` en el `ion-searchbar`, y `onBuscarInput` llama a `cargarClientes()`, que pone `cargando` en verdadero antes del `await` (cerca de 300-321). Al tipear rápido, cada tecla deshabilita el campo: pierde el foco y se descartan letras. Lo encontró la revisión con `agy` (lente reliability) sobre `a9fafda` y el refutador lo corroboró con `ion-searchbar.js` de Ionic. El buscador no se deshabilita mientras busca: se mantiene editable y con foco, se muestra el indicador de carga, y el patrón de id de petición (`peticionActual`) descarta las respuestas viejas (regla 3). Si hoy se deshabilita también algo más por `cargando()` que no sea el buscador, no lo cambies. Prueba: dos `ionInput` seguidos con la primera búsqueda pendiente dejan el buscador habilitado y la lista muestra solo el resultado de la última búsqueda.
+11. **`CLOCK` opcional en compra y aporte (regla 1 y 11):** B3B.1 (`1d60a56`) dejó `inject(CLOCK, { optional: true })` en `registrar-compra.ts` (cerca de 29 y 40) y `registrar-aporte.ts` (cerca de 14 y 18), con `if (this.clock && ...)`: sin proveedor, el rechazo de `FECHA_FUTURA` se salta en silencio. Lo hizo porque `src/app/inventario.acceptance.spec.ts` crea los casos de uso sin `CLOCK`. Haz `CLOCK` obligatorio (`inject(CLOCK)`, como `registrar-venta.ts`), quita la condición `this.clock &&` y agrega en `inventario.acceptance.spec.ts` **solo** el proveedor de `CLOCK` con una fecha fija; no cambies lo que esa prueba verifica. Las pruebas de `FECHA_FUTURA` de ambos casos de uso siguen pasando.
+12. **Totales de Inventario sin pruebas (revisión de B3B.1):** `inventario.page.ts` (cerca de 380-404) agregó `totalResmasCarta`, `totalResmasOficio`, `totalResmasVisibles`, `valorCostoVisible`, `porcentajeDisponible` y `valorEnStock`, sin pruebas. Agrega pruebas de componente con al menos dos lotes de cada tipo (no solo el primero) que verifiquen el texto que ve el usuario para cada total y el porcentaje de la barra de stock, incluido un lote agotado (0 disponibles) y el caso sin lotes. Si un cálculo resulta incorrecto, corrígelo e infórmalo. Recuerda la regla 7: enteros.
+13. **Hora elegida en compra y aporte (revisión de B3B.1):** en `nueva-compra.modal.spec.ts` y `aporte.modal.spec.ts`, agrega dos pruebas por modal: (a) con el `CLOCK` fijo, una hora posterior a ahora **del mismo día** deja **Guardar** deshabilitado con el texto exacto de `FECHA_FUTURA`; (b) la fecha y hora elegidas con la hoja de fecha (`onFechaSeleccionada` o equivalente) llegan sin cambios al caso de uso al guardar.
 
 ## Pruebas
 
-Primero RED cuando el punto tenga una regla con resultado claro (2, 4, 5, 6, 10). Las pruebas que ya existen siguen pasando sin cambiar lo que verifican.
+Primero RED cuando el punto tenga una regla con resultado claro (2, 4, 5, 6, 10, 12, 13). Las pruebas que ya existen siguen pasando sin cambiar lo que verifican.
 
 ## Verificación
 

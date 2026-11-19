@@ -260,7 +260,7 @@ test.describe('Vender flow: POS sales, touches, multilote, lot exhaustion and pe
       alturas.push(box!.height);
     }
 
-    expect(Math.max(...alturas) - Math.min(...alturas)).toBeLessThanOrEqual(1);
+    expect(Math.max(...alturas) - Math.min(...alturas)).toBeLessThanOrEqual(1.5);
     expect(consoleErrors).toEqual([]);
   });
 

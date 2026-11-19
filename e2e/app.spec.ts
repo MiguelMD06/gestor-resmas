@@ -72,28 +72,16 @@ test.describe('Main tab navigation', () => {
     await page.goto('/');
     await expect(page).toHaveURL(/\/inventario$/);
 
-    const estilos = await page.evaluate(() => {
-      const content = document.querySelector('ion-content');
-      const backgroundContent = content?.shadowRoot?.querySelector('#background-content');
-      const body = document.body;
-      const backgroundColor = backgroundContent ? getComputedStyle(backgroundContent).backgroundColor : null;
-      const bodyBackgroundColor = getComputedStyle(body).backgroundColor;
-      const fontFamily = getComputedStyle(body).fontFamily;
-      const activeTab = document.querySelector('ion-tab-bar ion-tab-button.tab-selected');
-      const tabColor = activeTab ? getComputedStyle(activeTab).color : null;
+    const body = page.locator('body');
+    await expect(body).toHaveCSS('background-color', 'rgb(0, 0, 0)');
+    await expect(body).toHaveCSS('font-family', /Inter/);
 
-      return {
-        backgroundColor,
-        bodyBackgroundColor,
-        fontFamily,
-        tabColor,
-      };
-    });
+    const backgroundContent = page.locator('ion-content #background-content').first();
+    await expect(backgroundContent).toHaveCSS('background-color', 'rgb(0, 0, 0)');
 
-    expect(estilos.backgroundColor).toBe('rgb(0, 0, 0)');
-    expect(estilos.bodyBackgroundColor).toBe('rgb(0, 0, 0)');
-    expect(estilos.fontFamily).toContain('Inter');
-    expect(estilos.tabColor).toBe('rgb(203, 255, 61)');
+    const activeTab = page.locator('ion-tab-bar ion-tab-button[tab="inventario"]');
+    await expect(activeTab).toHaveClass(/tab-selected/);
+    await expect(activeTab).toHaveCSS('color', 'rgb(203, 255, 61)');
 
     expect(consoleErrors).toEqual([]);
   });

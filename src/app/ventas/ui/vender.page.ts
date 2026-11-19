@@ -375,6 +375,11 @@ const MESES_CORTOS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 's
                   </ion-segment-button>
                 }
               </ion-segment>
+              @if (esMostrador()) {
+                <p class="ayuda-forma-pago" data-testid="ayuda-forma-pago">
+                  Para vender fiado o con abono, elige un cliente.
+                </p>
+              }
             </div>
 
             @if (modalidad() === 'CONTADO' || modalidad() === 'ABONO_INICIAL') {
@@ -590,6 +595,12 @@ const MESES_CORTOS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 's
 
     .cierre-etiqueta {
       font-size: 13px;
+      color: var(--app-texto-secundario);
+    }
+
+    .ayuda-forma-pago {
+      margin: 0;
+      font-size: 12px;
       color: var(--app-texto-secundario);
     }
 

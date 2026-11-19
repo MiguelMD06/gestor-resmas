@@ -5,6 +5,7 @@ import { By } from '@angular/platform-browser';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { CampoPesosComponent } from './campo-pesos.component';
+import { MENSAJE_MONTO_SIN_DECIMALES } from './mensajes-error';
 
 @Component({
   selector: 'app-test-campo-pesos-host',
@@ -269,5 +270,43 @@ describe('CampoPesosComponent', () => {
 
     triggerIonInput('300000');
     expectErrorClasses(false);
+  });
+
+  it('formats keystroke-by-keystroke input up to thousands and millions, handles backspace, and still rejects pasted decimals (B3B.P)', () => {
+    const escribirTeclaPorTecla = (digitos: string): void => {
+      for (const ch of digitos) {
+        const actual = String(getIonInput().nativeElement.value ?? '');
+        triggerIonInput(actual + ch);
+      }
+    };
+
+    escribirTeclaPorTecla('17500');
+    expect(host.valor()).toBe(17500);
+    expect(getIonInput().nativeElement.value).toBe('$ 17.500');
+    expect(fixture.debugElement.query(By.css('[data-testid="error-campo"]'))).toBeNull();
+
+    // Backspace last digit from "$ 17.500" -> "$ 17.50" -> 1750 / "$ 1.750"
+    const textoActual = String(getIonInput().nativeElement.value);
+    triggerIonInput(textoActual.slice(0, -1));
+    expect(host.valor()).toBe(1750);
+    expect(getIonInput().nativeElement.value).toBe('$ 1.750');
+    expect(fixture.debugElement.query(By.css('[data-testid="error-campo"]'))).toBeNull();
+
+    // Clear and type 1250000 key by key
+    triggerIonInput('');
+    escribirTeclaPorTecla('1250000');
+    expect(host.valor()).toBe(1250000);
+    expect(getIonInput().nativeElement.value).toBe('$ 1.250.000');
+    expect(fixture.debugElement.query(By.css('[data-testid="error-campo"]'))).toBeNull();
+
+    // Writing 1.75 or 1,5 at once in an empty field is still rejected
+    for (const decimal of ['1.75', '1,5']) {
+      triggerIonInput('');
+      triggerIonInput(decimal);
+      expect(host.valor()).toBeNull();
+      const note = fixture.debugElement.query(By.css('[data-testid="error-campo"]'));
+      expect(note).toBeTruthy();
+      expect(note.nativeElement.textContent.trim()).toBe(MENSAJE_MONTO_SIN_DECIMALES);
+    }
   });
 });

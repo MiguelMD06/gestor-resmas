@@ -1029,4 +1029,96 @@ describe('VenderPage', () => {
     expect(component.quedaDebiendo()).toBe(pesos(0));
     expect(fixture.debugElement.query(By.css('[data-testid="queda-debiendo"]'))).toBeNull();
   });
+
+  it('links selector-cliente and btn-fecha-venta to their visible labels via aria-labelledby (C2)', async () => {
+    await component.ionViewWillEnter();
+    fixture.detectChanges();
+
+    const lblCliente = fixture.debugElement.query(By.css('#lbl-cliente-venta'));
+    const btnCliente = fixture.debugElement.query(By.css('[data-testid="selector-cliente"]'));
+    expect(lblCliente).toBeTruthy();
+    expect(lblCliente.nativeElement.classList.contains('campo-selector-etiqueta')).toBe(true);
+    expect(lblCliente.nativeElement.textContent.trim()).toBe('Cliente');
+    expect(btnCliente.attributes['aria-labelledby']).toBe('lbl-cliente-venta');
+
+    const lblFecha = fixture.debugElement.query(By.css('#lbl-fecha-venta'));
+    const btnFecha = fixture.debugElement.query(By.css('[data-testid="btn-fecha-venta"]'));
+    expect(lblFecha).toBeTruthy();
+    expect(lblFecha.nativeElement.classList.contains('campo-selector-etiqueta')).toBe(true);
+    expect(lblFecha.nativeElement.textContent.trim()).toBe('Fecha de la venta');
+    expect(btnFecha.attributes['aria-labelledby']).toBe('lbl-fecha-venta');
+  });
+
+  it('disables btn-fecha-venta and blocks abrirSelectorFecha when errorCarga() is non-null, and re-enables on recovery (C3)', async () => {
+    mockConsultarInventario.activos.mockRejectedValueOnce(new Error('DB error'));
+    await component.ionViewWillEnter();
+    fixture.detectChanges();
+
+    expect(component.errorCarga()).toBe(MENSAJE_ERROR_GENERICO);
+    const btnFecha = fixture.debugElement.query(By.css('[data-testid="btn-fecha-venta"]'));
+    const contenedorFecha = btnFecha.parent;
+    expect(contenedorFecha?.nativeElement.classList.contains('campo-selector')).toBe(true);
+    expect(contenedorFecha?.nativeElement.classList.contains('campo-inactivo')).toBe(true);
+    expect(Boolean(btnFecha.nativeElement.disabled)).toBe(true);
+    expect(btnFecha.attributes['aria-disabled']).toBe('true');
+
+    component.abrirSelectorFecha();
+    expect(component.selectorFechaAbierto()).toBe(false);
+
+    // Recover on retry
+    await component.cargarDatos();
+    fixture.detectChanges();
+
+    expect(component.errorCarga()).toBeNull();
+    expect(contenedorFecha?.nativeElement.classList.contains('campo-inactivo')).toBe(false);
+    expect(Boolean(btnFecha.nativeElement.disabled)).toBe(false);
+    expect(btnFecha.attributes['aria-disabled']).toBeUndefined();
+
+    component.abrirSelectorFecha();
+    expect(component.selectorFechaAbierto()).toBe(true);
+  });
+
+  it('sets exact aria-label on SelectorClienteContenidoComponent searchbar (C4)', () => {
+    const selectorFixture = TestBed.createComponent(SelectorClienteContenidoComponent);
+    selectorFixture.componentRef.setInput('busqueda', '');
+    selectorFixture.componentRef.setInput('clientes', []);
+    selectorFixture.componentRef.setInput('buscando', false);
+    selectorFixture.componentRef.setInput('errorBusqueda', null);
+    selectorFixture.detectChanges();
+
+    const searchbar = selectorFixture.debugElement.query(By.css('[data-testid="searchbar-clientes-vender"]'));
+    expect(searchbar).toBeTruthy();
+    expect(searchbar.attributes['aria-label']).toBe('Buscar por nombre o celular');
+  });
+
+  it('shows "Sin celular" for non-Mostrador customer without phone alongside Mostrador and customer with phone (C5)', () => {
+    const sinTelefono: Cliente = {
+      idCliente: 3,
+      nombre: 'Carlos Ruiz',
+      telefono: null,
+      esMostrador: false,
+    };
+
+    const selectorFixture = TestBed.createComponent(SelectorClienteContenidoComponent);
+    selectorFixture.componentRef.setInput('busqueda', '');
+    selectorFixture.componentRef.setInput('clientes', [mostrador, ana, sinTelefono]);
+    selectorFixture.componentRef.setInput('buscando', false);
+    selectorFixture.componentRef.setInput('errorBusqueda', null);
+    selectorFixture.detectChanges();
+
+    const filas = selectorFixture.debugElement.queryAll(By.css('[data-testid="item-cliente-vender"]'));
+    expect(filas).toHaveLength(3);
+
+    const subtitulo0 = filas[0].query(By.css('p.cliente-subtitulo'));
+    expect(subtitulo0).toBeTruthy();
+    expect(subtitulo0.nativeElement.textContent.trim()).toBe('Venta rápida · solo contado');
+
+    const subtitulo1 = filas[1].query(By.css('p.cliente-subtitulo'));
+    expect(subtitulo1).toBeTruthy();
+    expect(subtitulo1.nativeElement.textContent.trim()).toBe('3001234567');
+
+    const subtitulo2 = filas[2].query(By.css('p.cliente-subtitulo'));
+    expect(subtitulo2).toBeTruthy();
+    expect(subtitulo2.nativeElement.textContent.trim()).toBe('Sin celular');
+  });
 });

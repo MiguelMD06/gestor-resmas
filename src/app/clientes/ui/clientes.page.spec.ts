@@ -326,4 +326,13 @@ describe('ClientesPage', () => {
     expect(items).toHaveLength(1);
     expect(items[0].nativeElement.textContent).toContain('Juan Gómez');
   });
+
+  it('sets exact aria-label on searchbar-clientes (C4)', async () => {
+    await component.cargarClientes();
+    fixture.detectChanges();
+
+    const searchbar = fixture.debugElement.query(By.css('[data-testid="searchbar-clientes"]'));
+    expect(searchbar).toBeTruthy();
+    expect(searchbar.attributes['aria-label']).toBe('Buscar por nombre o celular');
+  });
 });

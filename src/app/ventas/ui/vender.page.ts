@@ -109,10 +109,11 @@ const MESES_CORTOS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 's
       <div class="vender-cuerpo">
         <!-- Cliente -->
         <div class="campo-selector" [class.campo-inactivo]="guardando() || cargando() || errorCarga() !== null">
-          <span class="campo-selector-etiqueta">Cliente</span>
+          <span id="lbl-cliente-venta" class="campo-selector-etiqueta">Cliente</span>
           <button
             type="button"
             class="campo-selector-boton"
+            aria-labelledby="lbl-cliente-venta"
             [disabled]="guardando() || cargando() || errorCarga() !== null"
             [attr.aria-disabled]="guardando() || cargando() || errorCarga() !== null ? 'true' : null"
             (click)="abrirSelectorCliente()"
@@ -129,14 +130,15 @@ const MESES_CORTOS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 's
           <div
             class="campo-selector"
             [class.campo-error]="errorFecha() !== null"
-            [class.campo-inactivo]="guardando() || cargando()"
+            [class.campo-inactivo]="guardando() || cargando() || errorCarga() !== null"
           >
-            <span class="campo-selector-etiqueta">Fecha de la venta</span>
+            <span id="lbl-fecha-venta" class="campo-selector-etiqueta">Fecha de la venta</span>
             <button
               type="button"
               class="campo-selector-boton"
-              [disabled]="guardando() || cargando()"
-              [attr.aria-disabled]="guardando() || cargando() ? 'true' : null"
+              aria-labelledby="lbl-fecha-venta"
+              [disabled]="guardando() || cargando() || errorCarga() !== null"
+              [attr.aria-disabled]="guardando() || cargando() || errorCarga() !== null ? 'true' : null"
               (click)="abrirSelectorFecha()"
               data-testid="btn-fecha-venta"
             >
@@ -1044,7 +1046,7 @@ export class VenderPage {
   }
 
   abrirSelectorFecha(): void {
-    if (this.guardando() || this.cargando()) {
+    if (this.guardando() || this.cargando() || this.errorCarga() !== null) {
       return;
     }
     this.maxFecha.set(this.clock.ahora());

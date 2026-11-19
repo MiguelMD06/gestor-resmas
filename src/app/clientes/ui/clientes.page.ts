@@ -51,6 +51,7 @@ import { ClienteModalComponent } from './cliente.modal';
       <div class="buscador-contenedor">
         <ion-searchbar
           placeholder="Buscar por nombre o celular"
+          aria-label="Buscar por nombre o celular"
           [value]="busqueda()"
           [debounce]="0"
           (ionInput)="onBuscarInput($event)"

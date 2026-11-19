@@ -263,4 +263,28 @@ test.describe('Vender flow: POS sales, touches, multilote, lot exhaustion and pe
     expect(Math.max(...alturas) - Math.min(...alturas)).toBeLessThanOrEqual(1);
     expect(consoleErrors).toEqual([]);
   });
+
+  test('formats unit price keystroke by keystroke without rejecting thousands separator (B3B.P)', async ({ page }) => {
+    const consoleErrors = capturarErroresConsola(page);
+    await prepararEstadoInicial(page);
+
+    await page.locator('ion-tab-bar ion-tab-button[tab="vender"]').click();
+    await expect(page).toHaveURL(/\/vender$/);
+
+    const venderPage = page.locator('app-vender');
+    await venderPage.locator('[data-testid="item-lote"]', { hasText: '20 resmas' }).click();
+
+    const linea = venderPage.locator('[data-testid="linea-venta"]').first();
+    await linea.locator('[data-testid="input-cantidad"] input:not(.cloned-input)').fill('2');
+
+    const inputPrecio = linea.locator('[data-testid="input-precio-unitario"] input:not(.cloned-input)');
+    await inputPrecio.click();
+    await inputPrecio.pressSequentially('17500');
+
+    await expect(inputPrecio).toHaveValue('$ 17.500');
+    await expect(linea.locator('[data-testid="error-precio-unitario"]')).toHaveCount(0);
+    await expect(venderPage.locator('[data-testid="resumen-totales"]')).toContainText('$ 35.000');
+
+    expect(consoleErrors).toEqual([]);
+  });
 });

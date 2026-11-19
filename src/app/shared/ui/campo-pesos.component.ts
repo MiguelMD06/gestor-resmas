@@ -7,6 +7,10 @@ import { MENSAJE_MONTO_DEMASIADO_GRANDE, MENSAJE_MONTO_SIN_DECIMALES } from './m
 
 const FORMATO_PESOS = /^(?:\d+|\d{1,3}(?:\.\d{3})+)$/;
 
+function contarPuntos(texto: string): number {
+  return (texto.match(/\./g) ?? []).length;
+}
+
 /**
  * Reusable currency input for Colombian pesos (COP).
  * Formats integers with `formatearPesos` while typing and emits `number | null` (never `0` when empty).
@@ -56,6 +60,7 @@ export class CampoPesosComponent {
   private readonly textoInvalido = signal<string | null>(null);
   private cambioInterno = false;
   private ultimaGeneracion = 0;
+  private ultimoTextoFormateado = '';
   readonly errorMostrado = computed(() => this.errorFormato() ?? this.error());
 
   readonly textoMostrado = computed(() => {
@@ -72,7 +77,7 @@ export class CampoPesosComponent {
 
   constructor() {
     effect(() => {
-      this.valor();
+      const v = this.valor();
       const gen = this.generacion();
       const cambioGeneracion = gen !== this.ultimaGeneracion;
       this.ultimaGeneracion = gen;
@@ -83,6 +88,8 @@ export class CampoPesosComponent {
       this.cambioInterno = false;
       this.errorFormato.set(null);
       this.textoInvalido.set(null);
+      this.ultimoTextoFormateado =
+        v !== null && v !== undefined && Number.isSafeInteger(v) ? formatearPesos(pesos(v)) : '';
     });
   }
 
@@ -99,14 +106,22 @@ export class CampoPesosComponent {
     if (limpio === '') {
       this.errorFormato.set(null);
       this.textoInvalido.set(null);
+      this.ultimoTextoFormateado = '';
       this.actualizarValorInterno(null);
       this.sincronizarElemento(event.target as HTMLElement | null, '');
       return;
     }
 
-    if (!FORMATO_PESOS.test(limpio)) {
+    const soloPuntosPrevios =
+      this.ultimoTextoFormateado !== '' &&
+      texto.startsWith('$ ') &&
+      /^\d+(?:\.\d+)*$/.test(limpio) &&
+      contarPuntos(limpio) <= contarPuntos(this.ultimoTextoFormateado);
+
+    if (!FORMATO_PESOS.test(limpio) && !soloPuntosPrevios) {
       this.errorFormato.set(MENSAJE_MONTO_SIN_DECIMALES);
       this.textoInvalido.set(texto);
+      this.ultimoTextoFormateado = '';
       this.actualizarValorInterno(null);
       return;
     }
@@ -116,14 +131,17 @@ export class CampoPesosComponent {
     if (!Number.isSafeInteger(num)) {
       this.errorFormato.set(MENSAJE_MONTO_DEMASIADO_GRANDE);
       this.textoInvalido.set(texto);
+      this.ultimoTextoFormateado = '';
       this.actualizarValorInterno(null);
       return;
     }
 
+    const formateado = formatearPesos(pesos(num));
     this.errorFormato.set(null);
     this.textoInvalido.set(null);
+    this.ultimoTextoFormateado = formateado;
     this.actualizarValorInterno(num);
-    this.sincronizarElemento(event.target as HTMLElement | null, formatearPesos(pesos(num)));
+    this.sincronizarElemento(event.target as HTMLElement | null, formateado);
   }
 
   private actualizarValorInterno(nuevoValor: number | null): void {

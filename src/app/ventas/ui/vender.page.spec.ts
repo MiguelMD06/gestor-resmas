@@ -205,6 +205,21 @@ describe('VenderPage', () => {
     expect(fixture.debugElement.query(By.css('[data-testid="segment-abono-inicial"]'))).toBeTruthy();
   });
 
+  it('shows payment method helper text only when Mostrador is selected (B3B.P)', async () => {
+    await component.ionViewWillEnter();
+    component.agregarLote(loteCartaA);
+    fixture.detectChanges();
+
+    expect(component.clienteSeleccionado()?.esMostrador).toBe(true);
+    const ayuda = fixture.debugElement.query(By.css('[data-testid="ayuda-forma-pago"]'));
+    expect(ayuda).toBeTruthy();
+    expect(ayuda.nativeElement.textContent.trim()).toBe('Para vender fiado o con abono, elige un cliente.');
+
+    component.seleccionarCliente(ana);
+    fixture.detectChanges();
+    expect(fixture.debugElement.query(By.css('[data-testid="ayuda-forma-pago"]'))).toBeNull();
+  });
+
   it('validates abono inicial: $ 0 and total are invalid, $ 1 and total - 1 are valid (E10)', async () => {
     await component.ionViewWillEnter();
     component.seleccionarCliente(ana);

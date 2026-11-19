@@ -58,6 +58,7 @@ import { leerValorEvento } from './venta-ui.helpers';
         <ion-searchbar
           class="selector-buscador"
           placeholder="Buscar por nombre o celular"
+          aria-label="Buscar por nombre o celular"
           [value]="busqueda()"
           [debounce]="0"
           (ionInput)="buscar.emit(leerValorEvento($event))"
@@ -146,6 +147,8 @@ import { leerValorEvento } from './venta-ui.helpers';
                     <p class="cliente-subtitulo">Venta rápida · solo contado</p>
                   } @else if (c.telefono) {
                     <p class="cliente-subtitulo">{{ c.telefono }}</p>
+                  } @else {
+                    <p class="cliente-subtitulo">Sin celular</p>
                   }
                 </ion-label>
                 @if (clienteSeleccionadoId() === c.idCliente) {

@@ -19,8 +19,8 @@ problema. El PR es el que la cierra.
 1. **Planificación.** Cada etapa tiene un *milestone* en GitHub (por ejemplo,
    "Etapa 4"). Los bloques grandes pueden tener su issue con la etiqueta
    `enhancement`, asignada al *milestone*.
-2. **Desarrollo.** Todo bug o problema que aparezca (prueba manual, revisión con
-   `agy`, verificación, prueba inestable) se registra en el momento como issue
+2. **Desarrollo.** Todo bug o problema que aparezca (prueba manual, revisión de
+   código, verificación, prueba inestable) se registra en el momento como issue
    con la etiqueta `bug`. Contenido, en español: descripción, comportamiento
    observado, cómo reproducirlo, comportamiento esperado y contexto (rama,
    commit y entrada del `## Log` del plan).

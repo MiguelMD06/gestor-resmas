@@ -1,6 +1,6 @@
 # Etapa 3B — Rediseño visual
 
-**Estado:** ✅ plan aprobado (L4) · **Rama del plan:** `docs/plan-etapa-3b` · **Rama de implementación:** `feat/etapa-3b-rediseno-visual` (sale del `main` actual) · **Entrega:** un PR a `main` · **Pruebas:** Vitest (`ng test`) + Playwright (`e2e/`)
+**Estado:** ✅ hecha (PR #21, integrado el 2026-11-19; cierra #19 y #20) · **Rama del plan:** `docs/plan-etapa-3b` · **Rama de implementación:** `feat/etapa-3b-rediseno-visual` (sale del `main` actual) · **Entrega:** un PR a `main` · **Pruebas:** Vitest (`ng test`) + Playwright (`e2e/`)
 **Objetivo:** las pantallas que ya existen se ven como los mockups aprobados: fondo negro, tarjetas oscuras, verde lima para la acción principal, celeste para la secundaria, Inter y modales tipo hoja. La etapa no agrega funciones. Corrige el selector de clientes de Vender (L16 de la Etapa 3) y aplica las reglas R-13 y R-17 en la compra y el aporte.
 
 ## Qué hay hoy

@@ -322,6 +322,7 @@ export class ResumenAbonoModalComponent {
   readonly guardando = signal(false);
   readonly guardado = signal(false);
   readonly errorGuardar = signal<string | null>(null);
+  private volviendo = false;
 
   readonly formatearPesos = formatearPesos;
   readonly formatearFechaHoraLegible = formatearFechaHoraLegible;
@@ -353,10 +354,17 @@ export class ResumenAbonoModalComponent {
   }
 
   async volverAEditar(): Promise<void> {
-    if (this.guardando() || this.guardado()) {
+    if (this.guardando() || this.guardado() || this.volviendo) {
       return;
     }
-    await this.modalCtrl.dismiss(null, ROL_CANCELAR);
+    this.volviendo = true;
+    try {
+      await this.modalCtrl.dismiss(null, ROL_CANCELAR);
+    } catch {
+      // Ignore dismiss errors so buttons remain usable
+    } finally {
+      this.volviendo = false;
+    }
   }
 
   async aceptar(): Promise<void> {

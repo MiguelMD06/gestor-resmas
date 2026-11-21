@@ -1,6 +1,7 @@
 import type { ComponentFixture } from '@angular/core/testing';
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
+import { Router } from '@angular/router';
 import { ModalController, ToastController } from '@ionic/angular';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -10,7 +11,6 @@ import { AbonoRepository } from '../../app/cartera/infrastructure/abono.reposito
 import { CarteraRepository } from '../../app/cartera/infrastructure/cartera.repository';
 import { BuscarClientes } from '../../app/clientes/application/buscar-clientes';
 import { ClienteRepository } from '../../app/clientes/infrastructure/cliente.repository';
-import { ClienteModalComponent } from '../../app/clientes/ui/cliente.modal';
 import { ClientesPage } from '../../app/clientes/ui/clientes.page';
 import { LibroRepository } from '../../app/finanzas/infrastructure/libro.repository';
 import { fechaHora, pesos } from '../../app/shared/domain';
@@ -18,7 +18,7 @@ import { CLOCK } from '../../app/shared/infrastructure/clock/clock.token';
 import { MIGRACIONES } from '../../app/shared/infrastructure/sqlite/migrations';
 import { migrar } from '../../app/shared/infrastructure/sqlite/migrations/migration-runner';
 import { SQL_DATABASE } from '../../app/shared/infrastructure/sqlite/sql-database.token';
-import { ROL_GUARDADO, soloCierreExplicito } from '../../app/shared/ui/formulario';
+import { ROL_GUARDADO } from '../../app/shared/ui/formulario';
 import { MENSAJE_ERROR_GENERICO } from '../../app/shared/ui/mensajes-error';
 import { SqlJsDatabase } from '../../testing/sqljs-sql-database.adapter';
 
@@ -33,6 +33,7 @@ describe('Verificacion independiente B4.1-directorio-deuda', () => {
   let page: ClientesPage;
   let mockModalCtrl: { create: ReturnType<typeof vi.fn> };
   let mockToastCtrl: { create: ReturnType<typeof vi.fn> };
+  let mockRouter: { navigate: ReturnType<typeof vi.fn> };
 
   let idAna: number;
   let idBeto: number;
@@ -119,6 +120,9 @@ describe('Verificacion independiente B4.1-directorio-deuda', () => {
     mockToastCtrl = {
       create: vi.fn().mockResolvedValue({ present: vi.fn().mockResolvedValue(undefined) }),
     };
+    mockRouter = {
+      navigate: vi.fn().mockResolvedValue(true),
+    };
 
     TestBed.resetTestingModule();
     await TestBed.configureTestingModule({
@@ -133,6 +137,7 @@ describe('Verificacion independiente B4.1-directorio-deuda', () => {
         LibroRepository,
         { provide: SQL_DATABASE, useValue: db },
         { provide: CLOCK, useValue: { ahora: () => ahora } },
+        { provide: Router, useValue: mockRouter },
         { provide: ModalController, useValue: mockModalCtrl },
         { provide: ToastController, useValue: mockToastCtrl },
       ],
@@ -474,26 +479,18 @@ describe('Verificacion independiente B4.1-directorio-deuda', () => {
     expect(itemsFinal[0].nativeElement.textContent).toContain('Beto');
   });
 
-  it('C10: tocar cliente abre modal editar y crear desde FAB recarga como Al dia', async () => {
+  it('C10: tocar cliente navega a su expediente y crear desde FAB recarga como Al dia', async () => {
     await seedBaseScenario();
     await page.ionViewWillEnter();
     fixture.detectChanges();
 
-    // Tocar a Beto (segundo item) abre modal editar
+    // Tocar a Beto (segundo item) navega a su expediente
     const items = fixture.debugElement.queryAll(By.css('[data-testid="item-cliente"]'));
     items[1].triggerEventHandler('click', null);
     await new Promise((r) => setTimeout(r, 10));
 
-    expect(mockModalCtrl.create).toHaveBeenCalledWith({
-      component: ClienteModalComponent,
-      componentProps: {
-        cliente: { idCliente: idBeto, nombre: 'Beto', telefono: '3002223344', esMostrador: false },
-      },
-      canDismiss: soloCierreExplicito,
-      cssClass: 'modal-sheet',
-      breakpoints: [0, 0.65, 0.9],
-      initialBreakpoint: 0.65,
-    });
+    expect(mockModalCtrl.create).not.toHaveBeenCalled();
+    expect(mockRouter.navigate).toHaveBeenCalledWith(['/clientes', idBeto]);
 
     // Crear cliente desde FAB insertandolo en BD antes de resolver ROL_GUARDADO
     mockModalCtrl.create.mockImplementationOnce(async () => ({

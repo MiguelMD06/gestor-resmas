@@ -1,0 +1,23 @@
+{
+  "repo": "C:/Users/MIGUEL ANGEL/Documents/PROYECTOS MIGUEL MEDINA DIAZ/gestor-resmas/.claude/worktrees/docs-revision-plan",
+  "implementador": "gemini-4-hydrogen-medium",
+  "verificador": "gemini-4-hydrogen-high",
+  "permitidos": [
+    "src/app/cartera/domain/**",
+    "src/app/cartera/application/**",
+    "src/app/cartera/infrastructure/**",
+    "src/app/cartera/index.ts",
+    "src/app/shared/domain/regla-negocio.error.ts",
+    "src/app/shared/ui/mensajes-error.ts",
+    "src/app/shared/ui/mensajes-error.spec.ts"
+  ],
+  "pruebasVerificador": "src/verificacion/b4-0",
+  "comandoPrueba": "npm run test:unit",
+  "ignorar": [
+    "planificacion/etapas/4-cartera-expediente/bloques/**",
+    "test-results/**",
+    "playwright-report/**"
+  ],
+  "maxCorrecciones": 2,
+  "timeoutMinutos": 60
+}

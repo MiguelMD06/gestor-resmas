@@ -1,0 +1,29 @@
+{
+  "repo": "C:/Users/MIGUEL ANGEL/Documents/PROYECTOS MIGUEL MEDINA DIAZ/gestor-resmas/.claude/worktrees/docs-revision-plan",
+  "implementador": "gemini-4-hydrogen-medium",
+  "verificador": "gemini-4-hydrogen-high",
+  "permitidos": [
+    "src/app/clientes/ui/expediente.page.ts",
+    "src/app/clientes/ui/expediente.page.spec.ts",
+    "src/app/clientes/ui/expediente-ui.helpers.ts",
+    "src/app/clientes/ui/expediente-ui.helpers.spec.ts",
+    "src/app/clientes/ui/clientes.page.ts",
+    "src/app/clientes/ui/clientes.page.spec.ts",
+    "src/app/cartera/ui/abono.modal.ts",
+    "src/app/cartera/ui/abono.modal.spec.ts",
+    "src/app/shell/tabs.routes.ts",
+    "src/app/shared/ui/estilos/**",
+    "src/verificacion/b4-1/b4-1.verificacion.spec.ts",
+    "e2e/clientes.spec.ts",
+    "e2e/etapa-4.acceptance.spec.ts"
+  ],
+  "pruebasVerificador": "src/verificacion/b4-3",
+  "comandoPrueba": "npm run test:unit && npm run test:e2e",
+  "ignorar": [
+    "planificacion/etapas/4-cartera-expediente/bloques/**",
+    "test-results/**",
+    "playwright-report/**"
+  ],
+  "maxCorrecciones": 2,
+  "timeoutMinutos": 60
+}

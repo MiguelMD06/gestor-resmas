@@ -1,0 +1,155 @@
+{
+  "bloque": "B4.0-cartera-abonos",
+  "estado": "APROBADO",
+  "codigo": "OK",
+  "motivo": "",
+  "correcciones": 1,
+  "criterios": [
+    {
+      "id": "C1",
+      "cumple": true,
+      "evidencia": "Ejecutado `npm run test:unit` (62 archivos, 487 pruebas en verde): `C1` en `src/verificacion/b4-0/b4-0.verificacion.spec.ts` y `src/app/cartera/application/registrar-abono.spec.ts`. `RegistrarAbono` (`CASCADA_GLOBAL`, $35.000 `EFECTIVO`) dejó F1 (`30000`/`0`/`PAGADA`), F2 (`10000`/`5000`/`PARCIAL`), abono `CASCADA_GLOBAL` de 35000, dos filas en `abonos_detalle_facturas` (F1: 30000/20000/10000; F2: 5000/5000/0), un `COBRO` `EFECTIVO` (35000/25000/10000/`id_abono`) y devolvió `idAbono` y las dos aplicaciones."
+    },
+    {
+      "id": "C2",
+      "cumple": true,
+      "evidencia": "Ejecutado `npm run test:unit`: `C2` en `src/verificacion/b4-0/b4-0.verificacion.spec.ts` y `src/app/cartera/application/registrar-abono.spec.ts`. `FACTURA_INDIVIDUAL` a F2 con $3.000 `TRANSFERENCIA` dejó F1 intacta y F2 en `8000`/`7000`/`PARCIAL`, creó abono `FACTURA_INDIVIDUAL` con 1 detalle (F2: 3000/3000/0) y `COBRO` `TRANSFERENCIA` con capital 3000 y ganancia 0."
+    },
+    {
+      "id": "C3",
+      "cumple": true,
+      "evidencia": "Ejecutado `npm run test:unit`: `C3` en `src/verificacion/b4-0/b4-0.verificacion.spec.ts` y `src/app/cartera/application/registrar-abono.spec.ts`. `LIQUIDACION_TOTAL` `TRANSFERENCIA` dejó F1 y F2 `PAGADA` (saldo 0), abono `LIQUIDACION_TOTAL` de 40000 con dos detalles (F1: 30000/20000/10000; F2: 10000/5000/5000) y `COBRO` (25000/15000); `ConsultarCartera` ya no incluyó a Ana y la segunda liquidación se rechazó con `SIN_DEUDA` sin escribir nada."
+    },
+    {
+      "id": "C4",
+      "cumple": true,
+      "evidencia": "Ejecutado `npm run test:unit`: `C4-C8` en `src/verificacion/b4-0/b4-0.verificacion.spec.ts` y `C4` en `src/app/cartera/application/registrar-abono.spec.ts`. Con $40.001 se rechazó con `MONTO_SUPERA_DEUDA` sin escribir en las 4 tablas; con $40.000 se aceptó dejando ambas facturas `PAGADA` y verificando las 4 tablas con `leerEfectosAbono`."
+    },
+    {
+      "id": "C5",
+      "cumple": true,
+      "evidencia": "Ejecutado `npm run test:unit`: `C4-C8` en `src/verificacion/b4-0/b4-0.verificacion.spec.ts` y `C5` en `src/app/cartera/application/registrar-abono.spec.ts`. `FACTURA_INDIVIDUAL` a F2 con $10.001 se rechazó con `MONTO_SUPERA_SALDO_FACTURA` sin escribir nada; con $10.000 la dejó `PAGADA` con saldo 0 y verificó las 4 tablas."
+    },
+    {
+      "id": "C6",
+      "cumple": true,
+      "evidencia": "Ejecutado `npm run test:unit`: `C4-C8` en `src/verificacion/b4-0/b4-0.verificacion.spec.ts` y `C6` en `src/app/cartera/application/registrar-abono.spec.ts`. Monto $0 en `CASCADA_GLOBAL` y `FACTURA_INDIVIDUAL` rechazado con `MONTO_INVALIDO` sin cambios en ninguna de las 4 tablas."
+    },
+    {
+      "id": "C7",
+      "cumple": true,
+      "evidencia": "Ejecutado `npm run test:unit`: `src/verificacion/b4-0/b4-0.verificacion.spec.ts`, `src/app/cartera/domain/fecha-abono.spec.ts` y `C7` en `src/app/cartera/application/registrar-abono.spec.ts`. Fecha `2026-11-20 12:00:01` rechazada con `FECHA_FUTURA` sin escribir nada; `2026-11-20 12:00:00` (igual al `CLOCK`) aceptada y verificada en las 4 tablas."
+    },
+    {
+      "id": "C8",
+      "cumple": true,
+      "evidencia": "Ejecutado `npm run test:unit`: `src/verificacion/b4-0/b4-0.verificacion.spec.ts`, `src/app/cartera/domain/fecha-abono.spec.ts` y `C8` en `src/app/cartera/application/registrar-abono.spec.ts`. `CASCADA_GLOBAL` de $35.000 el `2026-11-05 10:00:00` rechazado con `ABONO_ANTERIOR_A_FACTURA` sin escribir; $30.000 en la misma fecha aceptado; $35.000 (y saldo de F2) el `2026-11-10 10:00:00` aceptado."
+    },
+    {
+      "id": "C9",
+      "cumple": true,
+      "evidencia": "Ejecutado `npm run test:unit`: `C9` en `src/verificacion/b4-0/b4-0.verificacion.spec.ts` y `src/app/shared/ui/mensajes-error.spec.ts`, más lectura de `src/app/shared/domain/regla-negocio.error.ts` y `src/app/shared/ui/mensajes-error.ts`. `ABONO_ANTERIOR_A_FACTURA` está en `CodigoRegla` y `MENSAJES_ERROR.ABONO_ANTERIOR_A_FACTURA` es exactamente «La fecha del abono es anterior a una factura que paga»."
+    },
+    {
+      "id": "C10",
+      "cumple": true,
+      "evidencia": "Ejecutado `npm run test:unit`: `C10` en `src/verificacion/b4-0/b4-0.verificacion.spec.ts` y `src/app/cartera/application/registrar-abono.spec.ts`. Cascada de $25.000 sobre Carla dejó G1 y G2 `PAGADA`, G3 `PARCIAL` con `monto_pagado=5000` (capital 5000, ganancia 0), facturas de Ana intactas y las 4 tablas verificadas."
+    },
+    {
+      "id": "C11",
+      "cumple": true,
+      "evidencia": "Ejecutado `npm run test:unit`: `C11-C12` en `src/verificacion/b4-0/b4-0.verificacion.spec.ts` y `C11` en `src/app/cartera/application/registrar-abono.spec.ts`. `FACTURA_INDIVIDUAL` de Ana con factura de Carla o `idVenta` inexistente se rechazó con `FACTURA_INVALIDA`, y con factura de Ana `PAGADA` con `SIN_DEUDA`, sin cambios en las 4 tablas."
+    },
+    {
+      "id": "C12",
+      "cumple": true,
+      "evidencia": "Ejecutado `npm run test:unit`: `C11-C12` en `src/verificacion/b4-0/b4-0.verificacion.spec.ts` y `C12` en `src/app/cartera/application/registrar-abono.spec.ts`. Cliente inexistente rechazado con `CLIENTE_INEXISTENTE` en los tres modos; Beto (y Mostrador en verificación) rechazado con `SIN_DEUDA` en `CASCADA_GLOBAL` y `LIQUIDACION_TOTAL`, sin escribir nada."
+    },
+    {
+      "id": "C13",
+      "cumple": true,
+      "evidencia": "Ejecutado `npm run test:unit`: `C13` en `src/verificacion/b4-0/b4-0.verificacion.spec.ts` y `src/app/cartera/application/registrar-abono.spec.ts`. Dos llamadas concurrentes con `Promise.allSettled` produjeron 1 éxito, 1 rechazo `MONTO_SUPERA_DEUDA`, 1 abono nuevo, 1 `COBRO` y deuda de Ana en $5.000, verificando las 4 tablas."
+    },
+    {
+      "id": "C14",
+      "cumple": true,
+      "evidencia": "Ejecutado `npm run test:unit`: `C14` en `src/verificacion/b4-0/b4-0.verificacion.spec.ts` y `src/app/cartera/application/registrar-abono.spec.ts`. Fallo simulado en `LibroRepository.registrar` (y en `CarteraRepository.aplicarPago` en verificación) revirtió todo en las 4 tablas y permitió un reintento posterior exitoso con verificación de las 4 tablas."
+    },
+    {
+      "id": "C15",
+      "cumple": true,
+      "evidencia": "Ejecutado `npm run test:unit`: `C15` en `src/verificacion/b4-0/b4-0.verificacion.spec.ts` y `src/app/cartera/infrastructure/cartera.repository.spec.ts`. `aplicarPago` sobre F2 con 10001 lanzó error sin cambiar la fila, con 10000 la dejó `PAGADA` con saldo 0, y con 1 dejó `PARCIAL`."
+    },
+    {
+      "id": "C16",
+      "cumple": true,
+      "evidencia": "Ejecutado `npm run test:unit`: `C16-C18` en `src/verificacion/b4-0/b4-0.verificacion.spec.ts` y `src/app/cartera/application/consultar-cartera.spec.ts`. `ConsultarCartera.consultar()` devolvió `total: 40000` y solo Ana -> 40000 (sin Beto, Carla ni Mostrador); después de C1 devolvió `total: 5000` y Ana -> 5000."
+    },
+    {
+      "id": "C17",
+      "cumple": true,
+      "evidencia": "Ejecutado `npm run test:unit`: `C16-C18` en `src/verificacion/b4-0/b4-0.verificacion.spec.ts` y `src/app/cartera/application/consultar-expediente.spec.ts`. `ConsultarExpediente.consultar(Ana)` devolvió `deuda` `{ total: 40000, capital: 25000, ganancia: 15000 }`, facturas F2 y F1 con `estado`, `saldo` y `lineas`, abonos del más nuevo al más antiguo (después de C1: 35000 con F1 30000 y F2 5000, luego `ABONO_INICIAL` 5000 a F2), y `CLIENTE_INEXISTENTE` para id inexistente."
+    },
+    {
+      "id": "C18",
+      "cumple": true,
+      "evidencia": "Ejecutado `npm run test:unit`: `src/verificacion/b4-0/b4-0.verificacion.spec.ts`, `src/app/cartera/infrastructure/cartera.repository.spec.ts` y `src/app/cartera/application/consultar-expediente.spec.ts`. Venta `PAGO_CONTADO` aparece en `facturas` como `PAGADA` y no aparece en `abonos`."
+    },
+    {
+      "id": "C19",
+      "cumple": true,
+      "evidencia": "Ejecutado `npm run test:unit`: `C19` en `src/verificacion/b4-0/b4-0.verificacion.spec.ts` y `src/app/cartera/domain/por-cobrar.spec.ts`. `porCobrar` devolvió 5000/5000 para F2, 20000/10000 para F1, 5000/0 para venta bajo costo (8000/10000/3000) y 0/0 para factura pagada."
+    },
+    {
+      "id": "C20",
+      "cumple": true,
+      "evidencia": "Inspección de `src/app/cartera/application/registrar-abono.ts` y búsqueda SQL en `src/app/cartera/**` (sin `.spec.ts`): `RegistrarAbono` usa `distribuirCascada`, `abonarFactura`, `liquidarTodo`, `AbonoRepository.insertar`, `cobro()` y `LibroRepository.registrar`. No existe otra implementación de reparto ni otro `INSERT` en `abonos` o `movimientos_dinero`."
+    },
+    {
+      "id": "C21",
+      "cumple": true,
+      "evidencia": "`git status --short` y `git diff --name-only` muestran solo rutas permitidas en `src/app/cartera/` y `src/app/shared/`, sin migraciones nuevas (y `src/verificacion/` del verificador). Tras la corrección, `npm run lint` (eslint, typecheck:e2e y prettier), `npm run test:unit` (62 archivos, 487 pruebas: 443 previas + 32 del bloque + 12 de verificación) y `npm run build` terminaron con código 0."
+    },
+    {
+      "id": "C22",
+      "cumple": true,
+      "evidencia": "Revisión de todos los `.spec.ts` nuevos tras el ajuste en `src/app/cartera/application/registrar-abono.spec.ts`: todos los rechazos de regla de negocio usan `expect.objectContaining({ codigo: '...' })`, no hay `try/catch` para verificar errores, y cada prueba con escritura (`C1`, `C2`, `C3`, `C4`, `C5`, `C7`, `C8`, `C10`, `C13` y reintento de `C14`) comprueba las cuatro tablas (`ventas`, `abonos`, `abonos_detalle_facturas`, `movimientos_dinero`) mediante `leerEfectosAbono` o consultas directas."
+    }
+  ],
+  "detalles": [],
+  "hallazgosPendientes": [],
+  "resumenVerificador": "El implementador corrigió el hallazgo de la ronda 1 en `registrar-abono.spec.ts` y todos los criterios C1–C22 se cumplen con `npm run lint`, `npm run test:unit` (62 archivos, 487 pruebas en verde) y `npm run build` exitosos.",
+  "archivosImplementador": [
+    "src/app/cartera/application/consultar-cartera.spec.ts",
+    "src/app/cartera/application/consultar-cartera.ts",
+    "src/app/cartera/application/consultar-expediente.spec.ts",
+    "src/app/cartera/application/consultar-expediente.ts",
+    "src/app/cartera/application/index.ts",
+    "src/app/cartera/application/registrar-abono.spec.ts",
+    "src/app/cartera/application/registrar-abono.ts",
+    "src/app/cartera/domain/fecha-abono.spec.ts",
+    "src/app/cartera/domain/fecha-abono.ts",
+    "src/app/cartera/domain/index.ts",
+    "src/app/cartera/domain/por-cobrar.spec.ts",
+    "src/app/cartera/domain/por-cobrar.ts",
+    "src/app/cartera/index.ts",
+    "src/app/cartera/infrastructure/cartera.repository.spec.ts",
+    "src/app/cartera/infrastructure/cartera.repository.ts",
+    "src/app/shared/domain/regla-negocio.error.ts",
+    "src/app/shared/ui/mensajes-error.spec.ts",
+    "src/app/shared/ui/mensajes-error.ts"
+  ],
+  "archivosVerificador": [
+    "src/verificacion/b4-0/b4-0.verificacion.spec.ts"
+  ],
+  "pruebaFinal": {
+    "comando": "npm run test:unit",
+    "codigo": 0,
+    "log": "logs/r1-prueba.log"
+  },
+  "conversaciones": {
+    "implementador": "9368dcb0-ae7c-4ad2-967a-7d26f891dfa9",
+    "verificador": "8646c462-55ed-4bd9-aeb9-7e8ae146ef59"
+  },
+  "duracionSegundos": 1095
+}

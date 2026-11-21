@@ -79,6 +79,7 @@ Thumbs.db
 .claude/
 CLAUDE.local.md
 planificacion/etapas/*/logs/
+planificacion/etapas/*/bloques/*/logs/
 
 # Environment
 .env

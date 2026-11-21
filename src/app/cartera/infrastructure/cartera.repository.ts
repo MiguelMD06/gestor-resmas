@@ -61,9 +61,15 @@ interface FacturaAbiertaRow {
   monto_pagado: number;
 }
 
+export interface DeudaCliente {
+  readonly deuda: Pesos;
+  readonly facturas: number;
+}
+
 interface DeudaClienteRow {
   id_cliente: number;
   deuda: number;
+  facturas: number;
 }
 
 interface VentaExpedienteRow {
@@ -130,17 +136,17 @@ export class CarteraRepository {
     return rows.length > 0;
   }
 
-  async deudasPorCliente(db: SqlDatabase | SqlExecutor): Promise<ReadonlyMap<number, Pesos>> {
+  async deudasPorCliente(db: SqlDatabase | SqlExecutor): Promise<ReadonlyMap<number, DeudaCliente>> {
     const rows = await db.query<DeudaClienteRow>(
-      `SELECT id_cliente, SUM(saldo_pendiente) AS deuda
+      `SELECT id_cliente, SUM(saldo_pendiente) AS deuda, COUNT(*) AS facturas
        FROM ventas
        WHERE saldo_pendiente > 0
        GROUP BY id_cliente;`,
     );
 
-    const mapa = new Map<number, Pesos>();
+    const mapa = new Map<number, DeudaCliente>();
     for (const row of rows) {
-      mapa.set(row.id_cliente, pesos(row.deuda));
+      mapa.set(row.id_cliente, { deuda: pesos(row.deuda), facturas: row.facturas });
     }
     return mapa;
   }

@@ -2,11 +2,11 @@ import { inject, Injectable } from '@angular/core';
 
 import { pesos, sumarPesos, type Pesos } from '../../shared/domain';
 import { SQL_DATABASE } from '../../shared/infrastructure/sqlite/sql-database.token';
-import { CarteraRepository } from '../infrastructure/cartera.repository';
+import { CarteraRepository, type DeudaCliente } from '../infrastructure/cartera.repository';
 
 export interface ResumenCartera {
   readonly total: Pesos;
-  readonly porCliente: ReadonlyMap<number, Pesos>;
+  readonly porCliente: ReadonlyMap<number, DeudaCliente>;
 }
 
 @Injectable({
@@ -19,7 +19,7 @@ export class ConsultarCartera {
   async consultar(): Promise<ResumenCartera> {
     const porCliente = await this.cartera.deudasPorCliente(this.db);
     let total = pesos(0);
-    for (const deuda of porCliente.values()) {
+    for (const { deuda } of porCliente.values()) {
       total = sumarPesos(total, deuda);
     }
     return { total, porCliente };

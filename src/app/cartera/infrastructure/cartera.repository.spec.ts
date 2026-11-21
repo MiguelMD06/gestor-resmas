@@ -97,12 +97,48 @@ describe('CarteraRepository', () => {
     expect(await repo.facturasAbiertas(db, idBeto)).toEqual([]);
   });
 
-  it('aggregates debts per customer excluding customers without debt', async () => {
+  it('aggregates debts and open invoice counts per customer excluding customers without debt, paid-only customers, and Mostrador (C1)', async () => {
+    const carlaRes = await db.run(
+      `INSERT INTO clientes (nombre, telefono, es_mostrador, fecha_registro) VALUES ('Carla', '3003334455', 0, ?);`,
+      [fechaSetup],
+    );
+    const idCarla = carlaRes.lastInsertId!;
+
+    const pagadoRes = await db.run(
+      `INSERT INTO clientes (nombre, telefono, es_mostrador, fecha_registro) VALUES ('Diana', '3004445566', 0, ?);`,
+      [fechaSetup],
+    );
+    const idDiana = pagadoRes.lastInsertId!;
+
+    const mostradorRows = await db.query<{ id_cliente: number }>(
+      `SELECT id_cliente FROM clientes WHERE es_mostrador = 1;`,
+    );
+    const idMostrador = mostradorRows[0].id_cliente;
+
+    await db.run(
+      `INSERT INTO ventas (id_cliente, fecha_venta, total_venta, costo_total_base, monto_pagado, saldo_pendiente, estado_pago)
+       VALUES (?, ?, 22000, 15000, 0, 22000, 'PENDIENTE');`,
+      [idCarla, fechaF2],
+    );
+    await db.run(
+      `INSERT INTO ventas (id_cliente, fecha_venta, total_venta, costo_total_base, monto_pagado, saldo_pendiente, estado_pago)
+       VALUES (?, ?, 15000, 10000, 15000, 0, 'PAGADA');`,
+      [idDiana, fechaF2],
+    );
+    await db.run(
+      `INSERT INTO ventas (id_cliente, fecha_venta, total_venta, costo_total_base, monto_pagado, saldo_pendiente, estado_pago)
+       VALUES (?, ?, 15000, 10000, 15000, 0, 'PAGADA');`,
+      [idMostrador, fechaF2],
+    );
+
     const deudas = await repo.deudasPorCliente(db);
 
-    expect(deudas.size).toBe(1);
-    expect(deudas.get(idAna)).toBe(40000);
+    expect(deudas.size).toBe(2);
+    expect(deudas.get(idAna)).toEqual({ deuda: pesos(40000), facturas: 2 });
+    expect(deudas.get(idCarla)).toEqual({ deuda: pesos(22000), facturas: 1 });
     expect(deudas.has(idBeto)).toBe(false);
+    expect(deudas.has(idDiana)).toBe(false);
+    expect(deudas.has(idMostrador)).toBe(false);
   });
 
   it('applies payment atomically: rejects exceeding balance, settles at exact balance, marks PARCIAL otherwise (C15)', async () => {

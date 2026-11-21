@@ -24,6 +24,7 @@ export const MENSAJES_ERROR: Record<CodigoRegla, string> = {
   MOSTRADOR_SOLO_CONTADO: 'Las ventas a Mostrador solo pueden ser de contado',
   FECHA_FUTURA: 'La fecha no puede ser futura',
   VENTA_ANTERIOR_A_COMPRA: 'La venta no puede ser anterior a la compra del lote',
+  ABONO_ANTERIOR_A_FACTURA: 'La fecha del abono es anterior a una factura que paga',
 };
 
 export const MENSAJE_ERROR_GENERICO = 'Ocurrió un error inesperado';

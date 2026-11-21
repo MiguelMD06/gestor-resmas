@@ -1,0 +1,18 @@
+[MODO EJECUTOR]
+
+# Hallazgos de la verificación (ronda 1)
+
+Corrige solo esto. Archivos permitidos: `src/app/cartera/ui/**`, `src/app/shared/ui/estilos/**`. No modifiques `src/verificacion/b4-2`.
+
+## Criterios que no se cumplen
+- C10: Ejecutado en src/verificacion/b4-2/b4-2.verificacion.spec.ts ("C10 & C12 REAL IONIC DISMISS CHECK"): aunque las solicitudes tienen la forma exacta, al simular el comportamiento real de Ionic donde modalCtrl.dismiss() evalúa canDismiss(data, role), canDismiss bloquea el cierre (canDismissBlockedCount = 1) porque abono.modal.ts:815 exige !resumenGuardando mientras resumen-abono.modal.ts:389 llama dismiss(..., ROL_GUARDADO) antes de que finally (línea 397) ejecute alCambiarGuardando(false).
+- C12: Ejecutado en src/verificacion/b4-2/b4-2.verificacion.spec.ts: durante el guardado se muestra "Guardando…", Aceptar y Volver a editar tienen disabled=true y aria-disabled="true", canDismiss devuelve false y el modal padre deshabilita sus controles; pero falla al cerrar tras guardar por el bloqueo de canDismiss en C10 y además input-monto-pagar-todo no tiene aria-disabled="true" mientras guardando() es true.
+- C16: Ejecutado en src/verificacion/b4-2/b4-2.verificacion.spec.ts (línea 647-650) y revisión de abono.modal.ts: los campos tienen etiquetas visibles ("Monto del abono", "Medio de pago", "Fecha del abono"), los segmentos tienen aria-label/aria-labelledby y no hay botones de solo ícono; sin embargo, input-monto-pagar-todo (ion-input en abono.modal.ts:147-158) tiene [disabled]="guardando()" sin [attr.aria-disabled], devolviendo getAttribute('aria-disabled') === null cuando guardando() es true.
+
+## Hallazgos bloqueantes
+- `src/app/cartera/ui/abono.modal.ts:814` (C10): canDismiss del modal de resumen (líneas 814-815) exige `!resumenGuardando && (role === ROL_GUARDADO || role === ROL_CANCELAR)`. En resumen-abono.modal.ts:389, `aceptar()` llama `await this.modalCtrl.dismiss({ guardado: true }, ROL_GUARDADO)` dentro del `try`, antes de que `finally` (línea 397) ejecute `this.alCambiarGuardando?.(false)`. En Ionic real (`@ionic/core` ion-modal.dismiss), `dismiss()` invoca `canDismiss` antes de cerrar; como `resumenGuardando` sigue en `true`, `canDismiss` devuelve `false` y el resumen queda atrapado abierto tras guardar con ambos botones deshabilitados permanentemente. Reproducción: test "C10 & C12 REAL IONIC DISMISS CHECK" en src/verificacion/b4-2/b4-2.verificacion.spec.ts.
+- `src/app/cartera/ui/abono.modal.ts:155` (C16): En modo "Pagar todo" (`LIQUIDACION_TOTAL`), el campo `input-monto-pagar-todo` (`ion-input`, líneas 147-158) tiene `[disabled]="guardando()"` pero omite `[attr.aria-disabled]="guardando() ? 'true' : null"`, por lo que cuando `guardando()` es `true` (C12/C16) su atributo `aria-disabled` es `null`. Reproducción: test "C11, C12, C13, C14, C16" en src/verificacion/b4-2/b4-2.verificacion.spec.ts.
+
+## Detalles (corrige solo si es barato)
+- `src/app/cartera/ui/abono.modal.spec.ts:278` (C6): La prueba de C6 (línea 240) comprueba `component.maxFecha()` directamente sin abrir el selector de fecha ni verificar el enlace en `<app-hoja-fecha>`, y la prueba de C10/C12 (líneas 278-330) no invoca `callArg.canDismiss`, lo que dejó pasar el bloqueo de cierre del resumen tras guardar.
+- `src/app/cartera/ui/abono.modal.ts:762` (C12): `AbonoModalComponent` bloquea `cancelar()` y deshabilita controles con `guardando()`, pero no configura `canDismiss` en su propio `ion-modal` anfitrión (dependerá de que B4.3 pase `canDismiss` al abrirlo desde el expediente o de que `AbonoModalComponent` lo configure sobre su host `ion-modal`).

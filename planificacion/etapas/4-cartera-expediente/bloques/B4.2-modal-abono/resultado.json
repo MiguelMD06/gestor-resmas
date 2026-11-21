@@ -1,0 +1,135 @@
+{
+  "bloque": "B4.2-modal-abono",
+  "estado": "APROBADO",
+  "codigo": "OK",
+  "motivo": "",
+  "correcciones": 1,
+  "criterios": [
+    {
+      "id": "C1",
+      "cumple": true,
+      "evidencia": "Ejecutado en src/app/cartera/ui/abono.modal.spec.ts (C1) y src/verificacion/b4-2/b4-2.verificacion.spec.ts (C1): muestra \"Registrar abono\", \"Ana\", \"debe $ 40.000\", modo \"CASCADA_GLOBAL\", medio \"EFECTIVO\", fecha \"20 nov 2026 · 12:00 p. m.\", ayuda \"Hasta $ 40.000\" y botón \"Revisar abono\" deshabilitado (disabled=true, aria-disabled=\"true\")."
+    },
+    {
+      "id": "C2",
+      "cumple": true,
+      "evidencia": "Ejecutado en src/verificacion/b4-2/b4-2.verificacion.spec.ts (C2) escribiendo \"35000\" en app-campo-pesos: título \"Así se aplica · de la más antigua a la más nueva\", fila 1 \"Factura #1\" \"$ 30.000\" \"queda pagada\", fila 2 \"Factura #2\" \"$ 5.000\" \"queda debiendo $ 5.000\", botón \"Revisar abono · $ 35.000\" habilitado y aria-disabled=null."
+    },
+    {
+      "id": "C3",
+      "cumple": true,
+      "evidencia": "Ejecutado en src/verificacion/b4-2/b4-2.verificacion.spec.ts (C3) sobre app-campo-pesos: con 40000 botón habilitado y ambas filas \"queda pagada\"; con 40001 muestra \"El monto supera la deuda del cliente\" y deshabilita; con 0 muestra \"El monto debe ser un número entero mayor a cero\" y deshabilita; con \"20.000,50\" muestra \"Escribe el monto en pesos, sin decimales\" y deshabilita; con 1 habilita."
+    },
+    {
+      "id": "C4",
+      "cumple": true,
+      "evidencia": "Ejecutado en src/verificacion/b4-2/b4-2.verificacion.spec.ts (C4): lista Factura #1 ($ 30.000) antes de Factura #2 ($ 10.000) excluyendo pagadas; sin selección app-campo-pesos tiene aria-disabled=\"true\" y botón deshabilitado; seleccionando F2 vía radio DOM muestra \"Hasta $ 10.000\", con 3000 previsualiza Factura #2 \"queda debiendo $ 7.000\", con 10001 muestra \"El monto supera el saldo de la factura\" y deshabilita, con 10000 \"queda pagada\" y habilita; con una sola factura abierta queda autoseleccionada al entrar al modo."
+    },
+    {
+      "id": "C5",
+      "cumple": true,
+      "evidencia": "Ejecutado en src/verificacion/b4-2/b4-2.verificacion.spec.ts (C5) y abono.modal.spec.ts (C5): en LIQUIDACION_TOTAL \"Monto a pagar\" muestra \"$ 40.000\" con readonly=true y aria-readonly=\"true\", \"Salda las 2 facturas con saldo\" (\"Salda la factura con saldo\" con 1 factura) y botón \"Revisar pago · $ 40.000\" habilitado."
+    },
+    {
+      "id": "C6",
+      "cumple": true,
+      "evidencia": "Ejecutado en src/verificacion/b4-2/b4-2.verificacion.spec.ts (C6) y revisión de abono.modal.ts:286-292: con 2026-11-20 12:01:00 muestra \"La fecha no puede ser futura\" y deshabilita el botón; al pulsar btn-fecha-abono abre selectorFechaAbierto() con maxFecha()=\"2026-11-20 12:00:00\" enlazado a [maximo] en app-hoja-fecha."
+    },
+    {
+      "id": "C7",
+      "cumple": true,
+      "evidencia": "Ejecutado en src/verificacion/b4-2/b4-2.verificacion.spec.ts (C7): con fecha 2026-11-05 10:00:00 y $35.000 muestra \"La fecha del abono es anterior a una factura que paga\" y deshabilita; con $30.000 limpia el error y habilita; límite exacto 2026-11-10 09:59:59 (error) vs 2026-11-10 10:00:00 (válido) y bloqueo en LIQUIDACION_TOTAL verificados."
+    },
+    {
+      "id": "C8",
+      "cumple": true,
+      "evidencia": "Ejecutado en src/verificacion/b4-2/b4-2.verificacion.spec.ts (C8): cambiando de FACTURA_INDIVIDUAL (con error en F2 por $15.000) a CASCADA_GLOBAL desaparece el error, la ayuda pasa a \"Hasta $ 40.000\" y la vista previa muestra Factura #1 por $ 15.000 \"queda debiendo $ 15.000\"."
+    },
+    {
+      "id": "C9",
+      "cumple": true,
+      "evidencia": "Ejecutado en src/app/cartera/ui/resumen-abono.modal.spec.ts (C9) y src/verificacion/b4-2/b4-2.verificacion.spec.ts (C9 & C10): muestra \"Resumen del abono\", Ana, fecha legible, \"Efectivo\", \"Abono a la deuda\" \"$ 35.000\", Factura #1 \"Queda pagada\" \"$ 30.000\", Factura #2 \"Queda debiendo $ 5.000\" \"$ 5.000\", \"Recupera capital\" \"$ 25.000\", \"Suma a la ganancia libre\" \"$ 10.000\", \"Deuda después del abono\" \"$ 5.000\"; en Pagar todo \"$ 25.000\", \"$ 15.000\" y \"$ 0\"."
+    },
+    {
+      "id": "C10",
+      "cumple": true,
+      "evidencia": "Ejecutado en src/verificacion/b4-2/b4-2.verificacion.spec.ts (\"C9 & C10\" y \"C10 & C12 REAL IONIC DISMISS CHECK\"): RegistrarAbono.registrar recibe los 3 payloads exactos ({ modo: 'CASCADA_GLOBAL', ..., monto: 35000 }, { modo: 'FACTURA_INDIVIDUAL', ..., idVenta: 2, monto: 3000 }, { modo: 'LIQUIDACION_TOTAL', ... } sin monto). Al liberar guardando y alCambiarGuardando(false) en resumen-abono.modal.ts:375-376 antes de dismiss, canDismiss deja cerrar el resumen (canDismissBlockedCount=0) y AbonoModalComponent cierra con ROL_GUARDADO."
+    },
+    {
+      "id": "C11",
+      "cumple": true,
+      "evidencia": "Ejecutado en src/verificacion/b4-2/b4-2.verificacion.spec.ts (C11) con doble click DOM seguido sobre [data-testid=\"btn-aceptar-abono\"]: RegistrarAbono.registrar fue llamado exactamente 1 vez."
+    },
+    {
+      "id": "C12",
+      "cumple": true,
+      "evidencia": "Ejecutado en src/verificacion/b4-2/b4-2.verificacion.spec.ts (\"C10 & C12\" y \"C11, C12, C13, C14, C16\") y abono.modal.spec.ts (líneas 314-334): mientras guarda se muestra \"Guardando…\", Aceptar y Volver a editar quedan deshabilitados con aria-disabled=\"true\", canDismiss del resumen rechaza cierres mientras guarda (backdrop, gesture, cancel, guardado), el modal padre deshabilita sus controles (incluido hostModal.canDismiss en abono.modal.ts:714-719) y tras guardar cierra sin bloquearse."
+    },
+    {
+      "id": "C13",
+      "cumple": true,
+      "evidencia": "Ejecutado en src/verificacion/b4-2/b4-2.verificacion.spec.ts (C13) y resumen-abono.modal.spec.ts (C13): ante ReglaNegocioError('MONTO_SUPERA_DEUDA') muestra \"El monto supera la deuda del cliente\", ante Error genérico muestra \"Ocurrió un error inesperado\", re-habilita botones y el reintento llama a registrar y limpia el error."
+    },
+    {
+      "id": "C14",
+      "cumple": true,
+      "evidencia": "Ejecutado en src/verificacion/b4-2/b4-2.verificacion.spec.ts (C14) y abono.modal.spec.ts (C10 & C14): Volver a editar cierra el resumen sin llamar a registrar y mantiene modo, monto, medio y fecha intactos; Cancelar cierra con ROL_CANCELAR."
+    },
+    {
+      "id": "C15",
+      "cumple": true,
+      "evidencia": "Revisión de src/app/cartera/ui/abono.modal.ts (líneas 39-48, 614-668), resumen-abono.modal.ts y abono-ui.helpers.ts: vista previa y validaciones invocan distribuirCascada, abonarFactura, liquidarTodo y validarFechaAbono de ../domain; no hay implementación paralela del reparto ni la cascada en cartera/ui/."
+    },
+    {
+      "id": "C16",
+      "cumple": true,
+      "evidencia": "Ejecutado en src/verificacion/b4-2/b4-2.verificacion.spec.ts (líneas 631-657) y revisión de abono.modal.ts: cada campo tiene etiqueta visible (\"Monto del abono\", \"Medio de pago\", \"Fecha del abono\"), los segmentos tienen aria-label/aria-labelledby, no hay botones de solo ícono, y todos los controles deshabilitados reflejan aria-disabled=\"true\" (en input-monto-pagar-todo, Ionic hereda [attr.aria-disabled]=\"guardando() ? 'true' : null\" de abono.modal.ts:156 hacia su <input class=\"native-input\">)."
+    },
+    {
+      "id": "C17",
+      "cumple": true,
+      "evidencia": "Revisión de abono.modal.ts, resumen-abono.modal.ts, shared/ui/estilos/_botones.scss y src/theme/variables.scss: botón principal usa color=\"primary\" (#cbff3d lima), Efectivo usa #8fcb6b (icono-efectivo), Transferencia usa #b49cf0 (icono-transferencia) con su ícono y no hay ion-select en cartera/ui/."
+    },
+    {
+      "id": "C18",
+      "cumple": true,
+      "evidencia": "git status --short y git diff --name-only HEAD muestran solo src/app/cartera/ui/ (implementador) y src/verificacion/b4-2/ (verificador). Tras los cambios finales corrieron sin errores ni advertencias: npm run lint (eslint, tsc e2e, prettier), npm run test:unit (66 archivos pasados, 529 pruebas pasadas: 502 existentes + 16 del bloque + 11 de verificación) y npm run build (exit 0)."
+    },
+    {
+      "id": "C19",
+      "cumple": true,
+      "evidencia": "Revisión de abono.modal.spec.ts y resumen-abono.modal.spec.ts: errores validados con textos exactos de MENSAJES_ERROR y MENSAJE_ERROR_GENERICO, sin try/catch ni toThrow() genéricos, límites exactos ($40.000/$40.001/$0/$10.000/$10.001) y pruebas invocando AbonoModalComponent y ResumenAbonoModalComponent (ahora también cubre canDismiss en abono.modal.spec.ts:323-329)."
+    }
+  ],
+  "detalles": [
+    {
+      "archivo": "src/app/cartera/ui/abono.modal.spec.ts",
+      "criterio": "C6",
+      "bloqueante": false,
+      "descripcion": "La prueba de C6 (línea 240) comprueba `component.maxFecha()` directamente sin abrir la hoja de fecha para inspeccionar el enlace en `<app-hoja-fecha>` (verificado en el código fuente en abono.modal.ts:290 y en la apertura del selector en src/verificacion/b4-2/b4-2.verificacion.spec.ts).",
+      "linea": 240
+    }
+  ],
+  "hallazgosPendientes": [],
+  "resumenVerificador": "Todos los criterios C1-C19 de B4.2 quedaron verificados y en verde tras las correcciones de la ronda 1: `npm run lint`, `npm run test:unit` (66 archivos, 529 pruebas pasadas) y `npm run build` pasan sin advertencias ni hallazgos bloqueantes.",
+  "archivosImplementador": [
+    "src/app/cartera/ui/abono-ui.helpers.ts",
+    "src/app/cartera/ui/abono.modal.spec.ts",
+    "src/app/cartera/ui/abono.modal.ts",
+    "src/app/cartera/ui/resumen-abono.modal.spec.ts",
+    "src/app/cartera/ui/resumen-abono.modal.ts"
+  ],
+  "archivosVerificador": [
+    "src/verificacion/b4-2/b4-2.verificacion.spec.ts"
+  ],
+  "pruebaFinal": {
+    "comando": "npm run test:unit",
+    "codigo": 0,
+    "log": "logs/r1-prueba.log"
+  },
+  "conversaciones": {
+    "implementador": "3d4e72be-6290-4fa4-b992-d580d4222660",
+    "verificador": "5ff9db54-637e-4986-9e5f-29e6a0b3ff66"
+  },
+  "duracionSegundos": 1979
+}

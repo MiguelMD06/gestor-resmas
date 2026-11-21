@@ -21,7 +21,8 @@ export type CodigoRegla =
   | 'ABONO_INICIAL_INVALIDO' // initial payment outside 1..total - 1
   | 'MOSTRADOR_SOLO_CONTADO' // counter customer sale on credit or with an initial payment
   | 'FECHA_FUTURA' // sale, purchase or contribution date after the current clock time (R-13)
-  | 'VENTA_ANTERIOR_A_COMPRA'; // sale date before the latest lot purchase date
+  | 'VENTA_ANTERIOR_A_COMPRA' // sale date before the latest lot purchase date
+  | 'ABONO_ANTERIOR_A_FACTURA'; // payment date before an invoice it pays
 
 export class ReglaNegocioError extends Error {
   constructor(

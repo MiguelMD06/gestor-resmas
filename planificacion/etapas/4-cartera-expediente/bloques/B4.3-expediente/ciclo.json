@@ -11,6 +11,8 @@
     "src/app/clientes/ui/clientes.page.spec.ts",
     "src/app/cartera/ui/abono.modal.ts",
     "src/app/cartera/ui/abono.modal.spec.ts",
+    "src/app/cartera/ui/resumen-abono.modal.ts",
+    "src/app/cartera/ui/resumen-abono.modal.spec.ts",
     "src/app/shell/tabs.routes.ts",
     "src/app/shared/ui/estilos/**",
     "src/verificacion/b4-1/b4-1.verificacion.spec.ts",

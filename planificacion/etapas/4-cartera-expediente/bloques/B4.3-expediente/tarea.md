@@ -11,13 +11,14 @@ Crear la pantalla del expediente de un cliente, según los mockups aprobados `pl
 - `src/app/clientes/ui/expediente.page.ts` y `src/app/clientes/ui/expediente.page.spec.ts` (nuevos)
 - `src/app/clientes/ui/expediente-ui.helpers.ts` y su `.spec.ts` (nuevos, si los necesitas)
 - `src/app/clientes/ui/clientes.page.ts` y `src/app/clientes/ui/clientes.page.spec.ts` (solo la navegación al tocar un cliente)
-- `src/app/cartera/ui/abono.modal.ts` y `src/app/cartera/ui/abono.modal.spec.ts` (solo la entrada `idVentaInicial`)
+- `src/app/cartera/ui/abono.modal.ts` y `src/app/cartera/ui/abono.modal.spec.ts` (solo la entrada `idVentaInicial` y el punto 12)
+- `src/app/cartera/ui/resumen-abono.modal.ts` y `src/app/cartera/ui/resumen-abono.modal.spec.ts` (solo el punto 12)
 - `src/app/shell/tabs.routes.ts` (solo la ruta del expediente)
 - `src/app/shared/ui/estilos/**` (solo piezas nuevas)
 - `src/verificacion/b4-1/b4-1.verificacion.spec.ts` (solo las pruebas que esperan que tocar un cliente abra el modal de editar)
 - `e2e/clientes.spec.ts` y `e2e/etapa-4.acceptance.spec.ts` (nuevo)
 
-**Prohibidas:** todo lo demás, en especial `src/app/cartera/application/**`, `src/app/cartera/domain/**`, `src/app/cartera/infrastructure/**`, `src/app/cartera/ui/resumen-abono.modal.ts`, `src/app/clientes/ui/cliente.modal.ts` (se usa tal cual), `src/app/clientes/application/**`, `src/app/ventas/**` y `src/verificacion/b4-3/**` (carpeta del verificador).
+**Prohibidas:** todo lo demás, en especial `src/app/cartera/application/**`, `src/app/cartera/domain/**`, `src/app/cartera/infrastructure/**`, `src/app/clientes/ui/cliente.modal.ts` (se usa tal cual), `src/app/clientes/application/**`, `src/app/ventas/**` y `src/verificacion/b4-3/**` (carpeta del verificador).
 
 ## Specs que cubre (citas textuales del plan)
 
@@ -54,6 +55,10 @@ Crear la pantalla del expediente de un cliente, según los mockups aprobados `pl
 9. **Estados** (regla 4), según `ClientesEstados` (sección Expediente): cargando (indicador y botones deshabilitados); sin facturas: «Este cliente todavía no tiene compras»; sin abonos: un estado vacío en la pestaña Abonos; error: "Ocurrió un error inesperado" (el mismo texto que el directorio) con **Volver** y **Reintentar**. Un error nunca se muestra como "sin compras". Con `CLIENTE_INEXISTENTE` (por ejemplo, la URL de un id que no existe), el error con **Volver**.
 10. Recarga el expediente en cada `ionViewWillEnter`, y descarta respuestas viejas con un id de petición (regla 3).
 11. **Accesibilidad** (regla 10): botones de solo ícono con `aria-label` ("Volver", "Editar cliente"), segmento con etiqueta y deshabilitados con `aria-disabled`.
+12. **Arreglos de la revisión del B4.2** (regla 3 de `CLAUDE.md`: un modal no se cierra mientras procesa), cada uno con su prueba:
+    - `abono.modal.ts:770`: `cancelar()` (y el botón **Cancelar**, deshabilitado) tampoco actúa mientras `abriendoResumen()` es verdadero.
+    - `resumen-abono.modal.ts:355`: `volverAEditar()` tiene su propia guarda contra el doble toque (un segundo toque no hace nada mientras se cierra) y maneja el error de `dismiss`, sin dejar una promesa rechazada.
+    - `abono.modal.ts:828-842`: si el abono ya se guardó y falla el `dismiss` del modal de abono, **no** se muestra un toast de error (el pago ya quedó registrado); el error del toast solo aparece si falló algo antes de guardar. Agrega la prueba del camino en que falla `modalCtrl.create` o `present` del resumen.
 
 Agrega, como mínimo, estos `data-testid`: `expediente-nombre`, `expediente-deuda-total`, `expediente-capital`, `expediente-ganancia`, `expediente-facturas-con-saldo`, `btn-registrar-abono`, `btn-pagar-todo`, `btn-editar-cliente`, `segment-facturas`, `segment-abonos`, `tarjeta-factura`, `estado-factura`, `btn-abonar-factura`, `tarjeta-abono`, `aplicacion-abono`, `mensaje-sin-compras`; y reutiliza `indicador-carga`, `estado-error`, `mensaje-error-carga` y `btn-reintentar`.
 

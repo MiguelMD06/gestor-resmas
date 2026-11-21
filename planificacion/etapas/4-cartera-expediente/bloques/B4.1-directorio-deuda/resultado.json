@@ -1,0 +1,128 @@
+{
+  "bloque": "B4.1-directorio-deuda",
+  "estado": "ESCALADO",
+  "codigo": "NO_CONVERGE",
+  "motivo": "no aprobo tras 2 correcciones",
+  "correcciones": 2,
+  "criterios": [
+    {
+      "id": "C1",
+      "cumple": true,
+      "evidencia": "Reverificado con `npm run test:unit` (`b4-1.verificacion.spec.ts`, `cartera.repository.spec.ts`, `consultar-cartera.spec.ts` en verde): contra `SqlJsDatabase` con `MIGRACIONES`, `deudasPorCliente` ejecutó 1 `db.query` (`toHaveBeenCalledTimes(1)`) y devolvió Ana `{ deuda: 40000, facturas: 2 }` y Carla `{ deuda: 22000, facturas: 1 }`, excluyendo Beto, Diana y Mostrador; `ConsultarCartera.consultar()` devolvió `total: 62000` (y `62001` con `saldo_pendiente = 1`)."
+    },
+    {
+      "id": "C2",
+      "cumple": true,
+      "evidencia": "Reverificado con `b4-1.verificacion.spec.ts` y `clientes.page.spec.ts` dentro de `npm run test:unit`: muestra `\"3 clientes\"` en `cantidad-clientes`, `\"Por cobrar\"` con `\"$ 62.000\"` en `total-por-cobrar` y `\"2 clientes con deuda\"` en `cantidad-con-deuda` (y `\"1 cliente con deuda\"` con un deudor o cuando otra entrada tiene `deuda: 0`)."
+    },
+    {
+      "id": "C3",
+      "cumple": true,
+      "evidencia": "Reverificado con `b4-1.verificacion.spec.ts` y `clientes.page.spec.ts` en `npm run test:unit` (plantilla y CSS sin cambios respecto a la captura real a 390 px): Ana muestra `\"$ 40.000\"` en rojo (`#ff6b6b`) en `deuda-cliente` y `\"2 facturas\"` en `facturas-cliente`; Carla `\"$ 22.000\"` y `\"1 factura\"`; Beto `\"Al día\"` en gris en `al-dia-cliente` sin monto; Mostrador no aparece."
+    },
+    {
+      "id": "C4",
+      "cumple": true,
+      "evidencia": "Reverificado con `b4-1.verificacion.spec.ts` y `clientes.page.spec.ts` en `npm run test:unit`: `\"Todos · 3\"` y `\"Con deuda · 2\"`; `\"Con deuda\"` deja Ana y Carla; combinado con búsqueda `\"an\"` deja solo Ana (`1 resultado`); volver a `\"Todos\"` restaura los tres."
+    },
+    {
+      "id": "C5",
+      "cumple": true,
+      "evidencia": "Reverificado con `b4-1.verificacion.spec.ts` y `clientes.page.spec.ts` en `npm run test:unit`: sin clientes muestra `\"Todavía no hay clientes\"` y `\"Agrega el primero con el botón +.\"`; búsqueda `\"zzz\"` muestra `\"No se encontraron clientes\"`; `\"Con deuda\"` solo con Beto muestra `\"Ningún cliente tiene deuda\"`."
+    },
+    {
+      "id": "C6",
+      "cumple": true,
+      "evidencia": "Reverificado con `b4-1.verificacion.spec.ts` y `clientes.page.spec.ts` en `npm run test:unit`: si falla `BuscarClientes` o `ConsultarCartera`, muestra `estado-error` con `\"Ocurrió un error inesperado\"` y `\"Reintentar\"`, sin `lista-clientes`, `al-dia-cliente` ni `mensaje-vacio`; al reintentar con carga restaurada muestra la lista con deudas."
+    },
+    {
+      "id": "C7",
+      "cumple": true,
+      "evidencia": "Reverificado con `b4-1.verificacion.spec.ts` y `clientes.page.spec.ts` en `npm run test:unit`: mientras carga se ve `indicador-carga`, `segment-filtro-clientes` tiene `disabled=true` y `aria-disabled=\"true\"`, y `searchbar-clientes` sigue habilitado (`disabled=false`, sin `aria-disabled`), conservando `\"an\"` al escribir durante la carga."
+    },
+    {
+      "id": "C8",
+      "cumple": true,
+      "evidencia": "Reverificado con `b4-1.verificacion.spec.ts` y `clientes.page.spec.ts` en `npm run test:unit`: al disparar `\"a\"` y luego `\"an\"`, la respuesta tardía (resuelta o rechazada) de `\"a\"` no pisa el resultado de `\"an\"`."
+    },
+    {
+      "id": "C9",
+      "cumple": true,
+      "evidencia": "Reverificado con `b4-1.verificacion.spec.ts` (con `RegistrarAbono` real sobre `SqlJsDatabase`) y `clientes.page.spec.ts`: tras liquidar a Carla y ejecutar `ionViewWillEnter()`, Carla pasa a `\"Al día\"` y `total-por-cobrar` baja a `\"$ 40.000\"`."
+    },
+    {
+      "id": "C10",
+      "cumple": true,
+      "evidencia": "Reverificado con `b4-1.verificacion.spec.ts`, `clientes.page.spec.ts` y `npx playwright test e2e/clientes.spec.ts` (2 passed): tocar un cliente abre `ClienteModalComponent` en modo edición y crear uno desde el FAB lo agrega como `\"Al día\"`."
+    },
+    {
+      "id": "C11",
+      "cumple": true,
+      "evidencia": "Reverificado con `b4-1.verificacion.spec.ts` y `clientes.page.spec.ts`: las filas con deuda tienen `aria-label=\"Debe $ 40.000 en 2 facturas\"` y `\"Debe $ 22.000 en 1 factura\"`, la fila al día `\"Al día\"`, y el segmento `aria-label=\"Filtrar clientes\"`."
+    },
+    {
+      "id": "C12",
+      "cumple": true,
+      "evidencia": "Reverificado ejecutando `npx playwright test e2e/clientes.spec.ts` (`EXIT_E2E=0`, 2 passed: 4.6s y 10.1s) y revisando `git diff e2e/clientes.spec.ts`: la prueba previa sigue intacta y en verde, y `C12` comprueba deuda, `\"Al día\"`, `\"$ 30.000\"` y filtro `\"Con deuda\"`."
+    },
+    {
+      "id": "C13",
+      "cumple": true,
+      "evidencia": "Verificado con `git diff --stat` que `clientes.page.ts` no tuvo cambios desde la ronda 2 (y misma plantilla/CSS que la captura real en Chromium a `390x844` con fondo `#000`, tarjetas `#0F1012`, rojo `#FF6B6B` solo en la deuda, `scrollWidth=390`, sin `<label>` flotante en el buscador)."
+    },
+    {
+      "id": "C14",
+      "cumple": false,
+      "evidencia": "`git status --short` confirma solo rutas permitidas tocadas y los 10 `data-testid` previos conservados; `npm run lint` (`EXIT_LINT=0`) y `npm run build` (`EXIT_BUILD=0`) pasaron sin advertencias; pero `npm run test:unit` sigue fallando (`EXIT_UNIT=1`: 499 passed, 3 failed de 502; 61 passed, 2 failed de 63 archivos) en `src/app/cartera/application/registrar-abono.spec.ts` (líneas 879 y 940) y `src/verificacion/b4-0/b4-0.verificacion.spec.ts` (línea 696)."
+    },
+    {
+      "id": "C15",
+      "cumple": true,
+      "evidencia": "Reverificado en `cartera.repository.spec.ts`, `consultar-cartera.spec.ts` y `clientes.page.spec.ts`: cada estado comprueba el texto exacto visible al usuario, los rechazos están acotados (`/Failed to apply payment/`), no hay `try/catch` para comprobar errores y los límites usan valores exactos."
+    }
+  ],
+  "detalles": [
+    {
+      "archivo": "src/app/clientes/ui/clientes.page.ts",
+      "criterio": "C13",
+      "bloqueante": false,
+      "descripcion": "Diferencia visual menor frente a `Clientes.dc.html`: el buscador usa `ion-searchbar` con `aria-label` y placeholder, sin la etiqueta flotante `<label>Buscar cliente</label>` sobre el borde superior del mockup.",
+      "linea": 77
+    }
+  ],
+  "hallazgosPendientes": [
+    {
+      "archivo": "src/app/cartera/application/registrar-abono.spec.ts",
+      "criterio": "C14",
+      "bloqueante": true,
+      "descripcion": "Sigue fallando `npm run test:unit`: las pruebas C13 (línea 879) y C14 (línea 940) esperan `expect(cartera.porCliente.get(idAna)).toBe(5000)`, pero `ConsultarCartera.consultar()` devuelve `{ deuda: 5000, facturas: 1 }`. Este archivo no está en las rutas permitidas del implementador en `instruccion.md` ni `hallazgos-r2.md`, por lo que requiere autorización del coordinador para actualizarlo (o ajustarlo desde coordinación). Reproducción: correr `npm run test:unit`.",
+      "linea": 879
+    },
+    {
+      "archivo": "src/verificacion/b4-0/b4-0.verificacion.spec.ts",
+      "criterio": "C14",
+      "bloqueante": true,
+      "descripcion": "Sigue fallando `npm run test:unit`: la prueba `C16-C18` (línea 696, y línea 756) espera `[[idAna, 40000]]` de `ConsultarCartera.porCliente`, y recibe `[[idAna, { deuda: 40000, facturas: 2 }]]`. Tampoco está en las rutas permitidas del implementador. Reproducción: correr `npm run test:unit`.",
+      "linea": 696
+    }
+  ],
+  "resumenVerificador": "No hubo cambios en el código desde la ronda 2 (`git diff --stat` sin diferencias nuevas); C1-C13, C15, `npm run lint`, `npm run build` y `e2e/clientes.spec.ts` pasan, pero el veredicto permanece en CAMBIOS porque `npm run test:unit` sigue fallando en las 3 pruebas de `registrar-abono.spec.ts` y `b4-0.verificacion.spec.ts` (C14), archivos fuera de las rutas permitidas del implementador.",
+  "archivosImplementador": [
+    "e2e/clientes.spec.ts",
+    "src/app/cartera/application/consultar-cartera.spec.ts",
+    "src/app/cartera/application/consultar-cartera.ts",
+    "src/app/cartera/infrastructure/cartera.repository.spec.ts",
+    "src/app/cartera/infrastructure/cartera.repository.ts",
+    "src/app/clientes/ui/clientes.page.spec.ts",
+    "src/app/clientes/ui/clientes.page.ts"
+  ],
+  "archivosVerificador": [
+    "src/verificacion/b4-1/b4-1.verificacion.spec.ts"
+  ],
+  "pruebaFinal": null,
+  "conversaciones": {
+    "implementador": "a991696a-2dfc-412c-a439-3dffd5cef404",
+    "verificador": "ff7485eb-1acc-4a93-9d37-b8be075d07a9"
+  },
+  "duracionSegundos": 1896
+}

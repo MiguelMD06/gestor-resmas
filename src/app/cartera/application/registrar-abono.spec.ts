@@ -876,7 +876,7 @@ describe('RegistrarAbono', () => {
     expect(cobros[0].total).toBe(1);
 
     const cartera = await consultarCartera.consultar();
-    expect(cartera.porCliente.get(idAna)).toBe(5000);
+    expect(cartera.porCliente.get(idAna)).toEqual({ deuda: 5000, facturas: 1 });
   });
 
   it('rolls back everything when LibroRepository.registrar fails and allows safe retry afterwards (C14)', async () => {
@@ -937,6 +937,6 @@ describe('RegistrarAbono', () => {
     });
 
     const cartera = await consultarCartera.consultar();
-    expect(cartera.porCliente.get(idAna)).toBe(5000);
+    expect(cartera.porCliente.get(idAna)).toEqual({ deuda: 5000, facturas: 1 });
   });
 });

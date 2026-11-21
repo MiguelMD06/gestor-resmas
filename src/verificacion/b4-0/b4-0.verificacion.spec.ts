@@ -693,7 +693,7 @@ describe('Verificacion independiente B4.0-cartera-abonos', () => {
     // C16 inicial: solo Ana
     const cInicial = await consultarCartera.consultar();
     expect(cInicial.total).toBe(40000);
-    expect(Array.from(cInicial.porCliente.entries())).toEqual([[idAna, 40000]]);
+    expect(Array.from(cInicial.porCliente.entries())).toEqual([[idAna, { deuda: 40000, facturas: 2 }]]);
 
     // Agrega segunda linea de OFICIO a F1 para probar multiples lineas en expediente
     await db.run(
@@ -753,7 +753,7 @@ describe('Verificacion independiente B4.0-cartera-abonos', () => {
 
     const cDespues = await consultarCartera.consultar();
     expect(cDespues.total).toBe(5000);
-    expect(Array.from(cDespues.porCliente.entries())).toEqual([[idAna, 5000]]);
+    expect(Array.from(cDespues.porCliente.entries())).toEqual([[idAna, { deuda: 5000, facturas: 1 }]]);
 
     const expDespues = await consultarExpediente.consultar(idAna);
     expect(expDespues.deuda).toEqual({ total: 5000, capital: 0, ganancia: 5000 });

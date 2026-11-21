@@ -1,0 +1,24 @@
+{
+  "repo": "C:/Users/MIGUEL ANGEL/Documents/PROYECTOS MIGUEL MEDINA DIAZ/gestor-resmas/.claude/worktrees/docs-revision-plan",
+  "implementador": "gemini-4-hydrogen-medium",
+  "verificador": "gemini-4-hydrogen-high",
+  "permitidos": [
+    "src/app/clientes/ui/clientes.page.ts",
+    "src/app/clientes/ui/clientes.page.spec.ts",
+    "src/app/cartera/application/consultar-cartera.ts",
+    "src/app/cartera/application/consultar-cartera.spec.ts",
+    "src/app/cartera/infrastructure/cartera.repository.ts",
+    "src/app/cartera/infrastructure/cartera.repository.spec.ts",
+    "src/app/shared/ui/estilos/**",
+    "e2e/clientes.spec.ts"
+  ],
+  "pruebasVerificador": "src/verificacion/b4-1",
+  "comandoPrueba": "npm run test:unit && npx playwright test e2e/clientes.spec.ts",
+  "ignorar": [
+    "planificacion/etapas/4-cartera-expediente/bloques/**",
+    "test-results/**",
+    "playwright-report/**"
+  ],
+  "maxCorrecciones": 2,
+  "timeoutMinutos": 60
+}

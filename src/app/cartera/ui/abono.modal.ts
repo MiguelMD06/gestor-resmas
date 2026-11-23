@@ -78,8 +78,8 @@ interface PreviewAplicacion {
           <ion-button
             color="secondary"
             class="abono-cancelar"
-            [disabled]="guardando()"
-            [attr.aria-disabled]="guardando() ? 'true' : null"
+            [disabled]="guardando() || abriendoResumen()"
+            [attr.aria-disabled]="guardando() || abriendoResumen() ? 'true' : null"
             (click)="cancelar()"
             data-testid="btn-cancelar-abono"
           >
@@ -536,6 +536,7 @@ export class AbonoModalComponent implements OnInit {
   }
 
   @Input() modoInicial: ModoAbono = 'CASCADA_GLOBAL';
+  @Input() idVentaInicial?: number;
 
   readonly modo = signal<ModoAbono>('CASCADA_GLOBAL');
   readonly monto = signal<number | null>(null);
@@ -708,14 +709,18 @@ export class AbonoModalComponent implements OnInit {
   ngOnInit(): void {
     this.modo.set(this.modoInicial ?? 'CASCADA_GLOBAL');
     const ordenadas = this.facturasOrdenadas();
-    if (ordenadas.length === 1) {
+    if (this.idVentaInicial !== undefined) {
+      if (ordenadas.some((f) => f.idVenta === this.idVentaInicial)) {
+        this.idVentaSeleccionada.set(this.idVentaInicial);
+      }
+    } else if (ordenadas.length === 1) {
       this.idVentaSeleccionada.set(ordenadas[0].idVenta);
     }
     const hostModal = this.elementRef.nativeElement.closest('ion-modal') as
       (HTMLElement & { canDismiss?: (data?: unknown, role?: string) => Promise<boolean> }) | null;
     if (hostModal) {
       hostModal.canDismiss = async (_data?: unknown, role?: string) =>
-        role === ROL_GUARDADO || (!this.guardando() && role === ROL_CANCELAR);
+        role === ROL_GUARDADO || (!this.guardando() && !this.abriendoResumen() && role === ROL_CANCELAR);
     }
   }
 
@@ -768,7 +773,7 @@ export class AbonoModalComponent implements OnInit {
   }
 
   async cancelar(): Promise<void> {
-    if (this.guardando()) {
+    if (this.guardando() || this.abriendoResumen()) {
       return;
     }
     await this.modalCtrl.dismiss(null, ROL_CANCELAR);
@@ -826,9 +831,17 @@ export class AbonoModalComponent implements OnInit {
       await modal.present();
       const { role } = await modal.onDidDismiss();
       if (role === ROL_GUARDADO || abonoGuardado) {
-        await this.modalCtrl.dismiss({ guardado: true }, ROL_GUARDADO);
+        abonoGuardado = true;
+        try {
+          await this.modalCtrl.dismiss({ guardado: true }, ROL_GUARDADO);
+        } catch {
+          // Payment already persisted; ignore modal dismiss failure
+        }
       }
     } catch (error: unknown) {
+      if (abonoGuardado) {
+        return;
+      }
       try {
         const toast = await this.toastCtrl.create({
           message: mensajeDeError(error),

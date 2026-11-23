@@ -1,0 +1,32 @@
+.app-cifras {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--app-borde, #1f2125);
+}
+
+.app-cifra {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.app-cifra-derecha {
+  align-items: flex-end;
+}
+
+.app-btn-texto {
+  height: 44px;
+  margin: -6px 0 -8px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ion-color-secondary, #5ec8f2);
+  font-size: 14px;
+  font-weight: 600;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}

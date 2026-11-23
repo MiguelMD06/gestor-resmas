@@ -1,6 +1,7 @@
 import type { ComponentFixture } from '@angular/core/testing';
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
+import { Router } from '@angular/router';
 import { ModalController, ToastController } from '@ionic/angular';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -19,6 +20,7 @@ describe('ClientesPage', () => {
   let component: ClientesPage;
   let mockBuscarClientes: { buscar: ReturnType<typeof vi.fn> };
   let mockConsultarCartera: { consultar: ReturnType<typeof vi.fn> };
+  let mockRouter: { navigate: ReturnType<typeof vi.fn> };
   let mockModalCtrl: { create: ReturnType<typeof vi.fn> };
   let mockToastCtrl: { create: ReturnType<typeof vi.fn> };
   let mockToastPresent: ReturnType<typeof vi.fn>;
@@ -64,6 +66,10 @@ describe('ClientesPage', () => {
       consultar: vi.fn().mockResolvedValue(carteraVacia),
     };
 
+    mockRouter = {
+      navigate: vi.fn().mockResolvedValue(true),
+    };
+
     mockModalCtrl = {
       create: vi.fn().mockResolvedValue({
         present: vi.fn().mockResolvedValue(undefined),
@@ -81,6 +87,7 @@ describe('ClientesPage', () => {
       providers: [
         { provide: BuscarClientes, useValue: mockBuscarClientes },
         { provide: ConsultarCartera, useValue: mockConsultarCartera },
+        { provide: Router, useValue: mockRouter },
         { provide: ModalController, useValue: mockModalCtrl },
         { provide: ToastController, useValue: mockToastCtrl },
       ],
@@ -143,24 +150,16 @@ describe('ClientesPage', () => {
     expect(spyCargar).toHaveBeenCalled();
   });
 
-  it('opens ClienteModalComponent in edit mode when tapping a customer and reloads when saved', async () => {
+  it('navigates to customer dossier when tapping a customer', async () => {
     await component.cargarClientes();
     fixture.detectChanges();
 
-    const spyCargar = vi.spyOn(component, 'cargarClientes');
     const item = fixture.debugElement.query(By.css('[data-testid="item-cliente"]'));
     item.triggerEventHandler('click', null);
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    expect(mockModalCtrl.create).toHaveBeenCalledWith({
-      component: ClienteModalComponent,
-      componentProps: { cliente: ana },
-      canDismiss: soloCierreExplicito,
-      cssClass: 'modal-sheet',
-      breakpoints: [0, 0.65, 0.9],
-      initialBreakpoint: 0.65,
-    });
-    expect(spyCargar).toHaveBeenCalled();
+    expect(mockModalCtrl.create).not.toHaveBeenCalled();
+    expect(mockRouter.navigate).toHaveBeenCalledWith(['/clientes', ana.idCliente]);
   });
 
   it('discards stale load responses when a newer request completes first', async () => {

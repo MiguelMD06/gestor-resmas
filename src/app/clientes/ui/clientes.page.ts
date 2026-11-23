@@ -1,4 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import {
   IonButton,
   IonContent,
@@ -159,7 +160,7 @@ type FiltroClientes = 'todos' | 'con_deuda';
                   button
                   [detail]="false"
                   class="fila-cliente"
-                  (click)="abrirModalEditar(cliente)"
+                  (click)="abrirExpediente(cliente)"
                   data-testid="item-cliente"
                 >
                   <div class="avatar-cliente" slot="start" aria-hidden="true" data-testid="avatar-cliente">
@@ -363,6 +364,7 @@ type FiltroClientes = 'todos' | 'con_deuda';
 export class ClientesPage {
   private readonly buscarClientes = inject(BuscarClientes);
   private readonly consultarCartera = inject(ConsultarCartera);
+  private readonly router = inject(Router);
   private readonly modalCtrl = inject(ModalController);
   private readonly toastCtrl = inject(ToastController);
 
@@ -476,8 +478,8 @@ export class ClientesPage {
     await this.abrirModalCliente();
   }
 
-  async abrirModalEditar(cliente: Cliente): Promise<void> {
-    await this.abrirModalCliente(cliente);
+  abrirExpediente(cliente: Cliente): void {
+    void this.router.navigate(['/clientes', cliente.idCliente]);
   }
 
   private async abrirModalCliente(cliente?: Cliente): Promise<void> {

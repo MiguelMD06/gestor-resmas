@@ -288,4 +288,30 @@ describe('ResumenAbonoModalComponent', () => {
     expect(mockRegistrarAbono.registrar).toHaveBeenCalledTimes(3);
     expect(mockModalCtrl.dismiss).toHaveBeenCalledWith({ guardado: true }, ROL_GUARDADO);
   });
+
+  it('C22: guards volverAEditar against double tap and handles dismiss failure without leaving buttons stuck', async () => {
+    let resolverDismiss: (val: boolean) => void = () => undefined;
+    mockModalCtrl.dismiss.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolverDismiss = resolve;
+      }),
+    );
+
+    const p1 = component.volverAEditar();
+    const p2 = component.volverAEditar();
+    expect(mockModalCtrl.dismiss).toHaveBeenCalledTimes(1);
+
+    resolverDismiss(true);
+    await Promise.all([p1, p2]);
+
+    // If dismiss rejects, no unhandled rejection and buttons remain usable
+    mockModalCtrl.dismiss.mockRejectedValueOnce(new Error('Dismiss error'));
+    await component.volverAEditar();
+    fixture.detectChanges();
+
+    const btnAceptar = fixture.debugElement.query(By.css('[data-testid="btn-aceptar-abono"]')).nativeElement;
+    const btnVolver = fixture.debugElement.query(By.css('[data-testid="btn-volver-editar"]')).nativeElement;
+    expect(Boolean(btnAceptar.disabled)).toBe(false);
+    expect(Boolean(btnVolver.disabled)).toBe(false);
+  });
 });

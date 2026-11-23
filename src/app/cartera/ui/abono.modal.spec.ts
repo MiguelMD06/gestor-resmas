@@ -8,7 +8,7 @@ import type { Cliente } from '../../clientes/domain/cliente';
 import { fechaHora, pesos } from '../../shared/domain';
 import { CLOCK } from '../../shared/infrastructure/clock/clock.token';
 import { ROL_CANCELAR, ROL_GUARDADO } from '../../shared/ui/formulario';
-import { MENSAJES_ERROR } from '../../shared/ui/mensajes-error';
+import { MENSAJE_ERROR_GENERICO, MENSAJES_ERROR } from '../../shared/ui/mensajes-error';
 import type { FacturaAbierta } from '../domain';
 
 import { AbonoModalComponent } from './abono.modal';
@@ -54,6 +54,7 @@ describe('AbonoModalComponent', () => {
   function crearModal(
     facturas: readonly FacturaAbierta[] = [f1, f2],
     modoInicial?: 'CASCADA_GLOBAL' | 'FACTURA_INDIVIDUAL' | 'LIQUIDACION_TOTAL',
+    idVentaInicial?: number,
   ): void {
     fixture = TestBed.createComponent(AbonoModalComponent);
     component = fixture.componentInstance;
@@ -61,6 +62,9 @@ describe('AbonoModalComponent', () => {
     component.facturas = facturas;
     if (modoInicial !== undefined) {
       component.modoInicial = modoInicial;
+    }
+    if (idVentaInicial !== undefined) {
+      component.idVentaInicial = idVentaInicial;
     }
     fixture.detectChanges();
   }
@@ -389,5 +393,69 @@ describe('AbonoModalComponent', () => {
     expect(fixture.debugElement.nativeElement.textContent).toContain('Monto del abono');
     expect(fixture.debugElement.nativeElement.textContent).toContain('Medio de pago');
     expect(fixture.debugElement.nativeElement.textContent).toContain('Fecha del abono');
+  });
+
+  it('C10: selects invoice matching idVentaInicial and leaves none when not among open invoices', () => {
+    crearModal([f1, f2], 'FACTURA_INDIVIDUAL', 2);
+
+    expect(component.idVentaSeleccionada()).toBe(2);
+    expect(fixture.debugElement.query(By.css('[data-testid="ayuda-monto"]')).nativeElement.textContent).toContain(
+      'Hasta $ 10.000',
+    );
+
+    crearModal([f1, f2], 'FACTURA_INDIVIDUAL', 999);
+    expect(component.idVentaSeleccionada()).toBeNull();
+    const btnRevisar = fixture.debugElement.query(By.css('[data-testid="btn-revisar-abono"]')).nativeElement;
+    expect(Boolean(btnRevisar.disabled)).toBe(true);
+  });
+
+  it('C21: disables Cancelar and blocks cancelar() while abriendoResumen is true', async () => {
+    let resolverCreate: (val: unknown) => void = () => undefined;
+    mockModalCtrl.create.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolverCreate = resolve;
+      }),
+    );
+
+    component.monto.set(5000);
+    fixture.detectChanges();
+
+    const apertura = component.abrirResumen();
+    fixture.detectChanges();
+
+    const btnCancelar = fixture.debugElement.query(By.css('[data-testid="btn-cancelar-abono"]')).nativeElement;
+    expect(Boolean(btnCancelar.disabled)).toBe(true);
+    expect(btnCancelar.getAttribute('aria-disabled')).toBe('true');
+
+    await component.cancelar();
+    expect(mockModalCtrl.dismiss).not.toHaveBeenCalled();
+
+    resolverCreate(mockResumenModal);
+    await apertura;
+  });
+
+  it('C23: shows error toast if summary create/present fails before saving, but not if dismiss fails after saving', async () => {
+    // Path 1: modalCtrl.create fails before saving -> toast shown and abriendoResumen reset
+    mockModalCtrl.create.mockRejectedValueOnce(new Error('Modal failed'));
+    component.monto.set(5000);
+    fixture.detectChanges();
+
+    await component.abrirResumen();
+    fixture.detectChanges();
+
+    expect(mockToastCtrl.create).toHaveBeenCalledWith(
+      expect.objectContaining({ message: MENSAJE_ERROR_GENERICO, color: 'danger' }),
+    );
+    expect(component.abriendoResumen()).toBe(false);
+    expect(component.puedeRevisar()).toBe(true);
+
+    // Path 2: summary saved (ROL_GUARDADO), then parent dismiss rejects -> no error toast shown
+    mockToastCtrl.create.mockClear();
+    mockResumenModal.onDidDismiss.mockResolvedValueOnce({ data: { guardado: true }, role: ROL_GUARDADO });
+    mockModalCtrl.dismiss.mockRejectedValueOnce(new Error('Dismiss failed'));
+
+    await component.abrirResumen();
+    expect(mockToastCtrl.create).not.toHaveBeenCalled();
+    expect(component.abriendoResumen()).toBe(false);
   });
 });

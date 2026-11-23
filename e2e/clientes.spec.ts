@@ -57,13 +57,23 @@ test.describe('Customers flow: create, search, edit and persistence', () => {
     await searchInput.fill('');
     await expect(items).toHaveCount(2);
 
-    // 4. Tap Ana Pérez to edit to "Ana María Pérez"
+    // 4. Tap Ana Pérez to open her dossier, then edit to "Ana María Pérez"
     await items.first().click();
+    await expect(page).toHaveURL(/\/clientes\/\d+$/);
+
+    const expedientePage = page.locator('app-expediente');
+    await expect(expedientePage.locator('[data-testid="expediente-nombre"]')).toHaveText('Ana Pérez');
+    await expedientePage.locator('[data-testid="btn-editar-cliente"]').click();
     await expect(modal.locator('ion-title', { hasText: 'Editar cliente' })).toBeVisible();
 
     await modal.locator('[data-testid="input-nombre"] input').fill('Ana María Pérez');
     await modal.locator('[data-testid="btn-guardar-cliente"]').click();
     await expect(modal).toHaveCount(0);
+
+    await expect(expedientePage.locator('[data-testid="expediente-nombre"]')).toHaveText('Ana María Pérez');
+
+    await expedientePage.locator('[data-testid="btn-volver"]').click();
+    await expect(page).toHaveURL(/\/clientes$/);
 
     await expect(items.first()).toContainText('Ana María Pérez');
 

@@ -1,0 +1,161 @@
+{
+  "bloque": "B4.3-expediente",
+  "estado": "APROBADO",
+  "codigo": "OK",
+  "motivo": "",
+  "correcciones": 0,
+  "criterios": [
+    {
+      "id": "C1",
+      "cumple": true,
+      "evidencia": "Verificado en src/app/clientes/ui/clientes.page.spec.ts (\"navigates to customer dossier when tapping a customer\"), src/app/clientes/ui/expediente.page.spec.ts (test C1, C2, C18), src/verificacion/b4-1/b4-1.verificacion.spec.ts (C10), e2e/clientes.spec.ts y src/app/clientes/ui/expediente.page.ts (btn-volver con aria-label=\"Volver\"). Todas las pruebas unitarias (551/551) y e2e (20/20) pasaron."
+    },
+    {
+      "id": "C2",
+      "cumple": true,
+      "evidencia": "Verificado en src/app/clientes/ui/expediente.page.spec.ts (C1/C2/C3) y en src/verificacion/b4-3/b4-3.verificacion.spec.ts con SQLite real (SqlJsDatabase + ConsultarExpediente): iniciales \"A\", \"Ana\", \"3104567890\", \"Sin celular\", \"Deuda total\" \"$ 40.000\", \"2 facturas con saldo\", \"Capital por recuperar\" \"$ 25.000\", \"Ganancia por cobrar\" \"$ 15.000\", \"Registrar abono\" y \"Pagar todo · $ 40.000\" habilitados."
+    },
+    {
+      "id": "C3",
+      "cumple": true,
+      "evidencia": "Verificado en src/app/clientes/ui/expediente.page.spec.ts (C2 & C3) y en src/verificacion/b4-3/b4-3.verificacion.spec.ts tras liquidar deuda con RegistrarAbono real: con una factura con saldo muestra \"1 factura con saldo\"; con deuda $0 muestra \"$ 0\" y \"Al día\", y btn-registrar-abono y btn-pagar-todo tienen disabled=true y aria-disabled=\"true\"."
+    },
+    {
+      "id": "C4",
+      "cumple": true,
+      "evidencia": "Verificado en src/app/clientes/ui/expediente.page.spec.ts (C4, C5, C6) y src/verificacion/b4-3/b4-3.verificacion.spec.ts: las pestañas muestran \"Facturas · 2\" y \"Abonos · 1\" (y \"Facturas · 3\" cuando hay 3 facturas), y las tarjetas se renderizan de la más nueva a la más antigua con fecha/hora formateada (ej. \"10 nov 2026 · 10:00 a. m.\")."
+    },
+    {
+      "id": "C5",
+      "cumple": true,
+      "evidencia": "Verificado en src/app/clientes/ui/expediente.page.spec.ts (clases app-chip-pagada, app-chip-parcial, app-chip-pendiente con textos \"Pagada\", \"Abonada parcialmente\", \"Pendiente\"), src/app/shared/ui/estilos/_chips.scss (#ff6b6b, #5ec8f2, #34d399) y captura en Playwright a 390 px (rgb(94, 200, 242) y rgb(255, 107, 107))."
+    },
+    {
+      "id": "C6",
+      "cumple": true,
+      "evidencia": "Verificado en src/app/clientes/ui/expediente.page.spec.ts (C4, C5, C6): F1 muestra \"2 × Carta · $ 15.000 c/u\" con \"$ 30.000\", \"Pagado $ 0 de $ 30.000\", \"Saldo $ 30.000\" y btn-abonar-factura; F2 muestra \"1 × Oficio · $ 15.000 c/u\", \"Pagado $ 5.000 de $ 15.000\" y \"Saldo $ 10.000\"; F3 PAGADA oculta Pagado, Saldo y botón, y muestra sus 2 líneas en orden."
+    },
+    {
+      "id": "C7",
+      "cumple": true,
+      "evidencia": "Verificado en src/app/clientes/ui/expediente-ui.helpers.spec.ts, src/app/clientes/ui/expediente.page.spec.ts (C7 & C8), src/verificacion/b4-3/b4-3.verificacion.spec.ts (incluyendo LIQUIDACION_TOTAL \"Pagar todo\"), src/app/shared/ui/estilos/_chips.scss (#8fcb6b y #b49cf0) y captura Playwright a 390 px (Efectivo rgb(143, 203, 107) con cash-outline)."
+    },
+    {
+      "id": "C8",
+      "cumple": true,
+      "evidencia": "Verificado en src/app/clientes/ui/expediente-ui.helpers.spec.ts, src/app/clientes/ui/expediente.page.spec.ts (C7 & C8) y src/verificacion/b4-3/b4-3.verificacion.spec.ts (incluyendo liquidación posterior de F2 y empate exacto de fecha entre dos abonos): \"· quedó pagada\" solo aparece en la aplicación del abono que completa el total de la factura, nunca en abonos anteriores ni posteriores."
+    },
+    {
+      "id": "C9",
+      "cumple": true,
+      "evidencia": "Verificado en src/app/clientes/ui/expediente.page.spec.ts (C9 & C11) y src/verificacion/b4-3/b4-3.verificacion.spec.ts (probando el 2.º botón \"Abonar a esta factura\" para F1, canDismiss: soloCierreExplicito, facturas abiertas ordenadas de la más antigua a la más nueva excluyendo PAGADA, y guarda contra doble toque en abrirAbono)."
+    },
+    {
+      "id": "C10",
+      "cumple": true,
+      "evidencia": "Verificado en src/app/cartera/ui/abono.modal.spec.ts (test C10 y las pruebas previas) y en src/verificacion/b4-3/b4-3.verificacion.spec.ts (incluyendo caso límite con 1 sola factura abierta e idVentaInicial=999 inexistente): con idVentaInicial=2 selecciona F2 y muestra \"Hasta $ 10.000\"; con idVentaInicial inexistente deja idVentaSeleccionada=null y btn-revisar-abono deshabilitado."
+    },
+    {
+      "id": "C11",
+      "cumple": true,
+      "evidencia": "Verificado en src/app/clientes/ui/expediente.page.spec.ts (C9 & C11): cerrar con ROL_CANCELAR mantiene 1 sola llamada a ConsultarExpediente.consultar; cerrar con ROL_GUARDADO dispara la recarga (2.ª llamada) y actualiza los datos mostrados."
+    },
+    {
+      "id": "C12",
+      "cumple": true,
+      "evidencia": "Verificado en src/app/clientes/ui/expediente.page.spec.ts (C12), src/verificacion/b4-3/b4-3.verificacion.spec.ts (cierre con ROL_CANCELAR no recarga y fallo al crear modal muestra toast de error y libera guarda) y e2e/clientes.spec.ts (abre \"Editar cliente\", guarda \"Ana María Pérez\" y recarga el expediente)."
+    },
+    {
+      "id": "C13",
+      "cumple": true,
+      "evidencia": "Verificado en src/app/clientes/ui/expediente.page.spec.ts (C13) y src/verificacion/b4-3/b4-3.verificacion.spec.ts: indicador-carga deshabilita botones; sin facturas muestra \"Este cliente todavía no tiene compras\" con botones deshabilitados; sin abonos muestra mensaje-sin-abonos; error genérico muestra \"Ocurrió un error inesperado\" con Volver y Reintentar (nunca mensaje-sin-compras); CLIENTE_INEXISTENTE e ID inválido en URL muestran \"El cliente no existe\" solo con Volver; Reintentar recupera el expediente."
+    },
+    {
+      "id": "C14",
+      "cumple": true,
+      "evidencia": "Verificado en src/app/clientes/ui/expediente.page.spec.ts (C14) y src/verificacion/b4-3/b4-3.verificacion.spec.ts (incluyendo rechazo tardío de petición vieja tras respuesta nueva exitosa): peticionActual descarta respuestas y errores viejos; ionViewWillEnter recarga el expediente."
+    },
+    {
+      "id": "C15",
+      "cumple": true,
+      "evidencia": "Verificado revisando git diff de src/app/clientes/ui/clientes.page.spec.ts, src/verificacion/b4-1/b4-1.verificacion.spec.ts y e2e/clientes.spec.ts: solo cambió el toque de fila en el directorio para esperar navegación a /clientes/<id> y la edición de cliente desde el expediente en e2e/clientes.spec.ts; las demás aserciones permanecieron intactas."
+    },
+    {
+      "id": "C16",
+      "cumple": true,
+      "evidencia": "Ejecutado npm run test:e2e (que incluye e2e/etapa-4.acceptance.spec.ts): \"ok 12 [Mobile Chrome] › e2e/etapa-4.acceptance.spec.ts:6:3 ... (18.7s)\" pasando completamente sin errores de consola."
+    },
+    {
+      "id": "C17",
+      "cumple": true,
+      "evidencia": "Capturas tomadas con Playwright a 390 px de ancho (expediente-facturas.png, expediente-abonos.png, modal-abono.png) y comparadas contra ClienteExpediente.dc.html, ClienteAbonos.dc.html y ModalAbono.dc.html: coinciden en estructura, textos, colores y sin desbordamiento horizontal (scrollWidth=390); las diferencias menores (borde del indicador de ion-segment en MD, etiqueta azul al enfocar Monto del abono e íconos en selector de medio) quedan anotadas en hallazgos no bloqueantes."
+    },
+    {
+      "id": "C18",
+      "cumple": true,
+      "evidencia": "Verificado en src/app/clientes/ui/expediente.page.ts y en src/app/clientes/ui/expediente.page.spec.ts: btn-volver tiene aria-label=\"Volver\", btn-editar-cliente tiene aria-label=\"Editar cliente\", segment-expediente tiene aria-label=\"Historial del cliente\", y los botones deshabilitados reflejan aria-disabled=\"true\" tanto en carga como con deuda $0 (y en Cancelar de abono.modal.ts cuando abriendoResumen es true)."
+    },
+    {
+      "id": "C19",
+      "cumple": true,
+      "evidencia": "git diff --stat confirma solo rutas permitidas modificadas (salvo instruccion.md/verificacion.md de planificación y src/verificacion/b4-3 del verificador); ConsultarExpediente sin cambios; data-testid previos conservados; npm run lint pasó con 0 errores y 0 advertencias; npm run test:unit pasó 69 archivos / 551 pruebas (529 previas + 14 de B4.3 + 8 de verificación); npm run test:e2e pasó 20/20 (19 previas + etapa-4.acceptance); npm run build completó con éxito (con 1 warning preexistente desde commit 5242076 por presupuesto de CSS de abono.modal.ts: 2.56 kB vs 2.00 kB)."
+    },
+    {
+      "id": "C20",
+      "cumple": true,
+      "evidencia": "Revisados expediente.page.spec.ts, expediente-ui.helpers.spec.ts, clientes.page.spec.ts, abono.modal.spec.ts, resumen-abono.modal.spec.ts y b4-1.verificacion.spec.ts: Select-String confirmó 0 ocurrencias de toThrow o try/catch; cada estado y texto se verifica contra el texto exacto mostrado al usuario; las entradas de ModalController.create se comprueban con sus valores exactos."
+    },
+    {
+      "id": "C21",
+      "cumple": true,
+      "evidencia": "Verificado en src/app/cartera/ui/abono.modal.ts (líneas 81-82, 723, 776) y en src/app/cartera/ui/abono.modal.spec.ts (test C21): mientras abriendoResumen() es true, btn-cancelar-abono tiene disabled=true y aria-disabled=\"true\", cancelar() retorna sin llamar dismiss y hostModal.canDismiss rechaza ROL_CANCELAR."
+    },
+    {
+      "id": "C22",
+      "cumple": true,
+      "evidencia": "Verificado en src/app/cartera/ui/resumen-abono.modal.ts (líneas 325, 356-368), src/app/cartera/ui/resumen-abono.modal.spec.ts (test C22) y src/verificacion/b4-3/b4-3.verificacion.spec.ts: dos llamadas concurrentes a volverAEditar() ejecutan 1 solo modalCtrl.dismiss; si dismiss rechaza, la promesa se resuelve sin rechazo sin manejar y btn-aceptar-abono / btn-volver-editar siguen habilitados y reintentables."
+    },
+    {
+      "id": "C23",
+      "cumple": true,
+      "evidencia": "Verificado en src/app/cartera/ui/abono.modal.ts (líneas 831-859), src/app/cartera/ui/abono.modal.spec.ts (test C23) y src/verificacion/b4-3/b4-3.verificacion.spec.ts (probando además fallo de modal.present()): si modalCtrl.create o modal.present falla antes de guardar, muestra toast con MENSAJE_ERROR_GENERICO (mensajeDeError) y restablece abriendoResumen() a false; si el abono se guardó (ROL_GUARDADO / alGuardar) y falla dismiss, no muestra toast."
+    }
+  ],
+  "detalles": [
+    {
+      "archivo": "src/app/shared/ui/estilos/_segmento.scss",
+      "criterio": "C17",
+      "bloqueante": false,
+      "descripcion": "En la revisión visual a 390 px, el indicador activo del ion-segment en modo MD muestra un borde/altura ligeramente más pegada al contenedor que los 4 px uniformes del mockup ClienteExpediente.dc.html, y en ModalAbono el campo Monto del abono enfocado muestra su etiqueta flotante en #5EC8F2 (estado focus) y el selector de medio incluye los íconos de Efectivo/Transferencia de B4.2. No afecta legibilidad ni hay desbordamiento horizontal (scrollWidth = 390 px).",
+      "linea": 26
+    },
+    {
+      "archivo": "src/app/cartera/ui/abono.modal.ts",
+      "criterio": "C19",
+      "bloqueante": false,
+      "descripcion": "npm run build emite una advertencia de presupuesto de estilos en abono.modal.ts (2.56 kB frente a un límite de 2.00 kB). Se comprobó en el historial git (commit 5242076) que los estilos de abono.modal.ts no fueron modificados en B4.3, por lo que es preexistente de B4.2.",
+      "linea": 297
+    }
+  ],
+  "hallazgosPendientes": [],
+  "resumenVerificador": "Verificación completada con veredicto APROBADO: los 23 criterios (C1–C23) se cumplen y pasan tanto las 551 pruebas unitarias (543 del repositorio + 8 de verificación independiente con SQLite real) como las 20 pruebas e2e y el lint, sin hallazgos bloqueantes.",
+  "archivosImplementador": [
+    "src/app/clientes/ui/expediente.page.ts",
+    "src/app/shared/ui/estilos/_cifras.scss",
+    "src/app/shared/ui/estilos/_historial.scss",
+    "src/app/shared/ui/estilos/_index.scss"
+  ],
+  "archivosVerificador": [
+    "src/verificacion/b4-3/b4-3.verificacion.spec.ts"
+  ],
+  "pruebaFinal": {
+    "comando": "npm run test:unit && npm run test:e2e",
+    "codigo": 0,
+    "log": "logs/r0-prueba.log"
+  },
+  "conversaciones": {
+    "implementador": "1c442662-27c8-4601-b2b5-89be7de2f300",
+    "verificador": "d72d6ecc-675a-4ef2-bb49-c41a1003de7b"
+  },
+  "duracionSegundos": 1555
+}

@@ -314,4 +314,56 @@ describe('ResumenAbonoModalComponent', () => {
     expect(Boolean(btnAceptar.disabled)).toBe(false);
     expect(Boolean(btnVolver.disabled)).toBe(false);
   });
+
+  it('B4.4 C1-C3: blocks aceptar() and disables both buttons while volverAEditar() dismiss is in flight, and recovers on dismiss error', async () => {
+    let resolverDismiss: (val: boolean) => void = () => undefined;
+    mockModalCtrl.dismiss.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolverDismiss = resolve;
+      }),
+    );
+
+    const pVolver = component.volverAEditar();
+    fixture.detectChanges();
+
+    const btnAceptar = fixture.debugElement.query(By.css('[data-testid="btn-aceptar-abono"]')).nativeElement;
+    const btnVolver = fixture.debugElement.query(By.css('[data-testid="btn-volver-editar"]')).nativeElement;
+    expect(Boolean(btnAceptar.disabled)).toBe(true);
+    expect(btnAceptar.getAttribute('aria-disabled')).toBe('true');
+    expect(Boolean(btnVolver.disabled)).toBe(true);
+    expect(btnVolver.getAttribute('aria-disabled')).toBe('true');
+
+    await component.aceptar();
+    expect(mockRegistrarAbono.registrar).not.toHaveBeenCalled();
+
+    resolverDismiss(true);
+    await pVolver;
+    fixture.detectChanges();
+
+    expect(Boolean(btnAceptar.disabled)).toBe(false);
+    expect(Boolean(btnVolver.disabled)).toBe(false);
+
+    // If dismiss rejects, no unhandled rejection, buttons re-enabled, and aceptar() works once
+    let rechazarDismiss: (err: Error) => void = () => undefined;
+    mockModalCtrl.dismiss.mockReturnValueOnce(
+      new Promise((_, reject) => {
+        rechazarDismiss = reject;
+      }),
+    );
+
+    const pVolverError = component.volverAEditar();
+    fixture.detectChanges();
+    expect(Boolean(btnAceptar.disabled)).toBe(true);
+    expect(Boolean(btnVolver.disabled)).toBe(true);
+
+    rechazarDismiss(new Error('Dismiss failed'));
+    await pVolverError;
+    fixture.detectChanges();
+
+    expect(Boolean(btnAceptar.disabled)).toBe(false);
+    expect(Boolean(btnVolver.disabled)).toBe(false);
+
+    await component.aceptar();
+    expect(mockRegistrarAbono.registrar).toHaveBeenCalledTimes(1);
+  });
 });

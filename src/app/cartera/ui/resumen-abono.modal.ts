@@ -105,8 +105,8 @@ export interface LineaResumenAbono {
           <ion-button
             expand="block"
             color="primary"
-            [disabled]="guardando() || guardado()"
-            [attr.aria-disabled]="guardando() || guardado() ? 'true' : null"
+            [disabled]="guardando() || guardado() || volviendo()"
+            [attr.aria-disabled]="guardando() || guardado() || volviendo() ? 'true' : null"
             [attr.aria-busy]="guardando() ? 'true' : null"
             (click)="aceptar()"
             data-testid="btn-aceptar-abono"
@@ -122,8 +122,8 @@ export interface LineaResumenAbono {
             expand="block"
             fill="outline"
             color="secondary"
-            [disabled]="guardando() || guardado()"
-            [attr.aria-disabled]="guardando() || guardado() ? 'true' : null"
+            [disabled]="guardando() || guardado() || volviendo()"
+            [attr.aria-disabled]="guardando() || guardado() || volviendo() ? 'true' : null"
             (click)="volverAEditar()"
             data-testid="btn-volver-editar"
           >
@@ -322,7 +322,7 @@ export class ResumenAbonoModalComponent {
   readonly guardando = signal(false);
   readonly guardado = signal(false);
   readonly errorGuardar = signal<string | null>(null);
-  private volviendo = false;
+  readonly volviendo = signal(false);
 
   readonly formatearPesos = formatearPesos;
   readonly formatearFechaHoraLegible = formatearFechaHoraLegible;
@@ -354,21 +354,21 @@ export class ResumenAbonoModalComponent {
   }
 
   async volverAEditar(): Promise<void> {
-    if (this.guardando() || this.guardado() || this.volviendo) {
+    if (this.guardando() || this.guardado() || this.volviendo()) {
       return;
     }
-    this.volviendo = true;
+    this.volviendo.set(true);
     try {
       await this.modalCtrl.dismiss(null, ROL_CANCELAR);
     } catch {
       // Ignore dismiss errors so buttons remain usable
     } finally {
-      this.volviendo = false;
+      this.volviendo.set(false);
     }
   }
 
   async aceptar(): Promise<void> {
-    if (this.guardando() || this.guardado()) {
+    if (this.guardando() || this.guardado() || this.volviendo()) {
       return;
     }
 

@@ -488,4 +488,36 @@ describe('ExpedientePage', () => {
 
     expect(textoDe('[data-testid="expediente-nombre"]')).toBe('Ana Nueva');
   });
+
+  it('B4.4 C7: invalid route id invalidates in-flight load and keeps CLIENTE_INEXISTENTE with cargando() false', async () => {
+    for (const invalidId of ['abc', '0', '-3']) {
+      paramId = '1';
+      let resolverCarga: (e: ExpedienteCliente) => void = () => undefined;
+      mockConsultarExpediente.consultar.mockReturnValueOnce(
+        new Promise<ExpedienteCliente>((resolve) => {
+          resolverCarga = resolve;
+        }),
+      );
+
+      const cargaEnCurso = component.ionViewWillEnter();
+      fixture.detectChanges();
+      expect(component.cargando()).toBe(true);
+
+      paramId = invalidId;
+      await component.ionViewWillEnter();
+      fixture.detectChanges();
+
+      expect(component.cargando()).toBe(false);
+      expect(component.expediente()).toBeNull();
+      expect(textoDe('[data-testid="mensaje-error-carga"]')).toBe(MENSAJES_ERROR.CLIENTE_INEXISTENTE);
+
+      resolverCarga(expedienteBase);
+      await cargaEnCurso;
+      fixture.detectChanges();
+
+      expect(component.cargando()).toBe(false);
+      expect(component.expediente()).toBeNull();
+      expect(textoDe('[data-testid="mensaje-error-carga"]')).toBe(MENSAJES_ERROR.CLIENTE_INEXISTENTE);
+    }
+  });
 });

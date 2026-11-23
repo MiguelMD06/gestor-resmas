@@ -584,7 +584,9 @@ export class ExpedientePage {
     const rawId = this.route.snapshot.paramMap.get('id');
     const idCliente = Number(rawId);
     if (!rawId || !Number.isSafeInteger(idCliente) || idCliente <= 0) {
+      ++this.peticionActual;
       this.idClienteActual = null;
+      this.cargando.set(false);
       this.expediente.set(null);
       this.errorCarga.set({ mensaje: MENSAJES_ERROR.CLIENTE_INEXISTENTE, esInexistente: true });
       return;

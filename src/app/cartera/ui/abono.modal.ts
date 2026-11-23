@@ -547,6 +547,7 @@ export class AbonoModalComponent implements OnInit {
   readonly selectorFechaAbierto = signal(false);
   readonly guardando = signal(false);
   readonly abriendoResumen = signal(false);
+  readonly abonoRegistrado = signal(false);
 
   readonly formatearPesos = formatearPesos;
   readonly formatearFechaCorta = formatearFechaCorta;
@@ -669,7 +670,7 @@ export class AbonoModalComponent implements OnInit {
   });
 
   readonly puedeRevisar = computed<boolean>(() => {
-    if (this.guardando() || this.abriendoResumen()) {
+    if (this.guardando() || this.abriendoResumen() || this.abonoRegistrado()) {
       return false;
     }
     if (this.deudaTotalCliente() <= 0) {
@@ -776,6 +777,14 @@ export class AbonoModalComponent implements OnInit {
     if (this.guardando() || this.abriendoResumen()) {
       return;
     }
+    if (this.abonoRegistrado()) {
+      try {
+        await this.modalCtrl.dismiss({ guardado: true }, ROL_GUARDADO);
+      } catch {
+        // Payment already persisted; ignore modal dismiss failure
+      }
+      return;
+    }
     await this.modalCtrl.dismiss(null, ROL_CANCELAR);
   }
 
@@ -832,6 +841,7 @@ export class AbonoModalComponent implements OnInit {
       const { role } = await modal.onDidDismiss();
       if (role === ROL_GUARDADO || abonoGuardado) {
         abonoGuardado = true;
+        this.abonoRegistrado.set(true);
         try {
           await this.modalCtrl.dismiss({ guardado: true }, ROL_GUARDADO);
         } catch {
@@ -840,6 +850,7 @@ export class AbonoModalComponent implements OnInit {
       }
     } catch (error: unknown) {
       if (abonoGuardado) {
+        this.abonoRegistrado.set(true);
         return;
       }
       try {

@@ -458,4 +458,29 @@ describe('AbonoModalComponent', () => {
     expect(mockToastCtrl.create).not.toHaveBeenCalled();
     expect(component.abriendoResumen()).toBe(false);
   });
+
+  it('B4.4 C4-C6: after payment is saved and dismiss fails, permanently disables review and cancelar() dismisses with ROL_GUARDADO without error toast', async () => {
+    component.monto.set(5000);
+    fixture.detectChanges();
+
+    mockResumenModal.onDidDismiss.mockResolvedValueOnce({ data: { guardado: true }, role: ROL_GUARDADO });
+    mockModalCtrl.dismiss.mockRejectedValueOnce(new Error('Dismiss failed'));
+
+    await component.abrirResumen();
+    fixture.detectChanges();
+
+    expect(component.puedeRevisar()).toBe(false);
+    const btnRevisar = botonRevisar();
+    expect(Boolean(btnRevisar.disabled)).toBe(true);
+    expect(btnRevisar.getAttribute('aria-disabled')).toBe('true');
+
+    mockModalCtrl.create.mockClear();
+    await component.abrirResumen();
+    expect(mockModalCtrl.create).not.toHaveBeenCalled();
+
+    mockModalCtrl.dismiss.mockResolvedValueOnce(true);
+    await component.cancelar();
+    expect(mockModalCtrl.dismiss).toHaveBeenLastCalledWith({ guardado: true }, ROL_GUARDADO);
+    expect(mockToastCtrl.create).not.toHaveBeenCalled();
+  });
 });

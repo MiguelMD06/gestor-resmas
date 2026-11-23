@@ -19,6 +19,10 @@ export const routes: Routes = [
     loadComponent: () => import('../clientes/ui/clientes.page').then((m) => m.ClientesPage),
   },
   {
+    path: 'clientes/:id',
+    loadComponent: () => import('../clientes/ui/expediente.page').then((m) => m.ExpedientePage),
+  },
+  {
     path: '',
     redirectTo: 'inventario',
     pathMatch: 'full',

@@ -1,0 +1,81 @@
+[MODO EJECUTOR]
+
+# Verificación del bloque B4.3-expediente
+
+Eres el verificador independiente de este bloque. Otro agente lo implementó
+siguiendo `C:\Users\MIGUEL ANGEL\Documents\PROYECTOS MIGUEL MEDINA DIAZ\gestor-resmas\.claude\worktrees\docs-revision-plan\planificacion\etapas\4-cartera-expediente\bloques\B4.3-expediente\instruccion.md`: léelo para entender la tarea. Tu trabajo es
+comprobar con pruebas reales que cumple todos los criterios de aceptación de
+abajo, e intentar romperlo. No lo arreglas tú.
+
+## Reglas
+
+1. No modificas ningún archivo fuera de `src/verificacion/b4-3`. Ahí puedes crear tus propias pruebas para comprobar los criterios y los casos que pueden fallar.
+2. Cada criterio se comprueba ejecutando algo de verdad (una prueba, un
+   comando, una petición). Solo si no se puede ejecutar, se comprueba leyendo
+   el código, y la evidencia lo dice. La evidencia nombra qué corriste y qué
+   salió. Nunca inventes un resultado.
+3. Intenta romperlo aunque el criterio no lo nombre: valor límite exacto, el
+   segundo y el último elemento (no solo el primero), repetir la acción, fallo
+   de red, datos de otro usuario y otro rol.
+4. Revisa también las pruebas que escribió el implementador. Es un hallazgo
+   bloqueante si:
+   - una prueba no ejercita la función que nombra su título;
+   - un rechazo esperado no se acota al error exacto (código o mensaje), por
+     ejemplo un `toThrow()` o `rejects.toThrow()` a secas;
+   - hay un `try/catch` sin una aserción que falle si no se lanza el error;
+   - un caso límite no se prueba con el valor límite exacto.
+5. Los archivos que el implementador podía tocar son: `src/app/clientes/ui/expediente.page.ts`, `src/app/clientes/ui/expediente.page.spec.ts`, `src/app/clientes/ui/expediente-ui.helpers.ts`, `src/app/clientes/ui/expediente-ui.helpers.spec.ts`, `src/app/clientes/ui/clientes.page.ts`, `src/app/clientes/ui/clientes.page.spec.ts`, `src/app/cartera/ui/abono.modal.ts`, `src/app/cartera/ui/abono.modal.spec.ts`, `src/app/cartera/ui/resumen-abono.modal.ts`, `src/app/cartera/ui/resumen-abono.modal.spec.ts`, `src/app/shell/tabs.routes.ts`, `src/app/shared/ui/estilos/**`, `src/verificacion/b4-1/b4-1.verificacion.spec.ts`, `e2e/clientes.spec.ts`, `e2e/etapa-4.acceptance.spec.ts`. Si
+   cambió algo fuera, es un hallazgo bloqueante.
+6. Lee el `CLAUDE.md` del proyecto antes de empezar. Cierra todo servidor que
+   levantes para probar.
+7. Al final corre el comando de prueba del bloque y anota su resultado:
+   `npm run test:unit && npm run test:e2e`
+
+## Criterios de aceptación
+
+# Criterios de aceptación — B4.3
+
+Datos de partida de las pruebas unitarias (expediente simulado de **Ana**, celular 3104567890): deuda `{ total: 40000, capital: 25000, ganancia: 15000 }`; facturas, de la más nueva a la más antigua: **F2** (id 2, 2026-11-10 10:00:00, 1 × Oficio a $15.000, total $15.000, costo $10.000, pagado $5.000, saldo $10.000, `PARCIAL`) y **F1** (id 1, 2026-11-01 10:00:00, 2 × Carta a $15.000, total $30.000, costo $20.000, pagado $0, saldo $30.000, `PENDIENTE`); abonos: el `ABONO_INICIAL` de $5.000 en Efectivo a F2. Los montos se ven con `formatearPesos`.
+
+- C1: Tocar a Ana en el directorio navega a su expediente (`clientes/<id>`) y no abre el modal de editar. El expediente tiene botón de volver al directorio, con `aria-label` "Volver".
+- C2: La cabecera muestra las iniciales, "Ana", "3104567890" ("Sin celular" para un cliente sin teléfono), "Deuda total" $ 40.000, "2 facturas con saldo", "Capital por recuperar" $ 25.000 y "Ganancia por cobrar" $ 15.000, y los botones **Registrar abono** y **Pagar todo · $ 40.000**, habilitados.
+- C3: Con una sola factura con saldo dice "1 factura con saldo". Con deuda $0 la tarjeta dice "$ 0" y "Al día", y **Registrar abono** y **Pagar todo** están deshabilitados (`disabled` y `aria-disabled`).
+- C4: Las pestañas dicen "Facturas · 2" y "Abonos · 1". La pestaña Facturas muestra primero "Factura #2" y después "Factura #1", cada una con su fecha y hora legible.
+- C5: Estados de factura con su color: F2 "Abonada parcialmente" en celeste `#5EC8F2`, F1 "Pendiente" en rojo `#FF6B6B`, y una factura `PAGADA` "Pagada" en verde `#34D399`.
+- C6: F1 muestra la línea "2 × Carta · $ 15.000 c/u" con $ 30.000, "Pagado $ 0 de $ 30.000", "Saldo $ 30.000" y **Abonar a esta factura**; F2, "1 × Oficio · $ 15.000 c/u", "Pagado $ 5.000 de $ 15.000" y "Saldo $ 10.000". Una factura pagada no muestra Pagado, Saldo ni el botón. Una factura con dos líneas muestra las dos, en orden.
+- C7: La pestaña Abonos muestra el abono inicial: $ 5.000, "fecha · Abono inicial", "Efectivo" en `#8FCB6B` con su ícono y "Factura #2" con $ 5.000, sin "quedó pagada". Las etiquetas de tipo son "A la deuda" (`CASCADA_GLOBAL`), "A una factura" (`FACTURA_INDIVIDUAL`) y "Pagar todo" (`LIQUIDACION_TOTAL`); Transferencia se ve en `#B49CF0` con su ícono.
+- C8: "quedó pagada": si además hay un abono `CASCADA_GLOBAL` posterior de $35.000 con aplicaciones F1 $30.000 y F2 $5.000, ese abono va primero y muestra "Factura #1 · quedó pagada" con $ 30.000 y "Factura #2" con $ 5.000 sin la marca (F2 suma $10.000 de $15.000). Un abono que completa el total de F2 la marca como pagada en ese abono y no en los anteriores.
+- C9: **Registrar abono** abre `AbonoModalComponent` con `cliente` Ana, `modoInicial: 'CASCADA_GLOBAL'` y `facturas` = F1 y F2 como `FacturaAbierta`, **de la más antigua a la más nueva** (F1 primero), con `canDismiss` que solo permite el cierre explícito. **Pagar todo** lo abre con `'LIQUIDACION_TOTAL'`. **Abonar a esta factura** en F2 lo abre con `'FACTURA_INDIVIDUAL'` e `idVentaInicial: 2`. Las facturas pagadas no se pasan al modal.
+- C10: `abono.modal.ts` con `idVentaInicial: 2` abre con F2 elegida y "Hasta $ 10.000"; con un `idVentaInicial` que no está entre las abiertas, no elige ninguna y el botón queda deshabilitado. Las pruebas que ya tenía `abono.modal.spec.ts` siguen pasando.
+- C11: Si el modal de abono se cierra con `ROL_GUARDADO`, el expediente vuelve a consultar `ConsultarExpediente` y muestra los datos nuevos; si se cierra de otra forma, no recarga.
+- C12: **Editar** (con `aria-label` "Editar cliente") abre `cliente.modal.ts` con el cliente, que muestra "Editar cliente"; al guardar, el expediente se recarga y muestra el nombre nuevo.
+- C13: Estados con el texto exacto: mientras carga, `indicador-carga` con los botones deshabilitados; sin facturas, «Este cliente todavía no tiene compras» (`mensaje-sin-compras`) con los botones de abono deshabilitados; la pestaña Abonos sin abonos muestra su estado vacío; error, "Ocurrió un error inesperado" con **Volver** y **Reintentar**, nunca "Este cliente todavía no tiene compras". Con `CLIENTE_INEXISTENTE`, "El cliente no existe" con **Volver**. **Reintentar** con la carga ya funcionando muestra el expediente.
+- C14: Respuestas viejas: si una recarga lenta termina después de una más nueva, se muestra la más nueva. `ionViewWillEnter` recarga el expediente.
+- C15: Las pruebas que esperaban que tocar un cliente abriera el modal de editar (`clientes.page.spec.ts`, `src/verificacion/b4-1/b4-1.verificacion.spec.ts` y `e2e/clientes.spec.ts`) ahora esperan la navegación al expediente, y la edición de un cliente se prueba desde el expediente. Ninguna otra comprobación de esos archivos cambió.
+  Cómo comprobarlo: revisión del diff de esos tres archivos.
+- C16: e2e de aceptación `e2e/etapa-4.acceptance.spec.ts`, todo por la app: crea un cliente, le vende a fiado dos veces (una con abono inicial), abre su expediente desde el directorio y comprueba la deuda, el capital y la ganancia por cobrar y las facturas con su estado; registra un abono "A la deuda", comprueba el resumen (facturas, "Recupera capital", "Suma a la ganancia libre", "Deuda después del abono") y después el expediente (estados de factura y el abono nuevo primero en la pestaña Abonos); usa **Pagar todo** y comprueba "Al día" en el expediente y en el directorio. Además, un cliente sin compras muestra «Este cliente todavía no tiene compras».
+  Cómo comprobarlo: `npx playwright test e2e/etapa-4.acceptance.spec.ts`.
+- C17: Revisión visual: a 390 px de ancho, el expediente (las dos pestañas) coincide con `ClienteExpediente.dc.html` y `ClienteAbonos.dc.html` en estructura, textos y colores, y el modal de abono abierto desde el expediente coincide con `ModalAbono.dc.html`; las diferencias quedan anotadas en el reporte.
+  Cómo comprobarlo: capturas con Playwright a 390 px y comparación con los mockups.
+- C18: Accesibilidad (regla 10): los botones de solo ícono tienen `aria-label`, el segmento de pestañas tiene etiqueta y los deshabilitados se reflejan con `aria-disabled`.
+- C19: Solo se tocaron las rutas permitidas; no cambió la forma de `ConsultarExpediente`; se conservan los `data-testid` que ya existían; `npm run lint`, `npm run test:unit`, `npm run build` y `npm run test:e2e` pasan sin advertencias (las 529 pruebas unitarias y los 19 e2e que ya existían siguen en verde, con los cambios de C15).
+- C20: Calidad de las pruebas: cada estado y cada texto se comprueba con el texto exacto que ve el usuario, no solo con `toHaveBeenCalled`; las entradas del modal se comprueban con sus valores exactos; sin `try/catch` para verificar errores.
+  Cómo comprobarlo: revisión de los `.spec.ts` nuevos y tocados.
+- C21: Mientras el modal de abono está abriendo el resumen (`abriendoResumen()` verdadero), **Cancelar** está deshabilitado (`disabled` y `aria-disabled`) y llamar a `cancelar()` no cierra el modal.
+- C22: Dos llamadas seguidas a `volverAEditar()` en el resumen producen **un solo** `dismiss`, y el modal de abono queda abierto con sus datos; si `dismiss` falla, no queda una promesa rechazada sin manejar y los botones del resumen siguen usables.
+- C23: Si el abono se guardó y el `dismiss` del modal de abono falla, no aparece ningún toast de error; si falla `modalCtrl.create` o `present` del resumen (antes de guardar), sí aparece el toast con el texto de `mensajeDeError` y el modal de abono vuelve a quedar usable (`abriendoResumen()` falso).
+
+## Respuesta
+
+Responde con el formato JSON pedido:
+
+- `veredicto`: `APROBADO` solo si todos los criterios se cumplen y no hay
+  hallazgos bloqueantes; si no, `CAMBIOS`.
+- `criterios`: uno por cada id de arriba, sin omitir ninguno, con `cumple` y
+  `evidencia` (qué corriste y qué salió).
+- `hallazgos`: cada uno con `archivo`, `linea` si aplica, `criterio` (el id, o
+  vacío si no corresponde a uno), `bloqueante` y una `descripcion` concreta:
+  qué falla y cómo reproducirlo. Es bloqueante todo lo que incumple un
+  criterio, rompe algo o es un riesgo; es un detalle lo que no cambia el
+  comportamiento.
+- `resumen`: una o dos frases.

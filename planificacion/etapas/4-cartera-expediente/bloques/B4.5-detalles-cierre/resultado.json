@@ -1,0 +1,88 @@
+{
+  "bloque": "B4.5-detalles-cierre",
+  "estado": "APROBADO",
+  "codigo": "OK",
+  "motivo": "",
+  "correcciones": 0,
+  "criterios": [
+    {
+      "id": "C1",
+      "cumple": true,
+      "evidencia": "Ejecutado en src/verificacion/b4-5/b4-5.verificacion.spec.ts (test C1) y src/app/cartera/ui/abono.modal.spec.ts (B4.5 C1) mediante npm run test:unit: en FACTURA_INDIVIDUAL sin factura seleccionada, con $40.001 y con $5.000, [data-testid=\"btn-revisar-abono\"] muestra \"Revisar abono\", tiene disabled=true y aria-disabled=\"true\"."
+    },
+    {
+      "id": "C2",
+      "cumple": true,
+      "evidencia": "Ejecutado en src/verificacion/b4-5/b4-5.verificacion.spec.ts (test C2) y src/app/cartera/ui/abono.modal.spec.ts (B4.5 C2 & C3) mediante npm run test:unit: con F2 (saldo $10.000) seleccionada, con $10.000 muestra \"Revisar abono · $ 10.000\" y habilitado; con $10.001 muestra \"Revisar abono\", disabled=true, aria-disabled=\"true\" y [data-testid=\"error-monto\"] contiene exactamente MENSAJES_ERROR.MONTO_SUPERA_SALDO_FACTURA."
+    },
+    {
+      "id": "C3",
+      "cumple": true,
+      "evidencia": "Ejecutado en src/verificacion/b4-5/b4-5.verificacion.spec.ts (test C3) y src/app/cartera/ui/abono.modal.spec.ts (B4.5 C2 & C3) mediante npm run test:unit: con $15.000 escrito, al elegir F2 el botón queda en \"Revisar abono\" y deshabilitado; al cambiar a F1 queda en \"Revisar abono · $ 15.000\" y habilitado."
+    },
+    {
+      "id": "C4",
+      "cumple": true,
+      "evidencia": "Ejecutado en src/verificacion/b4-5/b4-5.verificacion.spec.ts (test C4) y src/app/cartera/ui/abono.modal.spec.ts (B4.5 C4) mediante npm run test:unit: en CASCADA_GLOBAL con $35.000 dice \"Revisar abono · $ 35.000\", con $40.001 dice \"Revisar abono\" deshabilitado, con monto vacío dice \"Revisar abono\" deshabilitado, y en LIQUIDACION_TOTAL dice \"Revisar pago · $ 40.000\" habilitado."
+    },
+    {
+      "id": "C5",
+      "cumple": true,
+      "evidencia": "Ejecutado en src/verificacion/b4-5/b4-5.verificacion.spec.ts (test C5 & C6) y src/app/clientes/ui/clientes.page.spec.ts mediante npm run test:unit: dentro de .buscador-contenedor, el primer hijo antes del ion-searchbar tiene texto exacto \"Buscar cliente\", clase campo-selector-etiqueta y aria-hidden=\"true\", y getComputedStyle del contenedor reportó position === \"relative\"."
+    },
+    {
+      "id": "C6",
+      "cumple": true,
+      "evidencia": "Ejecutado en src/verificacion/b4-5/b4-5.verificacion.spec.ts (test C5 & C6) y la suite completa (incluyendo vender.page.spec.ts) mediante npm run test:unit: en ClientesPage el ion-searchbar tiene aria-label=\"Buscar cliente por nombre o celular\" y placeholder=\"Buscar por nombre o celular\"; en SelectorClienteContenidoComponent (Vender) conserva aria-label=\"Buscar por nombre o celular\", placeholder=\"Buscar por nombre o celular\" y sin .campo-selector-etiqueta; vender.page.spec.ts pasó sin modificaciones."
+    },
+    {
+      "id": "C7",
+      "cumple": true,
+      "evidencia": "Ejecutado en src/verificacion/b4-5/b4-5.verificacion.spec.ts (test C7) y src/app/clientes/ui/clientes.page.spec.ts mediante npm run test:unit (71 archivos, 570 pruebas en verde): el buscador sigue habilitado (disabled=false, aria-disabled undefined) mientras cargando() es true y sigue filtrando por nombre y por celular."
+    },
+    {
+      "id": "C8",
+      "cumple": true,
+      "evidencia": "Ejecutado npm run build (Application bundle generation complete en 5.320s, salida en www): terminó con código 0 y cero advertencias de presupuesto (ni de abono.modal.ts ni ninguna nueva). Verificado con git status -s que angular.json no fue modificado."
+    },
+    {
+      "id": "C9",
+      "cumple": true,
+      "evidencia": "Inspeccionado git diff en abono.modal.ts, src/app/shared/ui/estilos/_opciones.scss y _index.scss, más búsqueda con git grep -n \"opcion-factura\" src/: las 6 reglas (.opcion-factura, .opcion-factura-sel, .opcion-factura-info, .opcion-factura-nombre, .opcion-factura-fecha, .opcion-factura-saldo) fueron movidas con valores idénticos a _opciones.scss, ya no están en abono.modal.ts, _index.scss agrega @forward 'opciones'; y ningún otro componente usa esas clases."
+    },
+    {
+      "id": "C10",
+      "cumple": true,
+      "evidencia": "Verificado con git status -s y git diff: solo se modificaron/crearon las 6 rutas permitidas (abono.modal.ts, abono.modal.spec.ts, clientes.page.ts, clientes.page.spec.ts, _opciones.scss, _index.scss) y fuera de \"Buscar cliente\" / aria-label del searchbar en Clientes no cambiaron otros textos visibles."
+    },
+    {
+      "id": "C11",
+      "cumple": true,
+      "evidencia": "Ejecutado cmd /c \"npm run lint && npm run test:unit && npm run build\": terminó con código 0 (ng lint --max-warnings 0 sin errores ni advertencias, tsc -p tsconfig.e2e.json sin errores, prettier --check conforme, 71/71 archivos y 570/570 pruebas unitarias aprobadas, ng build sin advertencias)."
+    }
+  ],
+  "detalles": [],
+  "hallazgosPendientes": [],
+  "resumenVerificador": "La verificación independiente confirma que B4.5-detalles-cierre cumple los criterios C1 a C11 y pasa lint, pruebas unitarias (570/570 en 71 archivos) y build sin advertencias ni hallazgos bloqueantes.",
+  "archivosImplementador": [
+    "src/app/cartera/ui/abono.modal.spec.ts",
+    "src/app/cartera/ui/abono.modal.ts",
+    "src/app/clientes/ui/clientes.page.spec.ts",
+    "src/app/clientes/ui/clientes.page.ts",
+    "src/app/shared/ui/estilos/_index.scss",
+    "src/app/shared/ui/estilos/_opciones.scss"
+  ],
+  "archivosVerificador": [
+    "src/verificacion/b4-5/b4-5.verificacion.spec.ts"
+  ],
+  "pruebaFinal": {
+    "comando": "npm run lint && npm run test:unit && npm run build",
+    "codigo": 0,
+    "log": "logs/r0-prueba.log"
+  },
+  "conversaciones": {
+    "implementador": "dd61e9d9-4f3e-4db4-b922-cdf8fa6596b5",
+    "verificador": "d0f4ef4b-0f65-44d3-bae3-ec2e83ac179d"
+  },
+  "duracionSegundos": 455
+}

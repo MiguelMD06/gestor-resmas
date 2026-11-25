@@ -11,7 +11,7 @@
 | 2 | Inventario y aportes de capital | RN-01, RN-02, RF-01, RF-02, RF-03, RF-04; A2, A3; navegación con pestañas | ✅ hecha (PR #11) | [PLAN](etapas/2-inventario/PLAN.md) | `etapas/2-inventario/reporte` |
 | 3 | Clientes y punto de venta | RF-05, RF-07, RF-08, RF-09, RF-10, RNF-05; A4 (aviso) | ✅ hecha (PR #15) | [PLAN](etapas/3-clientes-venta/PLAN.md) | `etapas/3-clientes-venta/reporte` |
 | 3B | Rediseño visual | Mockups aprobados del canvas de diseño; `comun/diseno.md`; defecto del selector de clientes (Etapa 3, L16); R-13 y R-17 en compra y aporte | ✅ hecha (PR #21) | [PLAN](etapas/3b-rediseno-visual/PLAN.md) | `etapas/3b-rediseno-visual/reporte` |
-| 4 | Cartera y expediente del cliente | RF-06, RF-11, RF-12, RF-13, RF-14, RF-15; confirmación del abono (R-15) | plan aprobado | [PLAN](etapas/4-cartera-expediente/PLAN.md) | — |
+| 4 | Cartera y expediente del cliente | RF-06, RF-11, RF-12, RF-13, RF-14, RF-15; confirmación del abono (R-15) | implementada, PR en revisión | [PLAN](etapas/4-cartera-expediente/PLAN.md) | `etapas/4-cartera-expediente/reporte` |
 | 5 | Finanzas: retiros, traspasos y dashboard | RN-04, RF-17, RF-18, RF-19, RF-20, RF-21; A5 (ganancia mensual) | pendiente | — | — |
 | 6 | Respaldo, historial de ventas y anulaciones | RNF-06; A7 (una migración nueva); historial de ventas por número, cliente (incluido Mostrador) o fecha | pendiente | — | — |
 | 7 | APK de release firmada | RNF-01 (entrega): clave de firma, nombre, ícono y versión de la app | pendiente | — | — |

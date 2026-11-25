@@ -483,4 +483,65 @@ describe('AbonoModalComponent', () => {
     expect(mockModalCtrl.dismiss).toHaveBeenLastCalledWith({ guardado: true }, ROL_GUARDADO);
     expect(mockToastCtrl.create).not.toHaveBeenCalled();
   });
+
+  it('B4.5 C1: keeps Revisar abono without amount and disabled in FACTURA_INDIVIDUAL when no invoice is selected', () => {
+    crearModal([f1, f2], 'FACTURA_INDIVIDUAL');
+
+    component.monto.set(40001);
+    fixture.detectChanges();
+    expect(botonRevisar().textContent?.trim()).toBe('Revisar abono');
+    expect(Boolean(botonRevisar().disabled)).toBe(true);
+    expect(botonRevisar().getAttribute('aria-disabled')).toBe('true');
+
+    component.monto.set(5000);
+    fixture.detectChanges();
+    expect(botonRevisar().textContent?.trim()).toBe('Revisar abono');
+    expect(Boolean(botonRevisar().disabled)).toBe(true);
+    expect(botonRevisar().getAttribute('aria-disabled')).toBe('true');
+  });
+
+  it('B4.5 C2 & C3: updates review button text and validation error when selecting and switching invoices', () => {
+    crearModal([f1, f2], 'FACTURA_INDIVIDUAL');
+
+    component.seleccionarFactura(2);
+    component.monto.set(10000);
+    fixture.detectChanges();
+    expect(botonRevisar().textContent?.trim()).toBe('Revisar abono · $ 10.000');
+    expect(Boolean(botonRevisar().disabled)).toBe(false);
+
+    component.monto.set(10001);
+    fixture.detectChanges();
+    expect(botonRevisar().textContent?.trim()).toBe('Revisar abono');
+    expect(Boolean(botonRevisar().disabled)).toBe(true);
+    expect(fixture.debugElement.query(By.css('[data-testid="error-monto"]')).nativeElement.textContent.trim()).toBe(
+      MENSAJES_ERROR.MONTO_SUPERA_SALDO_FACTURA,
+    );
+
+    component.monto.set(15000);
+    fixture.detectChanges();
+    expect(botonRevisar().textContent?.trim()).toBe('Revisar abono');
+    expect(Boolean(botonRevisar().disabled)).toBe(true);
+
+    component.seleccionarFactura(1);
+    fixture.detectChanges();
+    expect(botonRevisar().textContent?.trim()).toBe('Revisar abono · $ 15.000');
+    expect(Boolean(botonRevisar().disabled)).toBe(false);
+  });
+
+  it('B4.5 C4: keeps existing review button texts for CASCADA_GLOBAL and LIQUIDACION_TOTAL', () => {
+    component.monto.set(35000);
+    fixture.detectChanges();
+    expect(botonRevisar().textContent?.trim()).toBe('Revisar abono · $ 35.000');
+
+    component.monto.set(40001);
+    fixture.detectChanges();
+    expect(botonRevisar().textContent?.trim()).toBe('Revisar abono');
+
+    component.monto.set(null);
+    fixture.detectChanges();
+    expect(botonRevisar().textContent?.trim()).toBe('Revisar abono');
+
+    crearModal([f1, f2], 'LIQUIDACION_TOTAL');
+    expect(botonRevisar().textContent?.trim()).toBe('Revisar pago · $ 40.000');
+  });
 });

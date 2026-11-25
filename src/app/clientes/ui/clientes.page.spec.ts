@@ -359,13 +359,24 @@ describe('ClientesPage', () => {
     expect(items[0].nativeElement.textContent).toContain('Juan Gómez');
   });
 
-  it('sets exact aria-label on searchbar-clientes (C4)', async () => {
+  it('sets exact aria-label on searchbar-clientes (C4, B4.5 C5-C6)', async () => {
     await component.cargarClientes();
     fixture.detectChanges();
 
+    const contenedor = fixture.debugElement.query(By.css('.buscador-contenedor'));
+    expect(contenedor).toBeTruthy();
+
+    const etiqueta = contenedor.nativeElement.firstElementChild as HTMLElement | null;
+    expect(etiqueta).toBeTruthy();
+    expect(etiqueta?.textContent?.trim()).toBe('Buscar cliente');
+    expect(etiqueta?.classList.contains('campo-selector-etiqueta')).toBe(true);
+    expect(etiqueta?.getAttribute('aria-hidden')).toBe('true');
+
     const searchbar = fixture.debugElement.query(By.css('[data-testid="searchbar-clientes"]'));
     expect(searchbar).toBeTruthy();
-    expect(searchbar.attributes['aria-label']).toBe('Buscar por nombre o celular');
+    expect(etiqueta?.nextElementSibling).toBe(searchbar.nativeElement);
+    expect(searchbar.attributes['aria-label']).toBe('Buscar cliente por nombre o celular');
+    expect(searchbar.attributes['placeholder']).toBe('Buscar por nombre o celular');
   });
 
   it('displays header counts, total receivable, and singular/plural debtor labels (C2)', async () => {

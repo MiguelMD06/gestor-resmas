@@ -75,9 +75,10 @@ type FiltroClientes = 'todos' | 'con_deuda';
         }
 
         <div class="buscador-contenedor">
+          <span class="campo-selector-etiqueta" aria-hidden="true">Buscar cliente</span>
           <ion-searchbar
             placeholder="Buscar por nombre o celular"
-            aria-label="Buscar por nombre o celular"
+            aria-label="Buscar cliente por nombre o celular"
             [value]="busqueda()"
             [debounce]="0"
             (ionInput)="onBuscarInput($event)"
@@ -273,7 +274,8 @@ type FiltroClientes = 'todos' | 'con_deuda';
       color: #f5f5f5;
     }
     .buscador-contenedor {
-      border: 1px solid var(--app-borde-campo, #3a3d44);
+      position: relative;
+      border: 1px solid var(--app-borde-campo);
       border-radius: var(--app-radio-campo, 12px);
       min-height: 56px;
       display: flex;

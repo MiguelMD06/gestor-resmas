@@ -363,56 +363,6 @@ interface PreviewAplicacion {
       gap: 8px;
     }
 
-    .opcion-factura {
-      min-height: 56px;
-      padding: 0 14px;
-      border: 1px solid var(--app-borde-campo, #3a3d44);
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      cursor: pointer;
-
-      input {
-        width: 18px;
-        height: 18px;
-        margin: 0;
-        accent-color: var(--ion-color-secondary, #5ec8f2);
-      }
-    }
-
-    .opcion-factura-sel {
-      border: 2px solid var(--ion-color-secondary, #5ec8f2);
-    }
-
-    .opcion-factura-info {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    .opcion-factura-nombre {
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--ion-text-color);
-    }
-
-    .opcion-factura-fecha {
-      font-size: 12px;
-      color: var(--app-texto-secundario);
-    }
-
-    .opcion-factura-saldo {
-      font-size: 13px;
-      color: var(--app-texto-secundario);
-
-      strong {
-        color: var(--ion-color-danger, #ff6b6b);
-        font-weight: 600;
-      }
-    }
-
     .campo-fijo {
       --background: var(--app-tarjeta-elevada, #17181b);
       --border-color: var(--app-tarjeta-elevada, #17181b);
@@ -693,8 +643,12 @@ export class AbonoModalComponent implements OnInit {
   });
 
   readonly textoBotonRevisar = computed<string>(() => {
-    if (this.modo() === 'LIQUIDACION_TOTAL') {
+    const m = this.modo();
+    if (m === 'LIQUIDACION_TOTAL') {
       return `Revisar pago · ${formatearPesos(this.deudaTotalCliente())}`;
+    }
+    if (m === 'FACTURA_INDIVIDUAL' && this.facturaSeleccionada() === null) {
+      return 'Revisar abono';
     }
     const val = this.monto();
     if (val !== null && val > 0 && this.errorMonto() === null) {

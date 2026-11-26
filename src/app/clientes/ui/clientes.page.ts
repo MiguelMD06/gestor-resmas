@@ -209,7 +209,6 @@ type FiltroClientes = 'todos' | 'con_deuda';
     ion-toolbar {
       --background: var(--ion-background-color, #000);
       --border-width: 0;
-      padding-top: 16px;
     }
     ion-title {
       font-size: 28px;

@@ -1,0 +1,5 @@
+// Reserve top safe area inset on routed page headers (issue #29); views must not set padding-top on their toolbar.
+// !important prevents view-level styles from stripping the safe area inset, while excluding ion-modal toolbars.
+ion-router-outlet > * > ion-header > ion-toolbar:first-of-type {
+  padding-top: calc(var(--ion-safe-area-top, 0px) + var(--app-encabezado-extra, 16px)) !important;
+}

@@ -369,7 +369,10 @@ interface ErrorExpediente {
     .exp-toolbar {
       --background: #000;
       --border-width: 0;
-      padding: 4px 4px 0;
+      padding-left: 4px;
+      padding-right: 4px;
+      padding-bottom: 0;
+      --app-encabezado-extra: 4px;
     }
     .btn-volver-icono,
     .btn-editar-texto {

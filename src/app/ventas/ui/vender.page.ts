@@ -502,7 +502,6 @@ const MESES_CORTOS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 's
     .vender-toolbar {
       --background: var(--ion-background-color);
       --border-width: 0;
-      padding-top: 16px;
     }
 
     ion-title {

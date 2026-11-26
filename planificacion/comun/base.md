@@ -49,6 +49,7 @@ src/app/
 - **Diseño:** las pantallas siguen `planificacion/comun/diseno.md` y los mockups aprobados.
 - **Montos que se escriben:** usa siempre el campo de pesos de `src/app/shared/ui/` (muestra "$ 3.800" y entrega el entero `3800`, o `null` si está vacío). No crees otro campo de dinero.
 - **La app es *zoneless*:** el estado que cambia después de un `await` vive en signals; si no, la pantalla no se actualiza.
+- **Encabezado de las vistas y barra de estado (issue #29):** el espacio de la barra de estado de Android lo da una sola regla global (`src/app/shared/ui/estilos/_encabezado.scss`): área segura + 16 px. **Nunca fijes `padding` ni `padding-top` en el `ion-toolbar` del encabezado de una vista;** si la vista necesita otro espacio que 16 px, declara `--app-encabezado-extra` en su toolbar. Toda vista nueva del router se agrega a `e2e/area-segura.spec.ts`. En el navegador el área segura vale 0, así que sin esa prueba el problema solo se ve en el teléfono.
 
 ## Reglas de trabajo
 

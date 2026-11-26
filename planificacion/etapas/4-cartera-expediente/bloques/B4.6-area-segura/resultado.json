@@ -1,0 +1,73 @@
+{
+  "bloque": "B4.6-area-segura",
+  "estado": "APROBADO",
+  "codigo": "OK",
+  "motivo": "",
+  "correcciones": 0,
+  "criterios": [
+    {
+      "id": "C1",
+      "cumple": true,
+      "evidencia": "Ejecutado en `npx playwright test e2e/area-segura.spec.ts e2e/verificacion/b4-6 --workers=1` (6/6 pasaron): con `--safe-area-inset-top: 40px` en `html` (Pixel 7), `paddingTop` calculado fue exactamente `56px` en `/inventario`, `/finanzas`, `/vender` y `/clientes`, y `44px` en `/clientes/<id>` (tanto para cliente creado como en ruta directa `/clientes/99999`)."
+    },
+    {
+      "id": "C2",
+      "cumple": true,
+      "evidencia": "Ejecutado en `e2e/area-segura.spec.ts` y `e2e/verificacion/b4-6/area-segura.verificacion.spec.ts` (6/6 pasaron): con barra simulada de 40 px, el `boundingBox().y` de `ion-title` en `/inventario`, `/finanzas`, `/vender` y `/clientes`, y de `[data-testid=\"btn-volver\"]` (además de `[data-testid=\"btn-editar-cliente\"]` en la verificación) fue `>= 40`."
+    },
+    {
+      "id": "C3",
+      "cumple": true,
+      "evidencia": "Ejecutado en `e2e/area-segura.spec.ts` (sin barra simulada) y en `e2e/verificacion/b4-6/area-segura.verificacion.spec.ts` (valor límite `--safe-area-inset-top: 0px`): `paddingTop` calculado fue `16px` en `/inventario`, `/finanzas`, `/vender` y `/clientes`, y `4px` en el expediente."
+    },
+    {
+      "id": "C4",
+      "cumple": true,
+      "evidencia": "Inspeccionado `src/app/shared/ui/estilos/_encabezado.scss` (selector `ion-router-outlet > * > ion-header > ion-toolbar:first-of-type`, sin `.ion-page`) y ejecutado en e2e: todos los `ion-toolbar` de `app-cliente-modal`, `app-abono-modal`, `app-aporte-modal`, `app-nueva-compra-modal`, `[data-testid=\"modal-selector-cliente\"]` y `app-resumen-venta-modal` devolvieron `el.matches(selector) === false`. Además `verificarReglaSinIonPage` en `area-segura.verificacion.spec.ts` removió `.ion-page` de cada vista y confirmó coincidencia con el selector y `56px`/`44px` calculados."
+    },
+    {
+      "id": "C5",
+      "cumple": true,
+      "evidencia": "Ejecutado en `e2e/verificacion/b4-6/area-segura.verificacion.spec.ts` y `e2e/area-segura.spec.ts`: en `/clientes/<id>` el `paddingLeft` fue `4px`, `paddingRight` `4px` y `paddingBottom` `0px`; `[data-testid=\"btn-volver\"]` quedó en el tercio izquierdo y `[data-testid=\"btn-editar-cliente\"]` en el tercio derecho (`cajaVolver.x + cajaVolver.width < cajaEditar.x`)."
+    },
+    {
+      "id": "C6",
+      "cumple": true,
+      "evidencia": "Verificado con `Select-String` sobre `src/app/**/*.{ts,scss,html}` y `git diff src/app/`: ningún `.page.ts` (`inventario.page.ts`, `clientes.page.ts`, `proximamente.page.ts`, `vender.page.ts`, `expediente.page.ts`) fija `padding-top` ni el lado superior de `padding` en su toolbar; el único espacio por vista declarado es `--app-encabezado-extra: 4px;` en `src/app/clientes/ui/expediente.page.ts`."
+    },
+    {
+      "id": "C7",
+      "cumple": true,
+      "evidencia": "`src/app/shared/ui/estilos/_encabezado.scss` usa `!important`; `e2e/area-segura.spec.ts` inyecta `.vender-toolbar { padding-top: 16px; } ion-toolbar { padding: 4px; }` y verifica `56px` exactos (`toBe`), además de cubrir C1, C3 y C4 con `toBe`. Comprobado quitando temporalmente `@forward 'encabezado';` de `src/app/shared/ui/estilos/_index.scss`: `npx playwright test e2e/area-segura.spec.ts --workers=1` falló los 3 tests (recibió `\"40px\"` en lugar de `\"56px\"` con barra simulada y `\"0px\"` sin ella); línea restaurada de inmediato."
+    },
+    {
+      "id": "C8",
+      "cumple": true,
+      "evidencia": "Ejecutado `npx playwright test --workers=1`: `26 passed (2.3m)`, todas las pruebas e2e existentes, las de `e2e/area-segura.spec.ts` y las de `e2e/verificacion/b4-6` pasaron sin cambios en suites existentes."
+    },
+    {
+      "id": "C9",
+      "cumple": true,
+      "evidencia": "`git status --short` confirmó cambios solo en las rutas permitidas del bloque (más `e2e/verificacion/`). Ejecutado `npm run lint` (0 errores, 0 advertencias, `tsc -p tsconfig.e2e.json` y `prettier --check` OK), `npm run test:unit` (71 archivos, 570 tests OK) y `npm run build` (código 0, sin advertencias de presupuesto de estilos)."
+    }
+  ],
+  "detalles": [],
+  "hallazgosPendientes": [],
+  "resumenVerificador": "Verificación del bloque B4.6-area-segura aprobada: los 9 criterios (C1 a C9) se cumplen con evidencia real de lint, 570 tests unitarios, build sin advertencias, 26 pruebas e2e y comprobación negativa temporal de C7.",
+  "archivosImplementador": [
+    "e2e/area-segura.spec.ts"
+  ],
+  "archivosVerificador": [
+    "e2e/verificacion/b4-6/area-segura.verificacion.spec.ts"
+  ],
+  "pruebaFinal": {
+    "comando": "npm run lint && npm run test:unit && npm run build && npx playwright test e2e/area-segura.spec.ts e2e/verificacion/b4-6 --workers=1",
+    "codigo": 0,
+    "log": "logs/r0-prueba.log"
+  },
+  "conversaciones": {
+    "implementador": "3748be30-4b56-4abe-b2b3-e2717bed9334",
+    "verificador": "283413ca-abe2-4aa1-b8aa-ec92f59e5959"
+  },
+  "duracionSegundos": 928
+}

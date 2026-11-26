@@ -1,0 +1,25 @@
+{
+  "bloque": "B4.6-area-segura",
+  "estado": "ESCALADO",
+  "codigo": "VEREDICTO_INVALIDO",
+  "motivo": "el verificador no devolvio un veredicto valido: sin JSON",
+  "correcciones": 0,
+  "criterios": [],
+  "detalles": [],
+  "hallazgosPendientes": [],
+  "resumenVerificador": "",
+  "archivosImplementador": [
+    "e2e/area-segura.spec.ts",
+    "src/app/clientes/ui/expediente.page.ts",
+    "src/app/shared/ui/estilos/_encabezado.scss",
+    "src/app/shared/ui/estilos/_index.scss",
+    "src/app/ventas/ui/vender.page.ts"
+  ],
+  "archivosVerificador": [],
+  "pruebaFinal": null,
+  "conversaciones": {
+    "implementador": "83a466eb-2e0a-481e-a5cc-56f8d167f685",
+    "verificador": null
+  },
+  "duracionSegundos": 557
+}

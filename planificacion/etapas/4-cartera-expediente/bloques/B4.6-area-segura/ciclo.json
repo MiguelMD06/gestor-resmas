@@ -1,0 +1,25 @@
+{
+  "repo": "C:/Users/juand/Desktop/Universidad Surcolombiana/ProyectosPersonales/gestor-resmas",
+  "implementador": "gemini-4-hydrogen-medium",
+  "verificador": "gemini-4-hydrogen-high",
+  "permitidos": [
+    "src/app/shared/ui/estilos/_encabezado.scss",
+    "src/app/shared/ui/estilos/_index.scss",
+    "src/app/inventario/ui/inventario.page.ts",
+    "src/app/clientes/ui/clientes.page.ts",
+    "src/app/shell/proximamente.page.ts",
+    "src/app/ventas/ui/vender.page.ts",
+    "src/app/clientes/ui/expediente.page.ts",
+    "e2e/area-segura.spec.ts"
+  ],
+  "pruebasVerificador": "e2e/verificacion/b4-6",
+  "comandoPrueba": "npm run lint && npm run test:unit && npm run build && npx playwright test e2e/area-segura.spec.ts e2e/verificacion/b4-6 --workers=1",
+  "ignorar": [
+    "planificacion/etapas/4-cartera-expediente/bloques/**",
+    "test-results/**",
+    "playwright-report/**",
+    "www/**"
+  ],
+  "maxCorrecciones": 2,
+  "timeoutMinutos": 60
+}
